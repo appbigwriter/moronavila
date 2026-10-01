@@ -3,7 +3,8 @@ import {
     LayoutDashboard, Bed, Users, CreditCard,
     Wrench, MessageSquare, Wifi, Megaphone,
     Calendar as CalendarIcon, LogOut, Home, Music,
-    Search, AlertCircle, Menu, X, Trello, Droplets
+    Search, AlertCircle, Menu, X, Trello, Droplets,
+    Globe, ExternalLink
 } from 'lucide-react';
 import { UserRole, Resident } from '../types';
 import { signOut } from '../lib/database';
@@ -28,15 +29,15 @@ interface LayoutProps {
     setActiveTab: (tab: string) => void;
     onLogout: () => void;
     onRefresh: () => void;
+    onGoToLanding?: () => void;
     children: React.ReactNode;
 }
 
-export function Layout({ currentUser, activeTab, setActiveTab, onLogout, onRefresh, children }: LayoutProps) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Fechada por padrão no mobile
+export function Layout({ currentUser, activeTab, setActiveTab, onLogout, onRefresh, onGoToLanding, children }: LayoutProps) {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const isAdmin = currentUser.role === UserRole.ADMIN;
 
-    // Fechar sidebar ao mudar de aba no mobile
     const handleSetActiveTab = (tab: string) => {
         setActiveTab(tab);
         if (window.innerWidth < 1024) {
@@ -65,12 +66,26 @@ export function Layout({ currentUser, activeTab, setActiveTab, onLogout, onRefre
                     }`}
             >
                 {/* Logo Section */}
-                <div className="p-6 lg:p-8 flex items-center gap-3 mb-2 lg:mb-6 shrink-0">
-                    <Home size={28} className="text-rose-600 drop-shadow-lg" />
-                    <h1 className="text-2xl font-black text-white tracking-tighter uppercase italic">
-                        MORONA<span className="text-rose-600">VILA</span>
-                    </h1>
+                <div className="p-6 lg:p-8 flex items-center justify-between gap-3 mb-2 lg:mb-4 shrink-0">
+                    <div className="flex items-center gap-3">
+                        <Home size={28} className="text-rose-600 drop-shadow-lg" />
+                        <h1 className="text-2xl font-black text-white tracking-tighter uppercase italic">
+                            MORONA<span className="text-rose-600">VILA</span>
+                        </h1>
+                    </div>
                 </div>
+
+                {/* Botão Ver Site Público */}
+                {onGoToLanding && (
+                    <div className="px-5 mb-4">
+                        <button
+                            onClick={onGoToLanding}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-black uppercase tracking-widest transition-all"
+                        >
+                            <Globe size={15} /> Ver Site Público
+                        </button>
+                    </div>
+                )}
 
                 {/* Navigation Menu (Scrollable) */}
                 <nav className="px-5 space-y-2 flex-1 overflow-y-auto pb-6 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
@@ -141,41 +156,33 @@ export function Layout({ currentUser, activeTab, setActiveTab, onLogout, onRefre
                         </div>
                     </div>
 
-                    <div className="flex-1 max-w-xl mx-10 hidden md:block">
-                        <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-rose-500 transition-colors" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Pressione / para buscar..."
-                                className="w-full bg-slate-900 border border-slate-800 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500/50 transition-all placeholder:text-slate-600"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                        <button className="relative p-2.5 text-slate-400 hover:bg-slate-800 hover:text-white rounded-2xl transition-all">
-                            <AlertCircle size={22} />
-                            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-600 rounded-full border-2 border-slate-950 animate-ping"></span>
-                            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-600 rounded-full border-2 border-slate-950"></span>
-                        </button>
-                        <div className="h-8 w-[1px] bg-slate-800 mx-2"></div>
-                        <div onClick={() => setIsProfileModalOpen(true)} className="flex items-center gap-4 hover:opacity-80 transition-opacity text-left cursor-pointer">
-                            <div className="text-right hidden sm:block">
-                                <p className="text-sm font-black text-white tracking-tight">{currentUser.name}</p>
-                                <p className="text-[10px] text-rose-500 font-black uppercase tracking-widest">{currentUser.role === UserRole.ADMIN ? 'Admin' : 'Morador'}</p>
+                    <div className="flex items-center gap-4">
+                        {onGoToLanding && (
+                            <button
+                                onClick={onGoToLanding}
+                                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-[10px] font-black uppercase tracking-widest transition-all"
+                            >
+                                <Globe size={14} className="text-rose-500" /> Ver Site Público
+                            </button>
+                        )}
+                        <div className="flex items-center gap-3">
+                            <div className="hidden md:block text-right">
+                                <div className="text-xs font-black text-white">{currentUser.name}</div>
+                                <div className="text-[10px] text-slate-500 font-bold uppercase">{currentUser.role === UserRole.ADMIN ? 'Painel Administrativo' : 'Painel do Residente'}</div>
                             </div>
-                            <div className="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center font-black text-xl uppercase shadow-lg shadow-rose-900/30">
+                            <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center font-black text-sm uppercase shadow-lg shadow-rose-900/30">
                                 {currentUser.name.charAt(0)}
                             </div>
                         </div>
                     </div>
                 </header>
 
-                <div className="p-4 md:p-10 max-w-[1600px] mx-auto w-full">
+                <div className="flex-1 p-4 lg:p-10 overflow-y-auto">
                     {children}
                 </div>
             </main>
 
+            {/* Profile Modal */}
             {isProfileModalOpen && (
                 <ProfileModal
                     currentUser={currentUser}

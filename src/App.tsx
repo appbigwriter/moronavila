@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { ShieldAlert, Loader2 } from 'lucide-react';
 
 import { supabase } from './lib/supabase';
@@ -29,6 +29,7 @@ import { CalendarView } from './views/CalendarView';
 import { LaundryView } from './views/LaundryView';
 import { PropertyDescView } from './views/PropertyDescView';
 import { LandingPage } from './views/LandingPage';
+
 const SoftphoneDock = lazy(() =>
   import('./modules/softphone/SoftphoneDock').then((module) => ({
     default: module.SoftphoneDock,
@@ -38,7 +39,8 @@ const SoftphoneDock = lazy(() =>
 function App() {
   const [session, setSession] = useState<any>(null);
   const [loadingInitial, setLoadingInitial] = useState(true);
-  const [showLogin, setShowLogin] = useState(false);
+  // Controla se estamos vendo 'landing', 'login' ou 'app' (dashboard)
+  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'app'>('landing');
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [initialModal, setInitialModal] = useState<string | null>(null);
@@ -98,10 +100,16 @@ function App() {
       }
     });
 
+    // Permitir link direto por URL: /?view=login ou /#login
+    const params = new URLSearchParams(window.location.search);
+    if (window.location.hash === '#login' || params.get('view') === 'login') {
+      setCurrentView('login');
+    }
+
     return () => subscription.unsubscribe();
   }, []);
 
-  // Limpar modal inicial ao mudar de aba (opcional, para evitar reabertura)
+  // Limpar modal inicial ao mudar de aba
   useEffect(() => {
     if (initialModal) {
       const timer = setTimeout(() => setInitialModal(null), 500);
@@ -114,13 +122,10 @@ function App() {
     setErrorMsg('');
     setAuthNotice('');
     try {
-      // 1. Carregar perfil do usuÃ¡rio primeiro (Independente)
       const user = await fetchCurrentResident(userId);
-      // Buscar email diretamente do Auth para fallback de nome confiÃ¡vel
       const { data: { user: authUser } } = await supabase.auth.getUser();
       const emailFallback = authUser?.email?.split('@')[0] || 'Administrador';
       if (user) {
-        // Fallback: se o nome for vazio, nulo ou generico, usa o e-mail
         if (!user.name || user.name.trim() === '' || user.name === 'Administrador') {
           user.name = emailFallback;
         }
@@ -138,7 +143,6 @@ function App() {
         throw new Error('Cadastro do usuario nao encontrado na base de moradores.');
       }
 
-      // 2. Carregar o restante dos dados
       await refreshData();
     } catch (err: any) {
       console.error(err);
@@ -146,7 +150,7 @@ function App() {
         setAuthNotice(err.message);
       }
       if (!errorMsg) {
-        setErrorMsg('Erro ao carregar os dados iniciais. Verifique a conexÃ£o com o Supabase.');
+        setErrorMsg('Erro ao carregar os dados iniciais. Verifique a conexao com o Supabase.');
       }
     } finally {
       setIsLoading(false);
@@ -203,10 +207,10 @@ function App() {
   const refreshData = async () => {
     const errors: string[] = [];
     try {
-      try { setRooms(await fetchRooms()); } catch (e) { console.error('Rooms:', e); errors.push('CÃ´modos'); }
+      try { setRooms(await fetchRooms()); } catch (e) { console.error('Rooms:', e); errors.push('Comodos'); }
       try { setPayments(await fetchPayments()); } catch (e) { console.error('Payments:', e); errors.push('Financeiro'); }
       try { setMaintenance(await fetchMaintenance()); } catch (e) { console.error('Maintenance:', e); errors.push('Reparos'); }
-      try { setComplaints(await fetchComplaints()); } catch (e) { console.error('Complaints:', e); errors.push('ReclamaÃ§Ãµes'); }
+      try { setComplaints(await fetchComplaints()); } catch (e) { console.error('Complaints:', e); errors.push('Reclamacoes'); }
       try { setNotices(await fetchNotices()); } catch (e) { console.error('Notices:', e); errors.push('Mural'); }
       try { setEvents(await fetchCalendarEvents()); } catch (e) { console.error('Events:', e); errors.push('Agenda'); }
       try { setLaundrySchedules(await fetchLaundrySchedules()); } catch (e) { console.error('Laundry:', e); }
@@ -215,32 +219,57 @@ function App() {
       try {
         const desc = await fetchPropertyDescription();
         setPropertyDescription(desc);
-      } catch (e) { console.error('PropertyDesc:', e); errors.push('DescriÃ§Ã£o da Propriedade'); }
+      } catch (e) { console.error('PropertyDesc:', e); errors.push('Descricao da Propriedade'); }
 
       if (errors.length > 0) {
-        setErrorMsg(`Aviso: Alguns dados principais (${errors.join(', ')}) nÃ£o puderam ser carregados.`);
+        setErrorMsg(`Aviso: Alguns dados principais (${errors.join(', ')}) nao puderam ser carregados.`);
       } else {
         setErrorMsg('');
       }
     } catch (e) {
       console.error(e);
-      setErrorMsg('Aviso: Alguns dados podem nÃ£o ter sido carregados.');
+      setErrorMsg('Aviso: Alguns dados podem nao ter sido carregados.');
     }
   };
 
   if (loadingInitial) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="animate-spin text-indigo-600" size={48} />
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="animate-spin text-rose-600" size={48} />
       </div>
     );
   }
 
-  if (!session || !currentUser) {
-    if (showLogin) {
-      return <Login onLogin={loadAllData} onBack={() => setShowLogin(false)} externalMessage={authNotice} />;
-    }
-    return <LandingPage onLoginClick={() => setShowLogin(true)} />;
+  // 1. O DOMÍNIO CARREGA DIRETAMENTE A LANDING PAGE
+  if (currentView === 'landing') {
+    return (
+      <LandingPage
+        onLoginClick={() => {
+          if (session && currentUser) {
+            setCurrentView('app');
+          } else {
+            setCurrentView('login');
+          }
+        }}
+        isLoggedIn={!!(session && currentUser)}
+        currentUser={currentUser}
+        onGoToDashboard={() => setCurrentView('app')}
+      />
+    );
+  }
+
+  // 2. TELA DE LOGIN DO MORADOR
+  if (currentView === 'login' || (!session || !currentUser)) {
+    return (
+      <Login
+        onLogin={async (userId) => {
+          await loadAllData(userId);
+          setCurrentView('app');
+        }}
+        onBack={() => setCurrentView('landing')}
+        externalMessage={authNotice}
+      />
+    );
   }
 
   const isAdmin = currentUser.role === UserRole.ADMIN;
@@ -250,8 +279,13 @@ function App() {
       currentUser={currentUser}
       activeTab={activeTab}
       setActiveTab={setActiveTab}
-      onLogout={() => { setSession(null); setCurrentUser(null); }}
+      onLogout={() => {
+        setSession(null);
+        setCurrentUser(null);
+        setCurrentView('landing');
+      }}
       onRefresh={() => loadAllData(session.user.id)}
+      onGoToLanding={() => setCurrentView('landing')}
     >
       {errorMsg && (
         <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-3">
@@ -308,7 +342,6 @@ function App() {
               isAdmin={isAdmin} currentUser={currentUser} onRefresh={refreshData}
             />
           )}
-          {/* Removido InternetView duplicado */}
 
           {activeTab === 'complaints' && (
             <ComplaintsView
@@ -350,4 +383,3 @@ function App() {
 }
 
 export default App;
-
