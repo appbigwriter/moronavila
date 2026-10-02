@@ -24,7 +24,7 @@ async function diagnose() {
   if (listError) {
     console.log('Admin listUsers error:', listError.message);
   } else {
-    const user = listData.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    const user = (listData.users as any[]).find(u => u.email?.toLowerCase() === email.toLowerCase());
     console.log('Found user in Auth:', user ? {
       id: user.id,
       email: user.email,
