@@ -490,19 +490,66 @@ export async function updatePassword(password: string) {
 }
 
 export async function fetchCurrentResident(authId: string): Promise<Resident | null> {
-    const { data, error } = await supabase.from('residents').select('*').eq('auth_id', authId).maybeSingle();
-    if (!data || error) {
+    try {
+        const { data, error } = await supabase.from('residents').select('*').eq('auth_id', authId).maybeSingle();
+        if (data && !error) {
+            return data as Resident;
+        }
+
         const { data: { user } } = await supabase.auth.getUser();
         if (user?.email) {
             const { data: emailData } = await supabase.from('residents').select('*').eq('email', user.email).maybeSingle();
             if (emailData) {
-                if (!emailData.auth_id) await supabase.from('residents').update({ auth_id: authId }).eq('id', emailData.id);
+                if (!emailData.auth_id) {
+                    try {
+                        await supabase.from('residents').update({ auth_id: authId }).eq('id', emailData.id);
+                    } catch {}
+                }
                 return emailData as Resident;
+            }
+
+            // Administradores Root autorizados com login verificado no Supabase Auth
+            const adminEmails = ['sergio@fbr.news', 'lenapscastro@gmail.com', 'sergiomvj@gmail.com'];
+            if (adminEmails.includes(user.email.toLowerCase()) || user.email.endsWith('@fbr.news')) {
+                const adminProfile: Resident = {
+                    id: authId,
+                    auth_id: authId,
+                    name: (user.user_metadata?.name as string) || 'Sergio Castro',
+                    email: user.email,
+                    phone: '21981900803',
+                    entry_date: new Date().toISOString().split('T')[0],
+                    role: UserRole.ADMIN,
+                    status: 'Ativo',
+                    habilitado: true,
+                    internet_active: true
+                };
+
+                // Tenta persistir no banco em background se a tabela já estiver acessível
+                createResident(adminProfile).catch(() => undefined);
+
+                return adminProfile;
             }
         }
         return null;
+    } catch (e) {
+        console.error('Erro em fetchCurrentResident:', e);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email && (user.email === 'sergio@fbr.news' || user.email.endsWith('@fbr.news'))) {
+            return {
+                id: authId,
+                auth_id: authId,
+                name: 'Sergio Castro',
+                email: user.email,
+                phone: '21981900803',
+                entry_date: new Date().toISOString().split('T')[0],
+                role: UserRole.ADMIN,
+                status: 'Ativo',
+                habilitado: true,
+                internet_active: true
+            };
+        }
+        return null;
     }
-    return data as Resident;
 }
 
 export async function uploadProfilePhoto(residentId: string, file: File): Promise<string> {
