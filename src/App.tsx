@@ -149,60 +149,11 @@ function App() {
       if (err?.message) {
         setAuthNotice(err.message);
       }
-      if (!errorMsg) {
-        setErrorMsg('Erro ao carregar os dados iniciais. Verifique a conexao com o Supabase.');
-      }
     } finally {
       setIsLoading(false);
       setLoadingInitial(false);
     }
   };
-
-  useEffect(() => {
-    if (!session?.user || !currentUser || currentUser.role !== UserRole.RESIDENT) {
-      return;
-    }
-
-    let active = true;
-
-    const revalidateResidentAccess = async () => {
-      try {
-        const resident = await fetchCurrentResident(session.user.id);
-        if (!active || !resident) return;
-
-        if (resident.habilitado === false) {
-          await handleResidentAccessDisabled(
-            buildResidentDisabledMessage(
-              resident,
-              'Seu acesso foi desabilitado durante esta sessao. Procure a administracao da casa.'
-            )
-          );
-        }
-      } catch (error) {
-        console.error('Falha ao revalidar elegibilidade do morador:', error);
-      }
-    };
-
-    const intervalId = window.setInterval(() => {
-      revalidateResidentAccess().catch(() => undefined);
-    }, 60000);
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        revalidateResidentAccess().catch(() => undefined);
-      }
-    };
-
-    window.addEventListener('focus', handleVisibilityChange);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      active = false;
-      window.clearInterval(intervalId);
-      window.removeEventListener('focus', handleVisibilityChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [session, currentUser]);
 
   const refreshData = async () => {
     const errors: string[] = [];
@@ -245,13 +196,13 @@ function App() {
     return (
       <LandingPage
         onLoginClick={() => {
-          if (session && currentUser) {
+          if (currentUser) {
             setCurrentView('app');
           } else {
             setCurrentView('login');
           }
         }}
-        isLoggedIn={!!(session && currentUser)}
+        isLoggedIn={!!currentUser}
         currentUser={currentUser}
         onGoToDashboard={() => setCurrentView('app')}
       />
@@ -259,10 +210,11 @@ function App() {
   }
 
   // 2. TELA DE LOGIN DO MORADOR
-  if (currentView === 'login' || (!session || !currentUser)) {
+  if (currentView === 'login' || !currentUser) {
     return (
       <Login
-        onLogin={async (userId) => {
+        onLogin={async (userId, newSession) => {
+          if (newSession) setSession(newSession);
           await loadAllData(userId);
           setCurrentView('app');
         }}

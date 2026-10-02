@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Home, LogIn, UserPlus, Mail, Lock, User, Phone, ArrowRight, Heart } from 'lucide-react';
 import { signIn, signUpResident, resetPassword } from '../lib/database';
 
@@ -7,7 +7,7 @@ export function Login({
     onBack,
     externalMessage
 }: {
-    onLogin: (authId: string) => void,
+    onLogin: (authId: string, session?: any) => Promise<void> | void,
     onBack?: () => void,
     externalMessage?: string
 }) {
@@ -29,15 +29,17 @@ export function Login({
         try {
             if (isForgotPassword) {
                 await resetPassword(email);
-                setSuccessMessage('InstruÃ§Ãµes de recuperaÃ§Ã£o de senha foram enviadas!');
+                setSuccessMessage('Instruções de recuperação de senha foram enviadas!');
                 setIsForgotPassword(false);
             } else if (isLogin) {
-                const { user } = await signIn(email, password);
-                if (user) onLogin(user.id);
+                const data = await signIn(email, password);
+                if (data?.user) {
+                    await onLogin(data.user.id, data.session);
+                }
             } else {
                 const { user } = await signUpResident(email, password, name, phone);
                 if (user) {
-                    setSuccessMessage('Cadastro recebido! Aguarde a liberacao da administracao antes do primeiro acesso.');
+                    setSuccessMessage('Cadastro recebido! Aguarde a liberação da administração antes do primeiro acesso.');
                     setIsLogin(true);
                     setPassword('');
                 }
@@ -80,7 +82,7 @@ export function Login({
                             <span className="text-rose-600">perto de tudo</span>
                         </h2>
                         <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-[280px]">
-                            A gestÃ£o inteligente que vocÃª precisava para sua repÃºblica, com a harmonia que vocÃª merece.
+                            A gestão inteligente que você precisava para sua moradia compartilhada, com a harmonia que você merece.
                         </p>
 
                         {onBack && (
@@ -97,7 +99,7 @@ export function Login({
 
                     <div className="flex items-center gap-4 text-white/40">
                         <Heart size={16} className="text-rose-600 animate-pulse" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Feito com carinho para vocÃª</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Feito com carinho para você</span>
                     </div>
                 </div>
 
@@ -149,7 +151,7 @@ export function Login({
                                             type="text" required
                                             value={name} onChange={(e) => setName(e.target.value)}
                                             className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500/10 focus:border-rose-500/50 transition-all placeholder:text-slate-700"
-                                            placeholder="Ex: JoÃ£o Silva"
+                                            placeholder="Ex: João Silva"
                                         />
                                     </div>
                                 </div>
@@ -170,12 +172,12 @@ export function Login({
 
                         {!isLogin && !isForgotPassword && (
                             <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-amber-200">
-                                Cadastros publicos entram como pendentes e dependem de liberacao da administracao.
+                                Cadastros públicos entram como pendentes e dependem de liberação da administração.
                             </div>
                         )}
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">E-mail Corporativo</label>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">E-mail</label>
                             <div className="relative group">
                                 <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-rose-500 transition-colors" />
                                 <input
@@ -189,14 +191,14 @@ export function Login({
 
                         {!isForgotPassword && (
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Palavra-Chave</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Senha</label>
                                 <div className="relative group">
                                     <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-rose-500 transition-colors" />
                                     <input
                                         type="password" required minLength={6}
                                         value={password} onChange={(e) => setPassword(e.target.value)}
                                         className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500/10 focus:border-rose-500/50 transition-all placeholder:text-slate-700"
-                                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                                        placeholder="••••••••"
                                     />
                                 </div>
                                 {isLogin && (
@@ -238,7 +240,7 @@ export function Login({
                                 }}
                                 className="text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-white transition-colors flex items-center justify-center gap-2 mx-auto group"
                             >
-                                {isLogin ? 'NÃ£o tem conta? Cadastre-se' : 'JÃ¡ tem conta? FaÃ§a Login'}
+                                {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Faça Login'}
                                 <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                             </button>
                         </div>
@@ -248,5 +250,3 @@ export function Login({
         </div>
     );
 }
-
-
