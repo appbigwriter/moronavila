@@ -55,26 +55,26 @@ const DEFAULT_RENTAL_CONDITIONS: RentalConditions = {
 const DEFAULT_SAMPLE_ROOMS: Room[] = [
     {
         id: 'sample-1',
-        name: 'Suíte Individual Conforto',
-        type: 'Quarto' as any,
+        name: 'Suíte Individual Master',
+        type: 'Suíte' as any,
         capacity: 1,
-        rent_value: 1350,
+        rent_value: 1390,
         cleaning_fee: 150,
         extras_value: 0,
         is_common_area: false,
         is_blocked_for_repairs: false,
         availability_status: 'Disponível',
-        description: 'Suíte individual com banheiro privativo, ar-condicionado, cama box de solteiro e escrivaninha de estudos em ambiente muito arejado.',
+        description: 'Suíte privativa silenciosa com excelente ventilação, cama confortável, bancada de estudos ampla e armário planejado.',
         furniture: [
             { id: 'f1', name: 'Cama Box Solteiro', condition: 'Novo' },
-            { id: 'f2', name: 'Guarda-Roupa 2 Portas', condition: 'Bom' },
+            { id: 'f2', name: 'Guarda-Roupa Planejado', condition: 'Novo' },
             { id: 'f3', name: 'Mesa de Estudos e Cadeira Ergonômica', condition: 'Novo' },
             { id: 'f4', name: 'Ar-Condicionado Split', condition: 'Novo' }
         ],
         media: [
-            { id: 'm1', url: '/fotos/vprimage1.jpg', type: 'image' },
-            { id: 'm2', url: '/fotos/vprimage2.jpg', type: 'image' },
-            { id: 'm3', url: '/fotos/vprimage6.jpg', type: 'image' }
+            { id: 'm1', url: '/fotos/98905_0gMXlxxyf06MJQMP.jpg', type: 'image' },
+            { id: 'm2', url: '/fotos/98905_CYCX7spXgRfrsz7H.jpg', type: 'image' },
+            { id: 'm3', url: '/fotos/98905_JRni84qYdUydS9eF.jpg', type: 'image' }
         ]
     },
     {
@@ -88,21 +88,20 @@ const DEFAULT_SAMPLE_ROOMS: Room[] = [
         is_common_area: false,
         is_blocked_for_repairs: false,
         availability_status: 'Disponível',
-        description: 'Quarto privativo silencioso, ideal para foco em estudos e trabalho home-office, com janela ampla e ventilação natural.',
+        description: 'Quarto privativo aconchegante, ideal para foco em estudos e trabalho home-office, com armário, escrivaninha e colchão de alta qualidade.',
         furniture: [
             { id: 'f5', name: 'Cama Box Solteiro', condition: 'Novo' },
             { id: 'f6', name: 'Armário Planejado', condition: 'Bom' },
-            { id: 'f7', name: 'Escrivaninha com Luminária', condition: 'Novo' }
+            { id: 'f7', name: 'Escrivaninha com Tomadas', condition: 'Novo' }
         ],
         media: [
-            { id: 'm4', url: '/fotos/vprimage4.jpg', type: 'image' },
-            { id: 'm5', url: '/fotos/vprimage5.jpg', type: 'image' },
-            { id: 'm6', url: '/fotos/vprimage7.jpg', type: 'image' }
+            { id: 'm4', url: '/fotos/98905_r9U1krISShnTliUA (1).jpg', type: 'image' },
+            { id: 'm5', url: '/fotos/98905_Z6otj5s5Fg0NeCYF.jpg', type: 'image' }
         ]
     },
     {
         id: 'sample-3',
-        name: 'Suíte Premium com Varanda',
+        name: 'Suíte Premium Conforto',
         type: 'Suíte' as any,
         capacity: 1,
         rent_value: 1490,
@@ -111,17 +110,17 @@ const DEFAULT_SAMPLE_ROOMS: Room[] = [
         is_common_area: false,
         is_blocked_for_repairs: false,
         availability_status: 'Disponível',
-        description: 'Acomodação mais espaçosa da casa, com varanda exclusiva, banheiro privativo e excelente iluminação.',
+        description: 'Acomodação premium, arejada e iluminada, perfeita para quem busca privacidade total e ambiente propício para alta produtividade.',
         furniture: [
-            { id: 'f8', name: 'Cama Box Casal', condition: 'Novo' },
+            { id: 'f8', name: 'Cama Box', condition: 'Novo' },
             { id: 'f9', name: 'Guarda-Roupa Grande', condition: 'Novo' },
             { id: 'f10', name: 'Mesa de Estudos e Cadeira', condition: 'Novo' },
             { id: 'f11', name: 'Ar-Condicionado', condition: 'Novo' }
         ],
         media: [
-            { id: 'm7', url: '/fotos/vprimage8.jpg', type: 'image' },
-            { id: 'm8', url: '/fotos/vprimage9_areaexterna.jpg', type: 'image' },
-            { id: 'm9', url: '/fotos/vprimage10_cozinha.jpg', type: 'image' }
+            { id: 'm6', url: '/fotos/98905_0gMXlxxyf06MJQMP.jpg', type: 'image' },
+            { id: 'm7', url: '/fotos/98905_CYCX7spXgRfrsz7H.jpg', type: 'image' },
+            { id: 'm8', url: '/fotos/98905_Z6otj5s5Fg0NeCYF.jpg', type: 'image' }
         ]
     }
 ];

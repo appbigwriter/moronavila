@@ -20,16 +20,39 @@ interface AmenityCategory {
 
 const AMENITY_DATA: AmenityCategory[] = [
     {
+        id: 'quartos',
+        title: 'Quartos Mobiliados & Privativos',
+        shortTitle: 'Quartos Mobiliados',
+        icon: Sparkles,
+        badge: 'Privacidade & Conforto',
+        subtitle: 'Acomodações prontas para morar com foco e tranquilidade',
+        description: 'Quartos privativos planejados para estudantes e profissionais, com cama confortável, escrivaninha de estudos, armário, ar-condicionado e ventilação natural.',
+        images: [
+            '/fotos/98905_0gMXlxxyf06MJQMP.jpg',
+            '/fotos/98905_CYCX7spXgRfrsz7H.jpg',
+            '/fotos/98905_JRni84qYdUydS9eF.jpg',
+            '/fotos/98905_r9U1krISShnTliUA (1).jpg',
+            '/fotos/98905_Z6otj5s5Fg0NeCYF.jpg'
+        ],
+        features: [
+            'Cama confortável e colchão de alta densidade',
+            'Guarda-roupa amplo e escrivaninha de estudos no quarto',
+            'Opções de suítes privativas ou banheiros compartilhados otimizados',
+            'Janelas com ventilação natural e ambiente silencioso'
+        ],
+        benefit: 'Mudança instantânea no mesmo dia, sem gastar milhares de reais com frete ou compra de móveis.'
+    },
+    {
         id: 'cozinha',
-        title: 'Cozinha Compartilhada 100% Equipada',
+        title: 'Cozinha Gourmet & Totalmente Equipada',
         shortTitle: 'Cozinha Gourmet',
         icon: Utensils,
         badge: 'Praticidade & Economia',
         subtitle: 'Tudo pronto para você preparar suas refeições com conforto',
         description: 'Ampla cozinha planejada equipada com eletrodomésticos modernos, bancadas espaçosas, geladeiras, micro-ondas, cooktops e armários com espaços dedicados para cada residente.',
         images: [
-            '/fotos/vprimage10_cozinha.jpg',
-            '/fotos/vprimage9_areaexterna.jpg'
+            '/fotos/98905_u8EOBdAE1TXcvbZE.jpg',
+            '/fotos/vprimage10_cozinha.jpg'
         ],
         features: [
             'Eletrodomésticos modernos (geladeiras, micro-ondas, fogões)',
@@ -38,6 +61,33 @@ const AMENITY_DATA: AmenityCategory[] = [
             'Limpeza periódica de suporte inclusa'
         ],
         benefit: 'Economize tempo e dinheiro cozinhando em casa sem precisar comprar nenhum utensílio ou eletrodoméstico.'
+    },
+    {
+        id: 'convivencia',
+        title: 'Área Externa & Convivência',
+        shortTitle: 'Área Externa & Convivência',
+        icon: Coffee,
+        badge: 'Descompressão & Bem-Estar',
+        subtitle: 'Espaço ao ar livre para relaxar, tomar ar fresco e socializar',
+        description: 'Ambiente externo arejado com mesas e bancos para ler um livro ao sol, descontrair com os colegas de casa ou tomar um café da manhã ao ar livre.',
+        images: [
+            '/fotos/vprimage1.jpg',
+            '/fotos/vprimage4.jpg',
+            '/fotos/vprimage5.jpg',
+            '/fotos/vprimage6.jpg',
+            '/fotos/vprimage7.jpg',
+            '/fotos/vprimage8.jpg',
+            '/fotos/vprimage9_areaexterna2.jpg',
+            '/fotos/vprimage9_areaexterna.jpg',
+            '/fotos/vprimage9_areaexterna3.jpg'
+        ],
+        features: [
+            'Ambiente aberto e bem ventilado',
+            'Mesas para descanso e socialização tranquila',
+            'Área verde e iluminação acolhedora',
+            'Espaço seguro dentro dos limites da propriedade'
+        ],
+        benefit: 'Equilíbrio mental garantido após um dia intenso de estudos ou trabalho.'
     },
     {
         id: 'estudos',
@@ -60,49 +110,6 @@ const AMENITY_DATA: AmenityCategory[] = [
         benefit: 'Perfeito para estudantes da UERJ/HUPE e profissionais remotos que precisam de disciplina e foco diário.'
     },
     {
-        id: 'convivencia',
-        title: 'Área Externa & Convivência',
-        shortTitle: 'Área Externa & Lazer',
-        icon: Coffee,
-        badge: 'Descompressão & Bem-Estar',
-        subtitle: 'Espaço ao ar livre para relaxar, tomar ar fresco e socializar',
-        description: 'Ambiente externo arejado com mesas e bancos para ler um livro ao sol, descontrair com os colegas de casa ou tomar um café da manhã ao ar livre.',
-        images: [
-            '/fotos/vprimage9_areaexterna.jpg',
-            '/fotos/vprimage9_areaexterna2.jpg',
-            '/fotos/vprimage9_areaexterna3.jpg'
-        ],
-        features: [
-            'Ambiente aberto e bem ventilado',
-            'Mesas para descanso e socialização tranquila',
-            'Área verde e iluminação acolhedora',
-            'Espaço seguro dentro dos limites da propriedade'
-        ],
-        benefit: 'Equilíbrio mental garantido após um dia intenso de estudos ou trabalho.'
-    },
-    {
-        id: 'quartos',
-        title: 'Quartos Mobiliados & Privativos',
-        shortTitle: 'Quartos Mobiliados',
-        icon: Sparkles,
-        badge: 'Privacidade & Conforto',
-        subtitle: 'Entre apenas com a sua mala de roupas',
-        description: 'Acomodações privativas equipadas com cama de solteiro ou casal, colchões selecionados, armário/guarda-roupa planejado, escrivaninha de estudos individual e iluminação suave.',
-        images: [
-            '/fotos/vprimage1.jpg',
-            '/fotos/vprimage6.jpg',
-            '/fotos/vprimage4.jpg',
-            '/fotos/98905_aBdAfNfiZ6MqqyKB.jpg'
-        ],
-        features: [
-            'Cama confortável e colchão de alta densidade',
-            'Guarda-roupa amplo e escrivaninha de estudos no quarto',
-            'Opções de suítes privativas ou banheiros compartilhados otimizados',
-            'Janelas com ventilação natural e cortinas blackout'
-        ],
-        benefit: 'Mudança instantânea no mesmo dia, sem gastar milhares de reais com frete ou compra de móveis.'
-    },
-    {
         id: 'seguranca',
         title: 'Entrada Inteligente & Tecnologia',
         shortTitle: 'Segurança & Interfonia',
@@ -111,8 +118,7 @@ const AMENITY_DATA: AmenityCategory[] = [
         subtitle: 'Acesso digital e interfone que toca no seu celular',
         description: 'Fachada moderna e segura na Rua Torres Homem com controle de acesso, monitoramento e sistema exclusivo de interfonia digital (Softphone) que permite atender visitas e entregas diretamente no seu smartphone.',
         images: [
-            '/fotos/vprimage11_entrada.jpg',
-            '/fotos/vprimage5.jpg'
+            '/fotos/vprimage11_entrada.jpg'
         ],
         features: [
             'Entrada segura e identificada',
