@@ -35,10 +35,26 @@ async function createOrPromoteAdmin() {
         });
 
         if (signUpError) {
-            console.log(`ℹ️ Auth SignUp (${signUpError.message}). Verificando registro existente...`);
-        } else if (signUpData.user) {
+            console.log(`ℹ️ Auth: ${signUpError.message}`);
+        } else if (signUpData?.user) {
             authId = signUpData.user.id;
-            console.log(`✅ Usuário criado no Supabase Auth com ID: ${authId}`);
+            console.log(`✅ Usuário verificado no Supabase Auth com ID: ${authId}`);
+        }
+
+        // Tentar obter authId caso já exista
+        if (!authId) {
+            try {
+                const { data: signInData } = await supabase.auth.signInWithPassword({
+                    email: emailArg,
+                    password: passwordArg
+                });
+                if (signInData?.user) {
+                    authId = signInData.user.id;
+                    console.log(`✅ Autenticado com sucesso no Supabase Auth! User ID: ${authId}`);
+                }
+            } catch (signInErr: any) {
+                console.log(`ℹ️ Login check: ${signInErr?.message || ''}`);
+            }
         }
 
         // 2. Upsert na tabela residents com role Administrador
@@ -57,22 +73,35 @@ async function createOrPromoteAdmin() {
             residentPayload.auth_id = authId;
         }
 
-        const { data: resident, error: residentError } = await supabase
+        let residentRes = await supabase
             .from('residents')
             .upsert(residentPayload, { onConflict: 'email' })
             .select()
-            .single();
+            .maybeSingle();
 
-        if (residentError) {
-            throw residentError;
+        // Fallback para schema public se custom_moronavila não estiver exposto no PostgREST
+        if (residentRes.error) {
+            console.log(`⚠️ Tentando gravar no schema padrão... Detalhe: ${residentRes.error.message}`);
+            const defaultClient = createClient(supabaseUrl, serviceRoleKey);
+            residentRes = await defaultClient
+                .from('residents')
+                .upsert(residentPayload, { onConflict: 'email' })
+                .select()
+                .maybeSingle();
         }
 
-        console.log(`\n🎉 Administrador Root configurado com sucesso!`);
-        console.log(`-----------------------------------------------`);
-        console.log(`Login:    ${emailArg}`);
-        console.log(`Senha:    ${passwordArg}`);
-        console.log(`Perfil:   Administrador (Acesso total)`);
-        console.log(`-----------------------------------------------\n`);
+        if (residentRes.error) {
+            console.error(`❌ Erro no banco de dados (${residentRes.error.code}): ${residentRes.error.message}`);
+            console.log(`💡 Dica: Execute o SQL abaixo diretamente no PostgreSQL do Control Tower para garantir o perfil:`);
+            console.log(`\nUPDATE ${process.env.VITE_SUPABASE_SCHEMA || 'custom_moronavila'}.residents SET role = 'Administrador', status = 'Ativo', habilitado = true WHERE email = '${emailArg}';\n`);
+        } else {
+            console.log(`\n🎉 Administrador Root configurado com sucesso!`);
+            console.log(`-----------------------------------------------`);
+            console.log(`Login:    ${emailArg}`);
+            console.log(`Senha:    ${passwordArg}`);
+            console.log(`Perfil:   Administrador (Acesso total)`);
+            console.log(`-----------------------------------------------\n`);
+        }
     } catch (err: any) {
         console.error(`❌ Erro ao configurar Administrador:`, err?.message || err);
     }
