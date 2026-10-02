@@ -397,7 +397,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
 
                             <div className="mt-auto pt-8 flex flex-col gap-3">
                                 <a
-                                    href={`https://wa.me/5521983245000?text=${encodeURIComponent(`Olá! Tenho interesse na vaga do ${room.name} na MoronaVila. Gostaria de agendar uma visita ou tirar dúvidas!`)}`}
+                                    href={`https://wa.me/5521981900803?text=${encodeURIComponent(`Olá! Tenho interesse na vaga do ${room.name} na MoronaVila. Gostaria de agendar uma visita ou tirar dúvidas!`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="w-full flex items-center justify-center gap-2.5 border border-rose-500/40 hover:bg-rose-500/10 text-rose-400 px-6 py-4 rounded-full font-black text-[11px] uppercase tracking-[0.2em] transition-all"
@@ -653,7 +653,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
 
                     <div className="flex items-center gap-3">
                         <a
-                            href="https://wa.me/5521983245000?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20as%20vagas%20na%20MoronaVila"
+                            href="https://wa.me/5521981900803?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20as%20vagas%20na%20MoronaVila"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-[10px] font-black uppercase tracking-widest transition-all"
@@ -789,66 +789,76 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         </p>
                     </div>
 
-                    {rooms.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {rooms.filter(room => !room.is_common_area && room.availability_status === 'Disponível' && !room.is_blocked_for_repairs).map(room => {
-                                const roomThumb = room.media && room.media[0] ? room.media[0].url : '/fotos/vprimage1.jpg';
-                                return (
-                                    <div key={room.id} className="group bg-slate-900/60 border border-slate-800 rounded-[2.5rem] overflow-hidden hover:border-rose-500/40 transition-all duration-500 hover:shadow-2xl hover:shadow-rose-900/20 flex flex-col">
-                                        <div className="relative aspect-[16/11] overflow-hidden bg-slate-950">
-                                            <img
-                                                src={roomThumb}
-                                                alt={room.name}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
+                    {(() => {
+                        const availableRooms = rooms.filter(
+                            room => !room.is_common_area && room.availability_status === 'Disponível' && !room.is_blocked_for_repairs
+                        );
 
-                                            <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-rose-400">
-                                                {room.type}
+                        if (availableRooms.length === 0) {
+                            return (
+                                <div className="p-12 text-center bg-slate-900/40 rounded-[2.5rem] border border-slate-800 max-w-xl mx-auto">
+                                    <Home size={40} className="text-rose-500 mx-auto mb-4" />
+                                    <h3 className="text-xl font-black text-white uppercase mb-2">Consulte Próximas Vagas</h3>
+                                    <p className="text-slate-400 text-sm mb-6">Estamos com alta procura para o período. Fale conosco no WhatsApp para entrar na lista de espera prioritária.</p>
+                                    <a
+                                        href="https://wa.me/5521981900803?text=Gostaria%20de%20saber%20sobre%20as%20pr%C3%B3ximas%20vagas%20dispon%C3%ADveis%20na%20MoronaVila"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-widest transition-all"
+                                    >
+                                        <MessageCircle size={16} /> Entrar na Lista de Espera
+                                    </a>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {availableRooms.map(room => {
+                                    const roomThumb = room.media && room.media[0] ? room.media[0].url : '/fotos/98905_0gMXlxxyf06MJQMP.jpg';
+                                    return (
+                                        <div key={room.id} className="group bg-slate-900/60 border border-slate-800 rounded-[2.5rem] overflow-hidden hover:border-rose-500/40 transition-all duration-500 hover:shadow-2xl hover:shadow-rose-900/20 flex flex-col">
+                                            <div className="relative aspect-[16/11] overflow-hidden bg-slate-950">
+                                                <img
+                                                    src={roomThumb}
+                                                    alt={room.name}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
+
+                                                <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-rose-400">
+                                                    {room.type}
+                                                </div>
+
+                                                <div className="absolute top-4 right-4 bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
+                                                    <span className="text-white font-black text-lg">R$ {room.rent_value}</span>
+                                                    <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest ml-1">/mês</span>
+                                                </div>
                                             </div>
 
-                                            <div className="absolute top-4 right-4 bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
-                                                <span className="text-white font-black text-lg">R$ {room.rent_value}</span>
-                                                <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest ml-1">/mês</span>
+                                            <div className="p-8 flex-1 flex flex-col justify-between">
+                                                <div>
+                                                    <h4 className="text-2xl font-black text-white uppercase italic tracking-tight mb-2">{room.name}</h4>
+                                                    <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed mb-6 font-medium">
+                                                        {room.description || "Acomodação mobiliada com cama, armário, escrivaninha e excelente ventilação natural."}
+                                                    </p>
+                                                </div>
+
+                                                <div className="space-y-3 pt-2 border-t border-slate-800/80">
+                                                    <button
+                                                        onClick={() => setSelectedRoom(room)}
+                                                        className="w-full py-4 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-rose-900/30 flex items-center justify-center gap-2"
+                                                    >
+                                                        Ver Detalhes & Fotos <ArrowRight size={14} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-
-                                        <div className="p-8 flex-1 flex flex-col justify-between">
-                                            <div>
-                                                <h4 className="text-2xl font-black text-white uppercase italic tracking-tight mb-2">{room.name}</h4>
-                                                <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed mb-6 font-medium">
-                                                    {room.description || "Acomodação mobiliada com cama, armário, escrivaninha e excelente ventilação natural."}
-                                                </p>
-                                            </div>
-
-                                            <div className="space-y-3 pt-2 border-t border-slate-800/80">
-                                                <button
-                                                    onClick={() => setSelectedRoom(room)}
-                                                    className="w-full py-4 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-rose-900/30 flex items-center justify-center gap-2"
-                                                >
-                                                    Ver Detalhes & Fotos <ArrowRight size={14} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="p-12 text-center bg-slate-900/40 rounded-[2.5rem] border border-slate-800 max-w-xl mx-auto">
-                            <Home size={40} className="text-rose-500 mx-auto mb-4" />
-                            <h3 className="text-xl font-black text-white uppercase mb-2">Consulte Próximas Vagas</h3>
-                            <p className="text-slate-400 text-sm mb-6">Estamos com alta procura para o período. Fale conosco no WhatsApp para entrar na lista de espera prioritária.</p>
-                            <a
-                                href="https://wa.me/5521983245000?text=Gostaria%20de%20saber%20sobre%20as%20pr%C3%B3ximas%20vagas%20dispon%C3%ADveis%20na%20MoronaVila"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-widest transition-all"
-                            >
-                                <MessageCircle size={16} /> Entrar na Lista de Espera
-                            </a>
-                        </div>
-                    )}
+                                    );
+                                })}
+                            </div>
+                        );
+                    })()}
                 </div>
             </section>
 
@@ -1086,7 +1096,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                 </div>
                                 <div className="p-4 bg-slate-950/40 border-t border-white/5 flex justify-center">
                                     <a
-                                        href={`https://wa.me/5521983245000?text=${encodeURIComponent(`Olá, meu nome é ${leadForm.name} e acabei de conhecer a MoronaVila! Gostaria de agendar uma visita e tirar dúvidas.`)}`}
+                                        href={`https://wa.me/5521981900803?text=${encodeURIComponent(`Olá, meu nome é ${leadForm.name} e acabei de conhecer a MoronaVila! Gostaria de agendar uma visita e tirar dúvidas.`)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-lg hover:scale-105 active:scale-95"
