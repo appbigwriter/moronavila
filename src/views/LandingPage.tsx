@@ -18,11 +18,119 @@ interface LandingPageProps {
     onGoToDashboard?: () => void;
 }
 
+const DEFAULT_PROPERTY_DESC: PropertyDescription = {
+    id: 'default',
+    main_text: "Viver com conforto, foco e praticidade no coração da Vila Isabel\nQuartos mobiliados e climatizados, cozinha equipada, sala de estudos e tudo incluso na Rua Torres Homem, a poucos minutos de faculdades e shoppings.",
+    main_media: ['/fotos/vprimage11_entrada.jpg'],
+    gallery_media: [
+        '/fotos/vprimage1.jpg',
+        '/fotos/vprimage2.jpg',
+        '/fotos/vprimage3_saladeestudos.jpg',
+        '/fotos/vprimage4.jpg',
+        '/fotos/vprimage5.jpg',
+        '/fotos/vprimage6.jpg',
+        '/fotos/vprimage7.jpg',
+        '/fotos/vprimage8.jpg',
+        '/fotos/vprimage9_areaexterna.jpg',
+        '/fotos/vprimage10_cozinha.jpg',
+        '/fotos/vprimage11_entrada.jpg'
+    ],
+    rooms_text: "Quartos individuais mobiliados, silenciosos e prontos para morar com todas as contas inclusas.",
+    location_text: "Rua Torres Homem, 886 - Vila Isabel, Rio de Janeiro. A 300m do Shopping Boulevard e fácil acesso ao Maracanã, UERJ e Centro.",
+    location_media: ['/fotos/vprimage11_entrada.jpg'],
+    amenities_text: "Wi-Fi alta velocidade, ar condicionado, cozinha completa, lavanderia e área de estudos.",
+    amenities_media: [],
+    rules_text: "Prezamos pelo respeito mútuo, colaboração e silêncio a partir das 22h para que todos tenham um ambiente propício para estudos e descanso."
+};
+
+const DEFAULT_RENTAL_CONDITIONS: RentalConditions = {
+    id: 'default',
+    deposit_months: 1,
+    cleaning_fee_fixed: 150,
+    pro_rata_enabled: true,
+    rules_summary: "O pagamento é mensal e antecipado. A reserva é confirmada mediante o pagamento do caução simples.",
+    calculation_instructions: "Informe a data prevista de entrada para simular os valores do seu primeiro mês com total transparência."
+};
+
+const DEFAULT_SAMPLE_ROOMS: Room[] = [
+    {
+        id: 'sample-1',
+        name: 'Suíte Individual Conforto',
+        type: 'Quarto' as any,
+        capacity: 1,
+        rent_value: 1350,
+        cleaning_fee: 150,
+        extras_value: 0,
+        is_common_area: false,
+        is_blocked_for_repairs: false,
+        availability_status: 'Disponível',
+        description: 'Suíte individual com banheiro privativo, ar-condicionado, cama box de solteiro e escrivaninha de estudos em ambiente muito arejado.',
+        furniture: [
+            { id: 'f1', name: 'Cama Box Solteiro', condition: 'Novo' },
+            { id: 'f2', name: 'Guarda-Roupa 2 Portas', condition: 'Bom' },
+            { id: 'f3', name: 'Mesa de Estudos e Cadeira Ergonômica', condition: 'Novo' },
+            { id: 'f4', name: 'Ar-Condicionado Split', condition: 'Novo' }
+        ],
+        media: [
+            { id: 'm1', url: '/fotos/vprimage1.jpg', type: 'image' },
+            { id: 'm2', url: '/fotos/vprimage2.jpg', type: 'image' },
+            { id: 'm3', url: '/fotos/vprimage6.jpg', type: 'image' }
+        ]
+    },
+    {
+        id: 'sample-2',
+        name: 'Quarto Individual Standard',
+        type: 'Quarto' as any,
+        capacity: 1,
+        rent_value: 1200,
+        cleaning_fee: 150,
+        extras_value: 0,
+        is_common_area: false,
+        is_blocked_for_repairs: false,
+        availability_status: 'Disponível',
+        description: 'Quarto privativo silencioso, ideal para foco em estudos e trabalho home-office, com janela ampla e ventilação natural.',
+        furniture: [
+            { id: 'f5', name: 'Cama Box Solteiro', condition: 'Novo' },
+            { id: 'f6', name: 'Armário Planejado', condition: 'Bom' },
+            { id: 'f7', name: 'Escrivaninha com Luminária', condition: 'Novo' }
+        ],
+        media: [
+            { id: 'm4', url: '/fotos/vprimage4.jpg', type: 'image' },
+            { id: 'm5', url: '/fotos/vprimage5.jpg', type: 'image' },
+            { id: 'm6', url: '/fotos/vprimage7.jpg', type: 'image' }
+        ]
+    },
+    {
+        id: 'sample-3',
+        name: 'Suíte Premium com Varanda',
+        type: 'Suíte' as any,
+        capacity: 1,
+        rent_value: 1490,
+        cleaning_fee: 150,
+        extras_value: 0,
+        is_common_area: false,
+        is_blocked_for_repairs: false,
+        availability_status: 'Disponível',
+        description: 'Acomodação mais espaçosa da casa, com varanda exclusiva, banheiro privativo e excelente iluminação.',
+        furniture: [
+            { id: 'f8', name: 'Cama Box Casal', condition: 'Novo' },
+            { id: 'f9', name: 'Guarda-Roupa Grande', condition: 'Novo' },
+            { id: 'f10', name: 'Mesa de Estudos e Cadeira', condition: 'Novo' },
+            { id: 'f11', name: 'Ar-Condicionado', condition: 'Novo' }
+        ],
+        media: [
+            { id: 'm7', url: '/fotos/vprimage8.jpg', type: 'image' },
+            { id: 'm8', url: '/fotos/vprimage9_areaexterna.jpg', type: 'image' },
+            { id: 'm9', url: '/fotos/vprimage10_cozinha.jpg', type: 'image' }
+        ]
+    }
+];
+
 export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashboard }: LandingPageProps) {
-    const [propertyDesc, setPropertyDesc] = useState<PropertyDescription | null>(null);
-    const [rentalConditions, setRentalConditions] = useState<RentalConditions | null>(null);
-    const [rooms, setRooms] = useState<Room[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [propertyDesc, setPropertyDesc] = useState<PropertyDescription>(DEFAULT_PROPERTY_DESC);
+    const [rentalConditions, setRentalConditions] = useState<RentalConditions>(DEFAULT_RENTAL_CONDITIONS);
+    const [rooms, setRooms] = useState<Room[]>(DEFAULT_SAMPLE_ROOMS);
+    const [loading, setLoading] = useState(false);
     const [leadForm, setLeadForm] = useState({ name: '', phone: '', email: '' });
     const [leadSubmitted, setLeadSubmitted] = useState(false);
 
@@ -92,46 +200,19 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
         const loadPublicData = async () => {
             try {
                 const [desc, publicRooms, conditions] = await Promise.all([
-                    fetchPublicPropertyDescription(),
-                    fetchPublicRooms(),
-                    fetchRentalConditions()
+                    fetchPublicPropertyDescription().catch(() => null),
+                    fetchPublicRooms().catch(() => []),
+                    fetchRentalConditions().catch(() => null)
                 ]);
-                setPropertyDesc(desc);
-                setRooms(publicRooms);
-                setRentalConditions(conditions);
+                if (desc) setPropertyDesc(desc);
+                if (publicRooms && publicRooms.length > 0) setRooms(publicRooms);
+                if (conditions) setRentalConditions(conditions);
             } catch (error) {
                 console.error('Failed to load public data:', error);
-            } finally {
-                setLoading(false);
             }
         };
         loadPublicData();
     }, []);
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-rose-500/30 border-t-rose-500 rounded-full animate-spin" />
-            </div>
-        );
-    }
-
-    if (!propertyDesc) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-                <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">
-                    MORONA<span className="text-rose-600">VILA</span>
-                </h1>
-                <p className="text-slate-500 text-sm font-bold uppercase tracking-widest">Aguardando configuração de página...</p>
-                <button
-                    onClick={onLoginClick}
-                    className="mt-8 px-8 py-4 bg-rose-600 text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-[20px] hover:bg-rose-700 hover:scale-105 transition-all shadow-xl shadow-rose-900/30"
-                >
-                    Acessar o Painel
-                </button>
-            </div>
-        );
-    }
 
     const {
         main_text, main_media,
