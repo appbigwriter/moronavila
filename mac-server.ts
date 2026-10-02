@@ -1086,17 +1086,24 @@ app.post('/api/chat', async (req, res) => {
 
 // Servir arquivos da pasta dist
 
-// Rota de Favicon explícita
+// Rota de Favicon explícita (dist ou public)
 app.get('/favicon.ico', (req, res) => {
-    const faviconPath = path.resolve(__dirname, 'dist', 'favicon.png');
-    if (fs.existsSync(faviconPath)) {
-        res.sendFile(faviconPath);
-    } else {
-        res.status(204).end();
+    const candidatePaths = [
+        path.resolve(__dirname, 'dist', 'favicon.ico'),
+        path.resolve(__dirname, 'dist', 'favicon.png'),
+        path.resolve(__dirname, 'public', 'favicon.ico'),
+        path.resolve(__dirname, 'public', 'favicon.png')
+    ];
+    for (const p of candidatePaths) {
+        if (fs.existsSync(p)) {
+            return res.sendFile(p);
+        }
     }
+    return res.status(204).end();
 });
 
 app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Catch-all: qualquer rota que nÃ£o seja API ou arquivo estÃ¡tico volta para o index.html
 // Isso permite que o React Router funcione corretamente ao dar refresh
