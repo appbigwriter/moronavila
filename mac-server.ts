@@ -1,3 +1,4 @@
+import fs from 'fs';
 ﻿import express from 'express';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -14,6 +15,7 @@ dotenv.config({ path: '.env.local', override: true });
 const execPromise = promisify(exec);
 const app = express();
 const port = process.env.PORT || 3000;
+const host = process.env.HOST || '0.0.0.0';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY || ''
@@ -1083,6 +1085,17 @@ app.post('/api/chat', async (req, res) => {
 // --- SERVIR FRONTEND ESTÃTICO EM PRODUÃ‡ÃƒO ---
 
 // Servir arquivos da pasta dist
+
+// Rota de Favicon explícita
+app.get('/favicon.ico', (req, res) => {
+    const faviconPath = path.resolve(__dirname, 'dist', 'favicon.png');
+    if (fs.existsSync(faviconPath)) {
+        res.sendFile(faviconPath);
+    } else {
+        res.status(204).end();
+    }
+});
+
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Catch-all: qualquer rota que nÃ£o seja API ou arquivo estÃ¡tico volta para o index.html
@@ -1096,10 +1109,11 @@ app.get('*', (req, res) => {
     }
 });
 
-app.listen(port, () => {
+app.listen(Number(port), host, () => {
     console.log(`--------------------------------------------------`);
-    console.log(`MoronaVila (v1.5) rodando na porta: ${port}`);
+    console.log(`MoronaVila (v1.5) rodando em http://${host}:${port}`);
     console.log(`Ambiente: ${process.env.NODE_ENV || 'production'}`);
+    console.log(`Schema: ${process.env.CONTROL_TOWER_SCHEMA_NAME || 'custom_moronavila'}`);
     console.log(`--------------------------------------------------`);
 });
 

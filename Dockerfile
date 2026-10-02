@@ -11,8 +11,10 @@ RUN npm install
 COPY . .
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_SUPABASE_SCHEMA=custom_moronavila
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_SUPABASE_SCHEMA=$VITE_SUPABASE_SCHEMA
 RUN npm run build
 
 # Runtime stage
@@ -24,15 +26,17 @@ WORKDIR /app
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/mac-server.ts ./mac-server.ts
 
-# Expor a porta 4000 (ou o que estiver configurado no PORT)
+# Expor portas 3000 (padrão do contrato Easypanel) e 4000
+EXPOSE 3000
 EXPOSE 4000
 
-# Variável de ambiente padrão
+# Variáveis de ambiente padrão
 ENV NODE_ENV=production
-ENV PORT=4000
+ENV PORT=3000
+ENV HOST=0.0.0.0
 
-# Executar o servidor usando tsx (já que o mac-server é .ts)
-# Nota: tsx precisa estar no node_modules copiado
+# Executar o servidor usando tsx
 CMD ["npm", "run", "mac-app"]
