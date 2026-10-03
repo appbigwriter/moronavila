@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseUrl, supabaseAnonKey } from './supabase';
 import {
     Resident, Room, Payment, MaintenanceRequest,
     Complaint, Notice, NoticeComment, CalendarEvent,
@@ -458,7 +458,7 @@ export async function signUpResident(email: string, password: string, name: stri
 
 export async function signUpAdmin(email: string, password: string, name: string, phone: string) {
     const { createClient } = await import('@supabase/supabase-js');
-    const tempClient = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    const tempClient = createClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data: authData, error: authError } = await tempClient.auth.signUp({ email, password });
     if (authError) throw authError;
     if (authData.user) {
