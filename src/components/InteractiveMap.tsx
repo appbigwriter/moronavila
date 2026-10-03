@@ -212,8 +212,8 @@ export function InteractiveMap() {
                 </p>
             </div>
 
-            {/* Alternador de Categorias */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-4 no-scrollbar justify-start md:justify-center mb-8">
+            {/* Alternador de Categorias - Responsivo sem scroll lateral */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap md:justify-center gap-2 sm:gap-2.5 mb-8 max-w-4xl mx-auto">
                 {CATEGORIES.map(cat => {
                     const Icon = cat.icon;
                     const isSelected = selectedCategory === cat.key;
@@ -221,14 +221,14 @@ export function InteractiveMap() {
                         <button
                             key={cat.key}
                             onClick={() => setSelectedCategory(cat.key)}
-                            className={`flex items-center gap-2.5 px-5 py-3 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 border ${
+                            className={`flex items-center justify-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-[10.5px] sm:text-xs font-bold transition-all duration-300 border ${
                                 isSelected
-                                    ? 'bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-900/30 scale-105'
+                                    ? 'bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-900/30 scale-[1.02] md:scale-105 ring-2 ring-rose-500/20'
                                     : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white'
                             }`}
                         >
-                            <Icon size={16} />
-                            {cat.label}
+                            <Icon size={15} className={`shrink-0 ${isSelected ? 'text-white' : 'text-rose-400'}`} />
+                            <span className="truncate">{cat.label}</span>
                         </button>
                     );
                 })}

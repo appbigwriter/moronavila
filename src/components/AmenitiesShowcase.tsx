@@ -173,23 +173,26 @@ export function AmenitiesShowcase({ onSelectRoom }: { onSelectRoom?: () => void 
                 </p>
             </div>
 
-            {/* Abas de Navegação das Áreas */}
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar justify-start md:justify-center">
-                {AMENITY_DATA.map(amenity => {
+            {/* Abas de Navegação das Áreas - Responsivo sem scroll lateral */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap md:justify-center gap-2 sm:gap-3 max-w-4xl mx-auto">
+                {AMENITY_DATA.map((amenity, index) => {
                     const Icon = amenity.icon;
                     const isSelected = activeTab === amenity.id;
+                    const isLastOdd = index === AMENITY_DATA.length - 1 && AMENITY_DATA.length % 2 !== 0;
                     return (
                         <button
                             key={amenity.id}
                             onClick={() => handleTabChange(amenity.id)}
-                            className={`flex items-center gap-3 px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider whitespace-nowrap transition-all duration-300 border ${
+                            className={`flex items-center justify-center gap-2 px-3 py-3 sm:px-5 sm:py-3.5 rounded-2xl font-black text-[11px] sm:text-xs uppercase tracking-wider transition-all duration-300 border ${
+                                isLastOdd ? 'col-span-2 sm:col-span-1 md:col-span-auto' : ''
+                            } ${
                                 isSelected
-                                    ? 'bg-rose-600 text-white border-rose-500 shadow-xl shadow-rose-900/30 scale-105'
+                                    ? 'bg-rose-600 text-white border-rose-500 shadow-xl shadow-rose-900/30 scale-[1.02] md:scale-105 ring-2 ring-rose-500/20'
                                     : 'bg-slate-900/70 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white'
                             }`}
                         >
-                            <Icon size={18} className={isSelected ? 'text-white' : 'text-rose-500'} />
-                            {amenity.shortTitle}
+                            <Icon size={16} className={`shrink-0 ${isSelected ? 'text-white' : 'text-rose-500'}`} />
+                            <span className="truncate">{amenity.shortTitle}</span>
                         </button>
                     );
                 })}

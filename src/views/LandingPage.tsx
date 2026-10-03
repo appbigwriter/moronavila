@@ -668,20 +668,26 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         {isLoggedIn && currentUser ? (
                             <button
                                 onClick={onGoToDashboard || onLoginClick}
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-rose-900/40 hover:scale-105"
+                                className="flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white transition-all shadow-lg shadow-rose-900/40 hover:scale-105"
                             >
-                                <User size={14} />
-                                <span>Meu Painel</span>
-                                <ChevronRight size={14} />
+                                <User size={15} className="shrink-0" />
+                                <div className="flex flex-col items-start leading-tight text-left">
+                                    <span className="text-[7.5px] font-bold uppercase tracking-wider text-rose-200">Acesso de</span>
+                                    <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-white">Residente</span>
+                                </div>
+                                <ChevronRight size={13} className="shrink-0 text-white/70 -ml-0.5" />
                             </button>
                         ) : (
                             <button
                                 onClick={onLoginClick}
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-rose-600 text-white font-black text-[10px] uppercase tracking-widest transition-all border border-white/20 hover:border-rose-500 shadow-md hover:shadow-rose-900/30"
+                                className="flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/10 hover:bg-rose-600 text-white transition-all border border-white/20 hover:border-rose-500 shadow-md hover:shadow-rose-900/30 group"
                             >
-                                <User size={14} className="text-rose-400" />
-                                <span>Login de Residentes</span>
-                                <ChevronRight size={14} />
+                                <User size={15} className="text-rose-400 group-hover:text-white shrink-0" />
+                                <div className="flex flex-col items-start leading-tight text-left">
+                                    <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-rose-100">Acesso de</span>
+                                    <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-white">Residentes</span>
+                                </div>
+                                <ChevronRight size={13} className="text-slate-400 group-hover:text-white shrink-0 -ml-0.5" />
                             </button>
                         )}
                     </div>
