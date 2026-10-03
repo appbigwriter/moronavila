@@ -27,17 +27,15 @@ const __dirname = path.dirname(__filename);
 // Supabase Admin Client com fallbacks seguros
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://supabase-control-tower-api.fbr.news';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'service-key-placeholder';
-const supabaseSchema = process.env.VITE_SUPABASE_SCHEMA || process.env.CONTROL_TOWER_SCHEMA_NAME || 'public';
+const rawServerSchema = process.env.VITE_SUPABASE_SCHEMA || process.env.CONTROL_TOWER_SCHEMA_NAME || 'public';
+const supabaseSchema = (rawServerSchema === 'custom_moronavila' || !rawServerSchema) ? 'public' : rawServerSchema;
 
 if (!process.env.SUPABASE_URL && !process.env.VITE_SUPABASE_URL) {
     console.warn('⚠️ [Aviso] Nenhuma SUPABASE_URL ou VITE_SUPABASE_URL definida no ambiente.');
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
-    db: {
-        schema: supabaseSchema
-    }
-});
+const serverClientOptions = (supabaseSchema && supabaseSchema !== 'public') ? { db: { schema: supabaseSchema } } : undefined;
+const supabase = createClient(supabaseUrl, supabaseKey, serverClientOptions);
 
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3';
 const ASAAS_API_KEY = process.env.VITE_ASAAS_API_KEY || '';
@@ -1088,10 +1086,12 @@ app.post('/api/chat', async (req, res) => {
 
 // Rota para injetar variáveis de ambiente públicas em tempo de execução no frontend
 app.get('/env.js', (req, res) => {
+    const rawSchema = process.env.VITE_SUPABASE_SCHEMA || process.env.CONTROL_TOWER_SCHEMA_NAME;
+    const safeSchema = (rawSchema === 'custom_moronavila' || !rawSchema) ? 'public' : rawSchema;
     const runtimeEnv = {
         VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://supabase-control-tower-api.fbr.news',
         VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzg5OTkwODc2LCJleHAiOjE5NDc2NzA4NzZ9.f2enmw8Mk0hWI6WcNfkZLGOl-qaqVzQBGt8qftDaR6k',
-        VITE_SUPABASE_SCHEMA: process.env.VITE_SUPABASE_SCHEMA || process.env.CONTROL_TOWER_SCHEMA_NAME || 'public'
+        VITE_SUPABASE_SCHEMA: safeSchema
     };
     res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
     res.send(`window.__ENV__ = ${JSON.stringify(runtimeEnv)};`);
