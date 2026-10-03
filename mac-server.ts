@@ -27,7 +27,7 @@ const __dirname = path.dirname(__filename);
 // Supabase Admin Client com fallbacks seguros
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://supabase-control-tower-api.fbr.news';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'service-key-placeholder';
-const supabaseSchema = process.env.CONTROL_TOWER_SCHEMA_NAME || process.env.VITE_SUPABASE_SCHEMA || 'custom_moronavila';
+const supabaseSchema = process.env.VITE_SUPABASE_SCHEMA || process.env.CONTROL_TOWER_SCHEMA_NAME || 'public';
 
 if (!process.env.SUPABASE_URL && !process.env.VITE_SUPABASE_URL) {
     console.warn('⚠️ [Aviso] Nenhuma SUPABASE_URL ou VITE_SUPABASE_URL definida no ambiente.');

@@ -17,7 +17,7 @@ export const supabaseAnonKey = getEnvVar(
     'VITE_SUPABASE_ANON_KEY',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzg5OTkwODc2LCJleHAiOjE5NDc2NzA4NzZ9.f2enmw8Mk0hWI6WcNfkZLGOl-qaqVzQBGt8qftDaR6k'
 );
-export const supabaseSchema = getEnvVar('VITE_SUPABASE_SCHEMA', 'custom_moronavila');
+export const supabaseSchema = getEnvVar('VITE_SUPABASE_SCHEMA', 'public');
 
 if (!supabaseUrl || !supabaseAnonKey) {
     console.warn('⚠️ [Supabase] VITE_SUPABASE_URL ou VITE_SUPABASE_ANON_KEY não foram definidos.');
