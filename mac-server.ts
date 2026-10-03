@@ -1116,14 +1116,27 @@ app.get('/favicon.ico', (req, res) => {
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Catch-all: qualquer rota que nÃ£o seja API ou arquivo estÃ¡tico volta para o index.html
-// Isso permite que o React Router funcione corretamente ao dar refresh
+// Catch-all: qualquer rota que não seja API ou arquivo estático volta para o index.html
 app.get('*', (req, res) => {
-    // Se nÃ£o for uma rota de API, serve o index.html do frontend
     if (!req.path.startsWith('/api')) {
-        res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+        const indexPath = path.resolve(__dirname, 'dist', 'index.html');
+        if (fs.existsSync(indexPath)) {
+            try {
+                let html = fs.readFileSync(indexPath, 'utf-8');
+                const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+                const host = req.headers['x-forwarded-host'] || req.get('host') || 'localhost:3000';
+                const baseUrl = `${protocol}://${host}`;
+                
+                // Injetar URL absoluta para og:image e twitter:image (exigência de bots do WhatsApp/Facebook)
+                html = html.replace(/content="\/fotos\/vprimage11_entrada\.jpg"/g, `content="${baseUrl}/fotos/vprimage11_entrada.jpg"`);
+                return res.setHeader('Content-Type', 'text/html; charset=utf-8').send(html);
+            } catch (err) {
+                return res.sendFile(indexPath);
+            }
+        }
+        res.status(404).send('Index HTML não encontrado.');
     } else {
-        res.status(404).json({ error: 'Endpoint de API nÃ£o encontrado' });
+        res.status(404).json({ error: 'Endpoint de API não encontrado' });
     }
 });
 
