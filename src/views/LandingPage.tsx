@@ -54,73 +54,88 @@ const DEFAULT_RENTAL_CONDITIONS: RentalConditions = {
 
 const DEFAULT_SAMPLE_ROOMS: Room[] = [
     {
-        id: 'sample-1',
-        name: 'Quarto 1',
+        id: '19535d39-de6f-4acd-bbfc-2ba817be7257',
+        name: 'Quarto A',
         type: 'Quarto' as any,
         capacity: 1,
-        rent_value: 1290,
-        cleaning_fee: 150,
+        rent_value: 900,
+        cleaning_fee: 80,
         extras_value: 0,
         is_common_area: false,
         is_blocked_for_repairs: false,
         availability_status: 'Disponível',
-        description: 'Quarto individual mobiliado, silencioso e arejado, equipado com cama confortável, bancada de estudos e armário planejado.',
+        description: 'Quarto individual confortável e bem iluminado.',
         furniture: [
             { id: 'f1', name: 'Cama Box Solteiro', condition: 'Novo' },
-            { id: 'f2', name: 'Guarda-Roupa Planejado', condition: 'Novo' },
-            { id: 'f3', name: 'Mesa de Estudos e Cadeira Ergonômica', condition: 'Novo' },
-            { id: 'f4', name: 'Ar-Condicionado Split', condition: 'Novo' }
+            { id: 'f2', name: 'Guarda-Roupa', condition: 'Novo' },
+            { id: 'f3', name: 'Mesa de Estudos e Cadeira', condition: 'Novo' }
         ],
         media: [
             { id: 'm1', url: '/fotos/98905_0gMXlxxyf06MJQMP.jpg', type: 'image' },
-            { id: 'm2', url: '/fotos/98905_CYCX7spXgRfrsz7H.jpg', type: 'image' },
-            { id: 'm3', url: '/fotos/98905_JRni84qYdUydS9eF.jpg', type: 'image' }
+            { id: 'm2', url: '/fotos/98905_CYCX7spXgRfrsz7H.jpg', type: 'image' }
         ]
     },
     {
-        id: 'sample-2',
-        name: 'Quarto 2',
+        id: '2b523237-b456-4d4b-8eb2-1f561efe9c57',
+        name: 'Quarto B',
         type: 'Quarto' as any,
         capacity: 1,
-        rent_value: 1290,
-        cleaning_fee: 150,
+        rent_value: 900,
+        cleaning_fee: 80,
         extras_value: 0,
         is_common_area: false,
         is_blocked_for_repairs: false,
         availability_status: 'Disponível',
-        description: 'Quarto individual aconchegante, ideal para foco em estudos e trabalho home-office, com armário, escrivaninha e excelente ventilação.',
+        description: 'Quarto individual com armário e mesa de estudos.',
         furniture: [
-            { id: 'f5', name: 'Cama Box Solteiro', condition: 'Novo' },
-            { id: 'f6', name: 'Armário Planejado', condition: 'Bom' },
-            { id: 'f7', name: 'Escrivaninha com Tomadas', condition: 'Novo' }
+            { id: 'f4', name: 'Cama Box Solteiro', condition: 'Novo' },
+            { id: 'f5', name: 'Armário Planejado', condition: 'Bom' },
+            { id: 'f6', name: 'Escrivaninha', condition: 'Novo' }
         ],
         media: [
-            { id: 'm4', url: '/fotos/98905_r9U1krISShnTliUA (1).jpg', type: 'image' },
-            { id: 'm5', url: '/fotos/98905_Z6otj5s5Fg0NeCYF.jpg', type: 'image' }
+            { id: 'm3', url: '/fotos/98905_r9U1krISShnTliUA (1).jpg', type: 'image' },
+            { id: 'm4', url: '/fotos/98905_Z6otj5s5Fg0NeCYF.jpg', type: 'image' }
         ]
     },
     {
-        id: 'sample-3',
-        name: 'Quarto 3',
+        id: 'c4a3d74d-104d-49d4-a04b-6b439c0251ee',
+        name: 'Quarto C',
         type: 'Quarto' as any,
         capacity: 1,
-        rent_value: 1290,
-        cleaning_fee: 150,
+        rent_value: 900,
+        cleaning_fee: 80,
         extras_value: 0,
         is_common_area: false,
         is_blocked_for_repairs: false,
         availability_status: 'Disponível',
-        description: 'Quarto individual bem iluminado e arejado, perfeito para quem busca tranquilidade, privacidade e conforto no dia a dia.',
+        description: 'Quarto individual amplo e silencioso.',
         furniture: [
-            { id: 'f8', name: 'Cama Box', condition: 'Novo' },
-            { id: 'f9', name: 'Guarda-Roupa', condition: 'Novo' },
-            { id: 'f10', name: 'Mesa de Estudos e Cadeira', condition: 'Novo' },
-            { id: 'f11', name: 'Ar-Condicionado', condition: 'Novo' }
+            { id: 'f7', name: 'Cama Box Solteiro', condition: 'Novo' },
+            { id: 'f8', name: 'Armário', condition: 'Novo' },
+            { id: 'f9', name: 'Mesa de Estudos', condition: 'Novo' }
         ],
         media: [
-            { id: 'm6', url: '/fotos/98905_0gMXlxxyf06MJQMP.jpg', type: 'image' },
-            { id: 'm7', url: '/fotos/98905_CYCX7spXgRfrsz7H.jpg', type: 'image' },
-            { id: 'm8', url: '/fotos/98905_Z6otj5s5Fg0NeCYF.jpg', type: 'image' }
+            { id: 'm5', url: '/fotos/98905_0gMXlxxyf06MJQMP.jpg', type: 'image' }
+        ]
+    },
+    {
+        id: 'c1e7a552-0cba-46f6-b36d-f5a3a79ca0c3',
+        name: 'Quarto E',
+        type: 'Quarto' as any,
+        capacity: 1,
+        rent_value: 800,
+        cleaning_fee: 60,
+        extras_value: 0,
+        is_common_area: false,
+        is_blocked_for_repairs: false,
+        availability_status: 'Disponível',
+        description: 'Quarto individual amplo e ventilado com cama e armário individual.',
+        furniture: [
+            { id: 'f10', name: 'Cama Individual', condition: 'Novo' },
+            { id: 'f11', name: 'Armário Individual', condition: 'Novo' }
+        ],
+        media: [
+            { id: 'm6', url: '/fotos/98905_CYCX7spXgRfrsz7H.jpg', type: 'image' }
         ]
     }
 ];
