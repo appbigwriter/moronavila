@@ -316,18 +316,20 @@ export async function fetchPublicPropertyDescription(): Promise<PropertyDescript
 }
 
 export async function fetchPublicRooms(): Promise<Room[]> {
-    const [roomsRes, mediaRes] = await Promise.all([
+    const [roomsRes, furnitureRes, mediaRes] = await Promise.all([
         supabase.from('rooms').select('*').order('name'),
+        supabase.from('furniture').select('*').order('name'),
         supabase.from('room_media').select('*').order('created_at'),
     ]);
     if (roomsRes.error) throw roomsRes.error;
     const rooms = (roomsRes.data || []) as any[];
+    const furniture = (furnitureRes.data || []) as any[];
     const media = (mediaRes.data || []) as any[];
     return rooms
         .map(r => ({
             ...r,
+            furniture: furniture.filter(f => f.room_id === r.id),
             media: media.filter(m => m.room_id === r.id),
-            furniture: [],
             residentIds: [],
             is_common_area: r.is_common_area,
             is_blocked_for_repairs: r.is_blocked_for_repairs,

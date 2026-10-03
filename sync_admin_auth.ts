@@ -24,7 +24,7 @@ async function syncAdminAuth() {
         
         // 1. Verificar se existe no Auth
         const { data: usersData } = await supabase.auth.admin.listUsers();
-        let user = usersData?.users?.find(u => u.email?.toLowerCase() === adm.email.toLowerCase());
+        let user = (usersData?.users as any[])?.find(u => u.email?.toLowerCase() === adm.email.toLowerCase());
 
         if (!user) {
             console.log(`Criando usuário no Auth: ${adm.email}`);

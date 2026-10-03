@@ -3,7 +3,8 @@ import {
     Home, MapPin, Sparkles, Shield, ChevronRight, Play,
     ArrowRight, MessageCircle, Send, X, Sofa, Check, Info,
     Calendar, CreditCard, CheckCircle2, XCircle, HelpCircle,
-    Phone, Mail, User, Clock, Star, Users, ExternalLink
+    Phone, Mail, User, Clock, Star, Users, ExternalLink,
+    Bed, Bath, Layers, ShieldCheck
 } from 'lucide-react';
 import { fetchPublicPropertyDescription, fetchPublicRooms, fetchRentalConditions, signUpResident } from '../lib/database';
 import { getLocalApiBase } from '../lib/localApi';
@@ -315,21 +316,25 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
             ? room.media
             : [{ type: 'image' as const, url: '/fotos/vprimage1.jpg' }, { type: 'image' as const, url: '/fotos/vprimage6.jpg' }];
 
+        const isSuite = (room as any).suite === true;
+        const availability = room.is_blocked_for_repairs ? 'Em Manutenção' : (room.availability_status || 'Disponível');
+
         return (
             <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-6">
                 <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={onClose} />
-                <div className="relative w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
+                <div className="relative w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 max-h-[92vh] flex flex-col">
                     <button
                         onClick={onClose}
-                        className="absolute top-6 right-6 z-10 p-3 bg-slate-950/50 hover:bg-rose-600 text-white rounded-2xl transition-all border border-white/10"
+                        className="absolute top-6 right-6 z-10 p-3 bg-slate-950/70 hover:bg-rose-600 text-white rounded-2xl transition-all border border-white/10 shadow-lg"
+                        title="Fechar"
                     >
-                        <X size={24} />
+                        <X size={22} />
                     </button>
 
                     <div className="flex flex-col lg:flex-row h-full overflow-y-auto lg:overflow-hidden">
                         {/* Galeria de Mídia */}
-                        <div className="lg:w-3/5 relative bg-black aspect-video lg:aspect-auto flex flex-col">
-                            <div className="flex-1 relative overflow-hidden flex items-center justify-center">
+                        <div className="lg:w-7/12 relative bg-black aspect-video lg:aspect-auto flex flex-col justify-between">
+                            <div className="flex-1 relative overflow-hidden flex items-center justify-center min-h-[300px] lg:min-h-[420px]">
                                 {roomImages[activeMediaIndex] ? (
                                     roomImages[activeMediaIndex].type === 'video' ? (
                                         <video
@@ -346,27 +351,28 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                         />
                                     )
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-slate-800">
-                                        <Home size={64} className="text-slate-600" />
+                                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 text-slate-600 p-8">
+                                        <Home size={64} className="mb-2" />
+                                        <span className="text-xs uppercase font-bold tracking-widest text-slate-500">Foto do Quarto</span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Miniaturas */}
                             {roomImages.length > 1 && (
-                                <div className="p-4 bg-slate-950/50 backdrop-blur-md flex gap-2 overflow-x-auto no-scrollbar justify-center">
+                                <div className="p-4 bg-slate-950/80 backdrop-blur-md flex gap-2 overflow-x-auto no-scrollbar justify-center border-t border-white/5">
                                     {roomImages.map((media, idx) => (
                                         <button
                                             key={idx}
                                             onClick={() => setActiveMediaIndex(idx)}
-                                            className={`relative w-16 md:w-20 aspect-video rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
-                                                activeMediaIndex === idx ? 'border-rose-500 scale-105' : 'border-transparent opacity-50 hover:opacity-100'
+                                            className={`relative w-16 md:w-20 aspect-video rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
+                                                activeMediaIndex === idx ? 'border-rose-500 scale-105 shadow-md shadow-rose-950' : 'border-transparent opacity-50 hover:opacity-100'
                                             }`}
                                         >
                                             <img src={media.url} className="w-full h-full object-cover" alt="" />
                                             {media.type === 'video' && (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                                                    <Play size={16} className="text-white" />
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                                    <Play size={14} className="text-white" />
                                                 </div>
                                             )}
                                         </button>
@@ -375,51 +381,138 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             )}
                         </div>
 
-                        {/* Detalhes */}
-                        <div className="lg:w-2/5 p-8 md:p-12 flex flex-col h-full bg-slate-900 overflow-y-auto">
-                            <div className="mb-8">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <span className="px-3 py-1 bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-rose-500/20">
-                                        {room.type}
+                        {/* Detalhes Técnicos Cadastrados */}
+                        <div className="lg:w-5/12 p-6 md:p-10 flex flex-col h-full bg-slate-900 overflow-y-auto border-t lg:border-t-0 lg:border-l border-slate-800">
+                            {/* Badges de Status e Tipo */}
+                            <div className="flex flex-wrap items-center gap-2 mb-4">
+                                <span className="px-3 py-1 bg-rose-500/10 text-rose-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-rose-500/20">
+                                    {room.type}
+                                </span>
+                                <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border ${
+                                    availability === 'Disponível'
+                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                        : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                }`}>
+                                    {availability}
+                                </span>
+                                {isSuite && (
+                                    <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-indigo-500/20">
+                                        Suíte Privativa
                                     </span>
-                                    <span className="text-white/40 text-[10px] uppercase font-bold tracking-widest">Acomodação Pronta</span>
-                                </div>
-                                <h3 className="text-3xl md:text-4xl font-black text-white uppercase italic tracking-tighter mb-4">{room.name}</h3>
-                                <div className="text-3xl font-black text-rose-500 mb-6">
-                                    R$ {room.rent_value} <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">/ mês com tudo incluso</span>
-                                </div>
-                                <div className="h-px w-20 bg-gradient-to-r from-rose-600 to-transparent mb-8" />
-                                <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-line font-medium">
-                                    {room.description || "Ambiente confortável, arejado e silencioso, ideal para quem busca praticidade e um bom lugar para descansar e estudar com tranquilidade."}
-                                </p>
+                                )}
                             </div>
 
-                            {/* Mobiliário */}
-                            {room.furniture && room.furniture.length > 0 && (
-                                <div className="mb-10">
-                                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Mobiliário Incluso</h4>
-                                    <div className="grid grid-cols-1 gap-2.5">
+                            <h3 className="text-3xl font-black text-white uppercase italic tracking-tight mb-2">{room.name}</h3>
+
+                            {/* Valor Principal */}
+                            <div className="flex items-baseline gap-2 mb-6">
+                                <span className="text-3xl font-black text-rose-500">R$ {room.rent_value}</span>
+                                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">/ mês com tudo incluso</span>
+                            </div>
+
+                            {/* Grid de Especificações do Cadastro */}
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                <div className="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80">
+                                    <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                                        <Users size={13} className="text-rose-400" /> Capacidade
+                                    </div>
+                                    <div className="text-white text-xs font-bold">
+                                        {room.capacity > 1 ? `${room.capacity} Vagas (Compartilhado)` : '1 Pessoa (Individual)'}
+                                    </div>
+                                </div>
+
+                                <div className="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80">
+                                    <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                                        <Bath size={13} className="text-rose-400" /> Banheiro
+                                    </div>
+                                    <div className="text-white text-xs font-bold">
+                                        {isSuite ? 'Privativo (Suíte)' : 'Compartilhado'}
+                                    </div>
+                                </div>
+
+                                <div className="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80">
+                                    <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                                        <ShieldCheck size={13} className="text-rose-400" /> Manutenção/Limpeza
+                                    </div>
+                                    <div className="text-white text-xs font-bold">
+                                        {room.cleaning_fee ? `R$ ${room.cleaning_fee} cadastrada` : 'Inclusa no pacote'}
+                                    </div>
+                                </div>
+
+                                <div className="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80">
+                                    <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                                        <Sparkles size={13} className="text-rose-400" /> Contas Inclusas
+                                    </div>
+                                    <div className="text-emerald-400 text-xs font-bold">
+                                        Água, Luz e Wi-Fi
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Descrição Cadastrada */}
+                            <div className="mb-6">
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-2 flex items-center gap-1.5">
+                                    <Info size={13} /> Descrição da Acomodação
+                                </h4>
+                                <div className="p-4 bg-slate-950/40 border border-slate-800/60 rounded-2xl">
+                                    <p className="text-slate-300 text-xs leading-relaxed whitespace-pre-line font-medium">
+                                        {room.description || "Quarto confortável, ventilado e silencioso, ideal para quem busca praticidade no dia a dia da Vila Isabel."}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Mobiliário e Inventário Cadastrado */}
+                            <div className="mb-8">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] flex items-center gap-1.5">
+                                        <Sofa size={13} /> Mobiliário Cadastrado ({room.furniture ? room.furniture.length : 0})
+                                    </h4>
+                                </div>
+
+                                {room.furniture && room.furniture.length > 0 ? (
+                                    <div className="grid grid-cols-1 gap-2.5 max-h-48 overflow-y-auto pr-1">
                                         {room.furniture.map(item => (
-                                            <div key={item.id} className="flex items-center gap-4 p-3 bg-slate-950/40 border border-slate-800/60 rounded-xl group">
-                                                <div className="p-2 bg-slate-800 rounded-lg text-rose-400">
-                                                    <Sofa size={16} />
+                                            <div key={item.id} className="flex items-center justify-between p-3 bg-slate-950/50 border border-slate-800/70 rounded-xl group">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-slate-900 rounded-lg text-rose-400 border border-slate-800">
+                                                        <Sofa size={14} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-slate-200 text-xs font-bold uppercase">{item.name}</div>
+                                                        {item.description && (
+                                                            <div className="text-[10px] text-slate-500">{item.description}</div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <div className="text-slate-200 text-xs font-bold uppercase">{item.name}</div>
-                                                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{item.condition}</div>
-                                                </div>
+                                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border ${
+                                                    item.condition === 'Novo' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                    item.condition === 'Bom' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                    'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                                }`}>
+                                                    {item.condition}
+                                                </span>
                                             </div>
                                         ))}
                                     </div>
-                                </div>
-                            )}
+                                ) : (
+                                    <div className="p-4 bg-slate-950/40 border border-dashed border-slate-800/80 rounded-2xl text-center">
+                                        <p className="text-slate-400 text-xs font-medium">
+                                            Acomodação mobiliada com cama, armário e escrivaninha.
+                                        </p>
+                                        <span className="text-[9px] text-slate-600 uppercase font-black tracking-widest mt-1 block">
+                                            Inventário individual sendo sincronizado
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
 
-                            <div className="mt-auto pt-8 flex flex-col gap-3">
+                            {/* Botões de Ação */}
+                            <div className="mt-auto pt-4 flex flex-col gap-3">
                                 <a
-                                    href={`https://wa.me/5521981900803?text=${encodeURIComponent(`Olá! Tenho interesse na vaga do ${room.name} na MoronaVila. Gostaria de agendar uma visita ou tirar dúvidas!`)}`}
+                                    href={`https://wa.me/5521981900803?text=${encodeURIComponent(`Olá! Tenho interesse no ${room.name} (R$ ${room.rent_value}/mês) no Coliving MoronaVila. Gostaria de agendar uma visita ou tirar dúvidas!`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full flex items-center justify-center gap-2.5 border border-rose-500/40 hover:bg-rose-500/10 text-rose-400 px-6 py-4 rounded-full font-black text-[11px] uppercase tracking-[0.2em] transition-all"
+                                    className="w-full flex items-center justify-center gap-2.5 border border-rose-500/40 hover:bg-rose-500/10 text-rose-400 px-6 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all"
                                 >
                                     <MessageCircle size={16} /> Agendar Visita no WhatsApp
                                 </a>
@@ -430,7 +523,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                         setRegistrationStep('simulator');
                                         setSelectedRoom(null);
                                     }}
-                                    className="w-full flex items-center justify-center gap-3 bg-rose-600 hover:bg-rose-700 text-white px-6 py-4 rounded-full font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-rose-900/40 hover:scale-[1.02] active:scale-98"
+                                    className="w-full flex items-center justify-center gap-3 bg-rose-600 hover:bg-rose-700 text-white px-6 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-rose-900/40 hover:scale-[1.01] active:scale-98"
                                 >
                                     Simular Entrada & Reserva <ArrowRight size={16} />
                                 </button>
@@ -852,7 +945,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
 
                                                 <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-rose-400">
-                                                    Quarto Individual
+                                                    {room.capacity > 1 ? `${room.type} (${room.capacity} vagas)` : (room.type || 'Quarto Individual')}{(room as any).suite ? ' • Suíte' : ''}
                                                 </div>
 
                                                 <div className="absolute top-4 right-4 bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
