@@ -182,6 +182,7 @@ export function Login({
                                 <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-rose-500 transition-colors" />
                                 <input
                                     type="email" required
+                                    autoComplete="email"
                                     value={email} onChange={(e) => setEmail(e.target.value)}
                                     className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500/10 focus:border-rose-500/50 transition-all placeholder:text-slate-700"
                                     placeholder="seu@email.com"
@@ -196,6 +197,7 @@ export function Login({
                                     <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-rose-500 transition-colors" />
                                     <input
                                         type="password" required minLength={6}
+                                        autoComplete={isLogin ? "current-password" : "new-password"}
                                         value={password} onChange={(e) => setPassword(e.target.value)}
                                         className="w-full bg-slate-900/60 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500/10 focus:border-rose-500/50 transition-all placeholder:text-slate-700"
                                         placeholder="••••••••"
