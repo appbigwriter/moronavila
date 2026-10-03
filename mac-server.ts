@@ -1091,7 +1091,7 @@ app.get('/env.js', (req, res) => {
     const runtimeEnv = {
         VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://supabase-control-tower-api.fbr.news',
         VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzg5OTkwODc2LCJleHAiOjE5NDc2NzA4NzZ9.f2enmw8Mk0hWI6WcNfkZLGOl-qaqVzQBGt8qftDaR6k',
-        VITE_SUPABASE_SCHEMA: process.env.CONTROL_TOWER_SCHEMA_NAME || process.env.VITE_SUPABASE_SCHEMA || 'custom_moronavila'
+        VITE_SUPABASE_SCHEMA: process.env.VITE_SUPABASE_SCHEMA || process.env.CONTROL_TOWER_SCHEMA_NAME || 'public'
     };
     res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
     res.send(`window.__ENV__ = ${JSON.stringify(runtimeEnv)};`);
