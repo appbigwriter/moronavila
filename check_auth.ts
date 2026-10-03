@@ -28,7 +28,7 @@ async function listUsers() {
             console.error('Error listing auth users:', authErr);
         } else {
             console.log(`Found ${authUsers?.users?.length} auth users:`);
-            authUsers?.users?.forEach(u => {
+            (authUsers?.users as any[])?.forEach((u: any) => {
                 console.log(`ID: ${u.id} | Email: ${u.email} | Confirmed: ${u.email_confirmed_at ? 'Yes' : 'No'} | Created: ${u.created_at}`);
             });
         }
