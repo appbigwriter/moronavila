@@ -643,7 +643,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase italic leading-none">
                                 MORONA<span className="text-rose-600">VILA</span>
                             </h1>
-                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400">Coliving • Vila Isabel</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400">Coliving</span>
                         </div>
                     </div>
 
