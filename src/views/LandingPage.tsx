@@ -55,16 +55,16 @@ const DEFAULT_RENTAL_CONDITIONS: RentalConditions = {
 const DEFAULT_SAMPLE_ROOMS: Room[] = [
     {
         id: 'sample-1',
-        name: 'Suíte Individual Master',
-        type: 'Suíte' as any,
+        name: 'Quarto 1',
+        type: 'Quarto' as any,
         capacity: 1,
-        rent_value: 1390,
+        rent_value: 1290,
         cleaning_fee: 150,
         extras_value: 0,
         is_common_area: false,
         is_blocked_for_repairs: false,
         availability_status: 'Disponível',
-        description: 'Suíte privativa silenciosa com excelente ventilação, cama confortável, bancada de estudos ampla e armário planejado.',
+        description: 'Quarto individual mobiliado, silencioso e arejado, equipado com cama confortável, bancada de estudos e armário planejado.',
         furniture: [
             { id: 'f1', name: 'Cama Box Solteiro', condition: 'Novo' },
             { id: 'f2', name: 'Guarda-Roupa Planejado', condition: 'Novo' },
@@ -79,16 +79,16 @@ const DEFAULT_SAMPLE_ROOMS: Room[] = [
     },
     {
         id: 'sample-2',
-        name: 'Quarto Individual Standard',
+        name: 'Quarto 2',
         type: 'Quarto' as any,
         capacity: 1,
-        rent_value: 1200,
+        rent_value: 1290,
         cleaning_fee: 150,
         extras_value: 0,
         is_common_area: false,
         is_blocked_for_repairs: false,
         availability_status: 'Disponível',
-        description: 'Quarto privativo aconchegante, ideal para foco em estudos e trabalho home-office, com armário, escrivaninha e colchão de alta qualidade.',
+        description: 'Quarto individual aconchegante, ideal para foco em estudos e trabalho home-office, com armário, escrivaninha e excelente ventilação.',
         furniture: [
             { id: 'f5', name: 'Cama Box Solteiro', condition: 'Novo' },
             { id: 'f6', name: 'Armário Planejado', condition: 'Bom' },
@@ -101,19 +101,19 @@ const DEFAULT_SAMPLE_ROOMS: Room[] = [
     },
     {
         id: 'sample-3',
-        name: 'Suíte Premium Conforto',
-        type: 'Suíte' as any,
+        name: 'Quarto 3',
+        type: 'Quarto' as any,
         capacity: 1,
-        rent_value: 1490,
+        rent_value: 1290,
         cleaning_fee: 150,
         extras_value: 0,
         is_common_area: false,
         is_blocked_for_repairs: false,
         availability_status: 'Disponível',
-        description: 'Acomodação premium, arejada e iluminada, perfeita para quem busca privacidade total e ambiente propício para alta produtividade.',
+        description: 'Quarto individual bem iluminado e arejado, perfeito para quem busca tranquilidade, privacidade e conforto no dia a dia.',
         furniture: [
             { id: 'f8', name: 'Cama Box', condition: 'Novo' },
-            { id: 'f9', name: 'Guarda-Roupa Grande', condition: 'Novo' },
+            { id: 'f9', name: 'Guarda-Roupa', condition: 'Novo' },
             { id: 'f10', name: 'Mesa de Estudos e Cadeira', condition: 'Novo' },
             { id: 'f11', name: 'Ar-Condicionado', condition: 'Novo' }
         ],
@@ -269,6 +269,14 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
 
     const FAQS = [
         {
+            q: 'Quanto é e como funciona o depósito de caução?',
+            a: 'Equivale a um mês de aluguel. O residente é livre para deixar a casa desde que avise com a antecedência mínima de 30 dias sobre sua intenção, com o depósito quitando esse último período de 30 dias, do dia 1 ao último dia do mês da saída.'
+        },
+        {
+            q: 'Quais são as regras básicas da propriedade?',
+            a: `1 - Não é permitido visitas\n2 - Não é permitido fumantes\n3 - Não é permitido pets\n4 - Não é permitido som alto em nenhum horário\n5 - A limpeza dos quartos é obrigação do residente\n6 - O aluguel cobre sempre o período de 1 a último dia de cada mês, pagos até o quinto dia útil do mês subsequente.`
+        },
+        {
             q: 'Como funciona o valor mensal? Realmente não há contas extras?',
             a: 'Exatamente! O valor do aluguel já inclui todas as despesas essenciais: energia elétrica, água, esgoto, internet Wi-Fi de alta velocidade e a limpeza periódica das áreas comuns. Sem IPTU, taxa de condomínio ou rateios surpresa.'
         },
@@ -279,10 +287,6 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
         {
             q: 'Os quartos já vêm mobiliados?',
             a: 'Sim, todos os quartos contam com cama, colchão confortável, armário/guarda-roupa e escrivaninha de estudos/trabalho. Basta trazer suas malas e roupas pessoais.'
-        },
-        {
-            q: 'Como funciona a convivência e o silêncio?',
-            a: 'A MoronaVila é pensada para quem estuda e trabalha. Temos regras claras de boa convivência, com horário de silêncio rigoroso a partir das 22h, garantindo que todos tenham uma noite tranquila de sono e foco nos estudos.'
         },
         {
             q: 'Posso agendar uma visita para conhecer a casa antes de fechar?',
@@ -785,7 +789,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             Escolha sua <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">Acomodação Ideal</span>
                         </h2>
                         <p className="text-slate-400 text-base md:text-lg leading-relaxed">
-                            Quartos individuais e suítes prontas para morar, com conforto térmico, internet cabeada/Wi-Fi e mobiliário completo.
+                            Quartos individuais mobiliados, silenciosos e prontos para morar com todas as contas inclusas (água, luz, gás, Wi-Fi e limpeza) e acesso livre às áreas comuns.
                         </p>
                     </div>
 
@@ -827,7 +831,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
 
                                                 <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-rose-400">
-                                                    {room.type}
+                                                    Quarto Individual
                                                 </div>
 
                                                 <div className="absolute top-4 right-4 bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
@@ -939,7 +943,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     <span className="text-white font-black">Incluso</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Interfone Digital no Celular</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Interfone Individualizado (Em breve)</span>
                                     <span className="text-white font-black">Incluso</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
@@ -1000,7 +1004,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                         </span>
                                     </button>
                                     {isOpen && (
-                                        <div className="px-6 pb-6 text-slate-300 text-sm leading-relaxed border-t border-slate-800/60 pt-4">
+                                        <div className="px-6 pb-6 text-slate-300 text-sm leading-relaxed border-t border-slate-800/60 pt-4 whitespace-pre-line">
                                             {faq.a}
                                         </div>
                                     )}

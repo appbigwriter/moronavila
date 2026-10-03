@@ -23,7 +23,7 @@ export interface Place {
 const PLACES_DATA: Place[] = [
     {
         id: 'praca-sete',
-        name: 'Praça Sete (Barão de Drummond)',
+        name: 'Praça Sete',
         category: 'leisure',
         distance: '100 metros',
         walkTime: '1 min',
@@ -31,7 +31,7 @@ const PLACES_DATA: Place[] = [
         carTime: '1 min',
         description: 'Ponto de encontro vibrante do bairro, com quiosques, lazer ao ar livre e vida noturna.',
         highlight: 'Ao virar a esquina',
-        radarPos: { x: 15, y: -20 },
+        radarPos: { x: 28, y: -26 },
         addressQuery: 'Praca Barao de Drummond Vila Isabel Rio de Janeiro'
     },
     {
@@ -44,12 +44,12 @@ const PLACES_DATA: Place[] = [
         carTime: '1 min',
         description: 'A tradicional e famosa pizzaria carioca com rodízio, tortas e lanches na 28 de Setembro.',
         highlight: 'Tradição carioca',
-        radarPos: { x: -22, y: -15 },
+        radarPos: { x: -30, y: -20 },
         addressQuery: 'Parme Boulevard 28 de Setembro Vila Isabel Rio de Janeiro'
     },
     {
         id: 'unidos-vila-isabel',
-        name: 'Quadra da Unidos de Vila Isabel',
+        name: 'Unidos de Vila Isabel',
         category: 'culture',
         distance: '150 metros',
         walkTime: '2 min',
@@ -57,12 +57,12 @@ const PLACES_DATA: Place[] = [
         carTime: '1 min',
         description: 'Templo do samba carioca na Av. 28 de Setembro. Ensaios, eventos culturais e história.',
         highlight: 'Cultura & Samba',
-        radarPos: { x: -35, y: -28 },
+        radarPos: { x: -52, y: -48 },
         addressQuery: 'Quadra Unidos de Vila Isabel Av 28 de Setembro'
     },
     {
         id: 'supermercado-extra',
-        name: 'Supermercado Extra / Mercados',
+        name: 'Supermercado Extra',
         category: 'market',
         distance: '150 metros',
         walkTime: '2 min',
@@ -70,12 +70,12 @@ const PLACES_DATA: Place[] = [
         carTime: '1 min',
         description: 'Supermercado completo, padaria, açougue e farmácias para resolver tudo do seu dia a dia.',
         highlight: 'Praticidade total',
-        radarPos: { x: 30, y: -30 },
+        radarPos: { x: -36, y: 38 },
         addressQuery: 'Supermercado Extra Boulevard 28 de Setembro Vila Isabel'
     },
     {
         id: 'vila-gourmet',
-        name: 'Espaço Vila Gourmet',
+        name: 'Vila Gourmet',
         category: 'food',
         distance: '150 metros',
         walkTime: '2 min',
@@ -83,7 +83,7 @@ const PLACES_DATA: Place[] = [
         carTime: '1 min',
         description: 'Polo gastronômico a céu aberto com dezenas de food trucks, hambúrgueres artesanais e chopp.',
         highlight: 'Dezenas de Food Trucks',
-        radarPos: { x: 25, y: 20 },
+        radarPos: { x: 34, y: 32 },
         addressQuery: 'Espaco Vila Gourmet Vila Isabel Rio de Janeiro'
     },
     {
@@ -96,12 +96,12 @@ const PLACES_DATA: Place[] = [
         carTime: '2 min',
         description: 'Grande shopping center com cinemas Cinemark, praça de alimentação, academia, lojas e serviços.',
         highlight: 'Lazer & Conveniência',
-        radarPos: { x: -55, y: 35 },
+        radarPos: { x: -78, y: 18 },
         addressQuery: 'Shopping Boulevard Rio de Janeiro Vila Isabel'
     },
     {
         id: 'hupe',
-        name: 'Hospital Universitário Pedro Ernesto (HUPE)',
+        name: 'Hospital HUPE / UERJ',
         category: 'health',
         distance: '900 metros',
         walkTime: '11 min',
@@ -109,12 +109,12 @@ const PLACES_DATA: Place[] = [
         carTime: '4 min',
         description: 'Um dos maiores complexos de saúde e formação médica de excelência do Rio.',
         highlight: 'Campus de Saúde',
-        radarPos: { x: 65, y: -50 },
+        radarPos: { x: 58, y: -62 },
         addressQuery: 'Hospital Universitario Pedro Ernesto Vila Isabel'
     },
     {
         id: 'uerj',
-        name: 'UERJ (Campus Maracanã)',
+        name: 'UERJ (Maracanã)',
         category: 'education',
         distance: '1.2 km',
         walkTime: '15 min',
@@ -122,12 +122,12 @@ const PLACES_DATA: Place[] = [
         carTime: '5 min',
         description: 'Principal universidade estadual com cursos de graduação, pós-graduação, biblioteca e teatro.',
         highlight: 'Hub Universitário',
-        radarPos: { x: 80, y: -65 },
+        radarPos: { x: 22, y: -84 },
         addressQuery: 'UERJ Universidade do Estado do Rio de Janeiro Maracana'
     },
     {
         id: 'metro-maracana',
-        name: 'Estação de Metrô & Trem Maracanã',
+        name: 'Metrô Maracanã',
         category: 'transit',
         distance: '1.3 km',
         walkTime: '16 min',
@@ -135,12 +135,12 @@ const PLACES_DATA: Place[] = [
         carTime: '5 min',
         description: 'Conexão rápida da Linha 2 do Metrô para Centro, Zona Sul, Tijuca e Zona Norte.',
         highlight: 'Mobilidade Integrada',
-        radarPos: { x: 75, y: 55 },
+        radarPos: { x: 56, y: 76 },
         addressQuery: 'Estacao Maracana Metro Rio'
     },
     {
         id: 'maracana',
-        name: 'Estádio do Maracanã & Ginásio',
+        name: 'Estádio Maracanã',
         category: 'leisure',
         distance: '1.5 km',
         walkTime: '18 min',
@@ -148,7 +148,7 @@ const PLACES_DATA: Place[] = [
         carTime: '6 min',
         description: 'O maior palco do futebol mundial, grandes shows, pista de corrida e ciclovia.',
         highlight: 'Ícone Mundial',
-        radarPos: { x: 85, y: 15 },
+        radarPos: { x: 84, y: -10 },
         addressQuery: 'Estadio Jornalista Mario Filho Maracana'
     }
 ];
@@ -268,44 +268,58 @@ export function InteractiveMap() {
 
                     {/* Conteúdo: MODO RADAR */}
                     {viewMode === 'radar' ? (
-                        <div className="relative w-full aspect-square max-h-[520px] mx-auto flex items-center justify-center my-auto">
-                            {/* Círculos concêntricos de distância */}
+                        <div className="relative w-full aspect-[4/3] md:aspect-square min-h-[480px] md:min-h-[540px] max-h-[580px] mx-auto flex items-center justify-center my-auto overflow-hidden">
+                            {/* Círculos concêntricos e malha do Radar */}
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="w-[90%] h-[90%] rounded-full border border-dashed border-rose-500/10 flex items-center justify-center animate-spin-slow">
-                                    <span className="absolute -top-3 px-2 bg-slate-900 text-[9px] font-black text-rose-500/50 uppercase tracking-widest">Raio 1.5 km (~18 min a pé)</span>
+                                {/* Anel Externo 1.5 km */}
+                                <div className="absolute w-[94%] h-[94%] rounded-full border border-dashed border-rose-500/15 flex items-center justify-center">
+                                    <span className="absolute -top-2.5 px-2 bg-slate-900 text-[8px] font-black text-rose-400/60 uppercase tracking-widest">
+                                        Raio 1.5 km (~18 min)
+                                    </span>
                                 </div>
-                                <div className="absolute w-[68%] h-[68%] rounded-full border border-slate-800/80 flex items-center justify-center">
-                                    <span className="absolute -top-3 px-2 bg-slate-900 text-[9px] font-black text-slate-600 uppercase tracking-widest">Raio 800m (~10 min)</span>
+                                {/* Anel 900m */}
+                                <div className="absolute w-[74%] h-[74%] rounded-full border border-slate-800/80 flex items-center justify-center">
+                                    <span className="absolute -top-2.5 px-2 bg-slate-900 text-[8px] font-black text-slate-500 uppercase tracking-widest">
+                                        Raio 900m (~11 min)
+                                    </span>
                                 </div>
-                                <div className="absolute w-[44%] h-[44%] rounded-full border border-rose-500/20 bg-rose-500/[0.02] flex items-center justify-center">
-                                    <span className="absolute -top-3 px-2 bg-slate-900 text-[9px] font-black text-rose-400/80 uppercase tracking-widest">Raio 300m (~4 min)</span>
+                                {/* Anel 300m */}
+                                <div className="absolute w-[50%] h-[50%] rounded-full border border-rose-500/20 bg-rose-500/[0.015] flex items-center justify-center">
+                                    <span className="absolute -top-2.5 px-2 bg-slate-900 text-[8px] font-black text-rose-400/80 uppercase tracking-widest">
+                                        Raio 300m (~4 min)
+                                    </span>
                                 </div>
-                                <div className="absolute w-[24%] h-[24%] rounded-full border border-emerald-500/20 bg-emerald-500/[0.03] flex items-center justify-center">
-                                    <span className="absolute -top-3 px-2 bg-slate-900 text-[9px] font-black text-emerald-400/80 uppercase tracking-widest">100m (~1 min)</span>
+                                {/* Anel 150m */}
+                                <div className="absolute w-[28%] h-[28%] rounded-full border border-emerald-500/25 bg-emerald-500/[0.02] flex items-center justify-center">
+                                    <span className="absolute -top-2.5 px-2 bg-slate-900 text-[7.5px] font-black text-emerald-400/90 uppercase tracking-widest">
+                                        100-150m (~1-2 min)
+                                    </span>
                                 </div>
-                                {/* Linhas de mira (Radar grid) */}
+                                {/* Linhas dos eixos do Radar */}
                                 <div className="absolute w-full h-px bg-slate-800/40" />
                                 <div className="absolute h-full w-px bg-slate-800/40" />
+                                <div className="absolute w-full h-px bg-slate-800/20 rotate-45" />
+                                <div className="absolute w-full h-px bg-slate-800/20 -rotate-45" />
                             </div>
 
                             {/* PONTO CENTRAL: Moronavila */}
                             <div className="relative z-30 flex flex-col items-center justify-center cursor-pointer group">
-                                <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-rose-600 to-rose-500 text-white shadow-xl shadow-rose-900/50 border-2 border-white/20 group-hover:scale-110 transition-transform">
-                                    <Building2 size={26} />
+                                <div className="relative flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-2xl bg-gradient-to-tr from-rose-600 to-rose-500 text-white shadow-xl shadow-rose-900/50 border-2 border-white/20 group-hover:scale-105 transition-transform">
+                                    <Building2 size={20} />
                                     <span className="absolute -inset-1 rounded-2xl bg-rose-500/30 animate-pulse -z-10" />
                                 </div>
-                                <div className="absolute top-16 bg-slate-950/95 border border-rose-500/30 px-3 py-1.5 rounded-xl shadow-xl whitespace-nowrap text-center">
-                                    <div className="text-[10px] font-black uppercase text-rose-400 tracking-wider">MORONAVILA</div>
-                                    <div className="text-[9px] text-slate-400">Rua Torres Homem, 886</div>
+                                <div className="absolute top-13 bg-slate-950/95 border border-rose-500/30 px-2 py-1 rounded-lg shadow-xl whitespace-nowrap text-center pointer-events-none">
+                                    <div className="text-[8.5px] font-black uppercase text-rose-400 tracking-wider">MORONAVILA</div>
+                                    <div className="text-[7.5px] text-slate-400">R. Torres Homem, 886</div>
                                 </div>
                             </div>
 
                             {/* PINS INTERATIVOS AO REDOR */}
                             {filteredPlaces.map(place => {
                                 const isSelected = activePlace.id === place.id;
-                                // Calcular coordenadas CSS a partir de radarPos (-100 a +100)
-                                const leftPercent = 50 + (place.radarPos.x * 0.42);
-                                const topPercent = 50 + (place.radarPos.y * 0.42);
+                                // Amplitude com 45% do raio
+                                const leftPercent = 50 + (place.radarPos.x * 0.45);
+                                const topPercent = 50 + (place.radarPos.y * 0.45);
 
                                 return (
                                     <button
@@ -316,24 +330,24 @@ export function InteractiveMap() {
                                             top: `${topPercent}%`
                                         }}
                                         className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 group transition-all duration-300 ${
-                                            isSelected ? 'scale-125 z-40' : 'hover:scale-110 opacity-90 hover:opacity-100'
+                                            isSelected ? 'scale-115 z-40' : 'hover:scale-105 opacity-95 hover:opacity-100'
                                         }`}
                                     >
-                                        <div className={`p-2.5 rounded-2xl border shadow-xl flex items-center gap-1.5 transition-all ${
+                                        <div className={`px-2 py-1 md:px-2.5 md:py-1.5 rounded-xl border shadow-lg flex items-center gap-1.5 transition-all ${
                                             isSelected
-                                                ? 'bg-rose-600 border-white text-white shadow-rose-900/60 ring-4 ring-rose-500/30'
-                                                : 'bg-slate-950/90 border-slate-700 text-slate-200 hover:border-rose-500'
+                                                ? 'bg-rose-600 border-white text-white shadow-rose-900/60 ring-2 ring-rose-500/40'
+                                                : 'bg-slate-950/90 border-slate-700/80 text-slate-200 hover:border-rose-500/80'
                                         }`}>
                                             {getCategoryIcon(place.category)}
-                                            <span className="text-[10px] font-bold max-w-[85px] md:max-w-[110px] truncate">
+                                            <span className="text-[8.5px] md:text-[9.5px] font-bold max-w-[70px] md:max-w-[95px] truncate">
                                                 {place.name}
                                             </span>
                                         </div>
                                         {/* Badge de tempo */}
-                                        <div className={`mt-1 text-[8px] font-black px-1.5 py-0.5 rounded-md border text-center transition-all ${
+                                        <div className={`mt-0.5 text-[7px] md:text-[7.5px] font-black px-1.5 py-0.5 rounded border text-center transition-all ${
                                             isSelected
                                                 ? 'bg-white text-slate-950 border-white'
-                                                : 'bg-slate-900/90 text-slate-300 border-slate-700'
+                                                : 'bg-slate-900/90 text-slate-300 border-slate-700/80'
                                         }`}>
                                             🚶 {place.walkTime}
                                         </div>

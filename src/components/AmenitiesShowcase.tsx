@@ -115,14 +115,14 @@ const AMENITY_DATA: AmenityCategory[] = [
         shortTitle: 'Segurança & Interfonia',
         icon: ShieldCheck,
         badge: 'Tranquilidade 24h',
-        subtitle: 'Acesso digital e interfone que toca no seu celular',
-        description: 'Fachada moderna e segura na Rua Torres Homem com controle de acesso, monitoramento e sistema exclusivo de interfonia digital (Softphone) que permite atender visitas e entregas diretamente no seu smartphone.',
+        subtitle: 'Acesso seguro e interfone individualizado (Em breve)',
+        description: 'Fachada moderna e segura na Rua Torres Homem com controle de acesso, monitoramento e sistema exclusivo de interfonia individualizada que permitirá atender portaria e entregas diretamente com comodidade.',
         images: [
             '/fotos/vprimage11_entrada.jpg'
         ],
         features: [
             'Entrada segura e identificada',
-            'Interfone digital no smartphone (receba entregas onde estiver)',
+            'Interfone individualizado para cada morador (Em breve)',
             'Câmeras de monitoramento nas áreas comuns',
             'Aplicativo exclusivo para moradores abrirem chamados e reservas'
         ],
@@ -136,7 +136,7 @@ const INCLUDED_BENEFITS = [
     { icon: Wifi, title: 'Wi-Fi Ultra-Rápido', desc: 'Fibra óptica de alta velocidade' },
     { icon: Brush, title: 'Limpeza Semanal', desc: 'Áreas comuns sempre limpas' },
     { icon: Wrench, title: 'Manutenção Ágil', desc: 'Suporte rápido direto no app' },
-    { icon: Smartphone, title: 'App do Morador', desc: 'Lavanderia, interfone e avisos' }
+    { icon: Smartphone, title: 'App do Morador', desc: 'Lavanderia, avisos e interfone (em breve)' }
 ];
 
 export function AmenitiesShowcase({ onSelectRoom }: { onSelectRoom?: () => void }) {
