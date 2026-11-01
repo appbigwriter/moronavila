@@ -4,7 +4,7 @@ import {
     Wrench, MessageSquare, Wifi, Megaphone,
     Calendar as CalendarIcon, LogOut, Home, Music,
     Search, AlertCircle, Menu, X, Trello, Droplets,
-    Globe, ExternalLink
+    Globe, ExternalLink, FileText
 } from 'lucide-react';
 import { UserRole, Resident } from '../types';
 import { signOut } from '../lib/database';
@@ -106,6 +106,22 @@ export function Layout({ currentUser, activeTab, setActiveTab, onLogout, onRefre
                     {isAdmin && (
                         <SidebarItem icon={MessageSquare} label="Reclamações" active={activeTab === 'complaints'} onClick={() => handleSetActiveTab('complaints')} />
                     )}
+
+                    <div className="pt-2 border-t border-slate-800/60 my-2">
+                        <a
+                            href="https://docs.google.com/forms/d/1kZBOzDBFKPABY_IGq1eXscTUT3YUkNHZrSxxEo1q4ZA/preview"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-all duration-300 group"
+                            title="Regras e cadastro de residentes"
+                        >
+                            <div className="flex items-center gap-3">
+                                <FileText size={20} className="text-slate-400 group-hover:text-amber-400 transition-colors shrink-0" />
+                                <span className="font-semibold text-xs leading-tight">Regras e cadastro de residentes</span>
+                            </div>
+                            <ExternalLink size={14} className="text-slate-500 group-hover:text-slate-300 shrink-0 ml-1" />
+                        </a>
+                    </div>
                 </nav>
 
                 {/* Footer / Profile Section */}

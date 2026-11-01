@@ -755,11 +755,20 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         </div>
                     </div>
 
-                    <nav className="hidden lg:flex items-center gap-8">
+                    <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
                         <a href="#comodidades" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Comodidades</a>
                         <a href="#localizacao" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Mapa da Região</a>
                         <a href="#vagas" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Acomodações</a>
                         <a href="#comparativo" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Custo-Benefício</a>
+                        <a
+                            href="https://docs.google.com/forms/d/1kZBOzDBFKPABY_IGq1eXscTUT3YUkNHZrSxxEo1q4ZA/preview"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-bold text-amber-400 hover:text-amber-300 uppercase tracking-wider transition-colors inline-flex items-center gap-1.5"
+                        >
+                            Regras e cadastro de residentes
+                            <ExternalLink size={12} />
+                        </a>
                         <a href="#contato" className="text-xs font-bold text-rose-500 hover:text-rose-400 uppercase tracking-wider transition-colors">Agendar Visita</a>
                     </nav>
 
@@ -1087,6 +1096,16 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                     <p className="text-slate-300 text-base md:text-lg leading-relaxed whitespace-pre-line text-left md:text-center p-8 md:p-12 bg-slate-900/40 backdrop-blur-sm shadow-xl rounded-[2.5rem] border border-slate-800">
                         {rules_text || "Prezamos pelo respeito mútuo, colaboração e silêncio a partir das 22h para que todos tenham um ambiente propício para estudos e descanso."}
                     </p>
+                    <div className="mt-8 flex justify-center">
+                        <a
+                            href="https://docs.google.com/forms/d/1kZBOzDBFKPABY_IGq1eXscTUT3YUkNHZrSxxEo1q4ZA/preview"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-black uppercase tracking-widest transition-all hover:scale-105 shadow-lg shadow-amber-950/20"
+                        >
+                            <ExternalLink size={15} /> Regras e cadastro de residentes
+                        </a>
+                    </div>
                 </div>
             </section>
 
@@ -1268,10 +1287,20 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         </p>
                     </div>
 
-                    <div className="text-left md:text-center space-y-1 text-xs text-slate-400">
+                    <div className="text-left md:text-center space-y-2 text-xs text-slate-400">
                         <div className="font-bold text-slate-200">Endereço</div>
                         <div>Rua Torres Homem, 886 - Vila Isabel</div>
                         <div>Rio de Janeiro - RJ • CEP 20551-075</div>
+                        <div className="pt-2">
+                            <a
+                                href="https://docs.google.com/forms/d/1kZBOzDBFKPABY_IGq1eXscTUT3YUkNHZrSxxEo1q4ZA/preview"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-amber-400 hover:text-amber-300 font-bold inline-flex items-center gap-1.5 transition-colors"
+                            >
+                                <ExternalLink size={12} /> Regras e cadastro de residentes
+                            </a>
+                        </div>
                     </div>
 
                     <div className="flex flex-col items-start md:items-end gap-3">
