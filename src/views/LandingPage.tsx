@@ -48,26 +48,26 @@ const DEFAULT_PROPERTY_DESC: PropertyDescription = {
 const PRODUCTS = [
     {
         name: 'Quarto Individual',
-        price: 'R$ 700',
-        priceNote: '/mês',
-        audience: 'Para quem mora sozinho',
+        price: 800,
+        couplePrice: 1100,
+        audience: 'Para 1 pessoa ou casal',
         promise: 'Seu quarto e seu banheiro, só seus, numa casa silenciosa.',
         features: ['Banheiro privativo (fora do quarto)', 'Mobiliado', 'Cozinha compartilhada com armário individual'],
         icon: Bed
     },
     {
         name: 'Suíte Independente',
-        price: 'R$ 800',
-        priceNote: '/mês',
-        audience: 'Para quem mora sozinho',
+        price: 900,
+        couplePrice: 1200,
+        audience: 'Para 1 pessoa ou casal',
         promise: 'Sua porta, sua rotina. Ninguém passa pelo seu quarto.',
         features: ['Entrada independente', 'Banheiro na suíte', 'Mobiliada', 'Cozinha compartilhada com armário individual'],
         icon: Home
     },
     {
         name: 'Studio',
-        price: 'R$ 900',
-        priceNote: '/mês • R$ 1.100 para casal',
+        price: 1000,
+        couplePrice: 1350,
         audience: 'Para profissionais ou casais sem filhos',
         promise: 'Seu primeiro lar a dois: mobiliado e sem fiador.',
         features: ['Cozinha e banheiro próprios', 'Mobiliado', 'Até 2 pessoas'],
@@ -75,14 +75,21 @@ const PRODUCTS = [
     },
     {
         name: 'Apartamento MoronaVila',
-        price: 'R$ 1.500',
-        priceNote: '/mês • até 2 pessoas',
+        price: 1700,
+        couplePrice: null,
         audience: 'Para casais ou quem trabalha de casa',
         promise: 'Um apartamento completo sem condomínio, IPTU ou fiador.',
         features: ['Quarto e sala', 'Cozinha e banheiro próprios', 'Mobiliado', 'Até 2 pessoas'],
         icon: Sofa
     }
 ];
+
+// Promoção de lançamento: R$ 100 a menos por mês, durante 12 meses, para contratos fechados até 10/11/2026.
+// Depois do prazo, o site volta sozinho aos preços normais.
+const PROMO = { discount: 100, months: 12, deadline: '10/11', endsAt: new Date('2026-11-10T23:59:59-03:00') };
+const isPromoActive = () => Date.now() <= PROMO.endsAt.getTime();
+const formatBRL = (value: number) => `R$ ${value.toLocaleString('pt-BR')}`;
+const MIN_PRICE = Math.min(...PRODUCTS.map(p => p.price));
 
 const HOUSE_RULES = [
     'Silêncio a partir das 22h, para residentes e visitantes.',
@@ -192,6 +199,8 @@ const DEFAULT_SAMPLE_ROOMS: Room[] = [
 ];
 
 export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashboard }: LandingPageProps) {
+    const promoActive = isPromoActive();
+    const fromPrice = promoActive ? MIN_PRICE - PROMO.discount : MIN_PRICE;
     const [propertyDesc, setPropertyDesc] = useState<PropertyDescription>(DEFAULT_PROPERTY_DESC);
     const [rentalConditions, setRentalConditions] = useState<RentalConditions>(DEFAULT_RENTAL_CONDITIONS);
     const [rooms, setRooms] = useState<Room[]>(DEFAULT_SAMPLE_ROOMS);
@@ -350,7 +359,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
         },
         {
             q: 'Vocês aceitam casais?',
-            a: 'Sim. Os studios (R$ 1.100 para casal) e o Apartamento MoronaVila (R$ 1.500, até 2 pessoas) recebem casais sem filhos. Os quartos e suítes são individuais.'
+            a: 'Sim. Todas as unidades recebem casais sem filhos: Quarto Individual R$ 1.100, Suíte Independente R$ 1.200, Studio R$ 1.350 e Apartamento MoronaVila R$ 1.700 (até 2 pessoas).'
         },
         {
             q: 'Preciso de fiador ou seguro fiança para alugar?',
@@ -462,7 +471,8 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
 
                             {/* Valor Principal */}
                             <div className="flex items-baseline gap-2 mb-6">
-                                <span className="text-3xl font-black text-rose-500">R$ {room.rent_value}</span>
+                                {promoActive && <span className="text-slate-500 text-sm font-bold line-through">{formatBRL(room.rent_value)}</span>}
+                                <span className="text-3xl font-black text-rose-500">{formatBRL(promoActive ? room.rent_value - PROMO.discount : room.rent_value)}</span>
                                 <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">/ mês</span>
                             </div>
 
@@ -562,7 +572,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             {/* Botões de Ação */}
                             <div className="mt-auto pt-4 flex flex-col gap-3">
                                 <a
-                                    href={`https://wa.me/5521981900803?text=${encodeURIComponent(`Olá! Tenho interesse no ${room.name} (R$ ${room.rent_value}/mês) na MoronaVila. Gostaria de agendar uma visita ou tirar dúvidas!`)}`}
+                                    href={`https://wa.me/5521981900803?text=${encodeURIComponent(`Olá! Tenho interesse no ${room.name} (${formatBRL(promoActive ? room.rent_value - PROMO.discount : room.rent_value)}/mês${promoActive ? ', na promoção' : ''}) na MoronaVila. Gostaria de agendar uma visita ou tirar dúvidas!`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="w-full flex items-center justify-center gap-2.5 border border-rose-500/40 hover:bg-rose-500/10 text-rose-400 px-6 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all"
@@ -897,7 +907,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                 href="#unidades"
                                 className="inline-flex items-center gap-3 bg-rose-600 hover:bg-rose-700 text-white px-8 py-5 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all shadow-2xl shadow-rose-900/50 hover:scale-105 active:scale-95"
                             >
-                                Ver Unidades a partir de R$ 700 <ArrowRight size={18} />
+                                Ver Unidades a partir de {formatBRL(fromPrice)} <ArrowRight size={18} />
                             </a>
                             <a
                                 href="#localizacao"
@@ -938,12 +948,21 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             <Home size={14} /> Nossas Unidades
                         </div>
                         <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase italic mb-4">
-                            Moradia independente a partir de <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">R$ 700</span>
+                            Moradia independente a partir de <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">{formatBRL(fromPrice)}</span>
                         </h2>
                         <p className="text-slate-400 text-base md:text-lg leading-relaxed">
                             Uma residência para profissionais: quem trabalha fora e quer voltar para uma casa tranquila. Todas as unidades são mobiliadas, sem fiador e com contrato pensado para quem quer ficar.
                         </p>
                     </div>
+
+                    {promoActive && (
+                        <div className="mb-10 max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3 text-center bg-gradient-to-r from-rose-600/20 to-amber-500/20 border border-rose-500/40 rounded-3xl px-6 py-4">
+                            <span className="px-3 py-1 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shrink-0">Promoção de lançamento</span>
+                            <span className="text-sm text-slate-200 font-bold">
+                                Feche até {PROMO.deadline} e pague <span className="text-white font-black">R$ {PROMO.discount} a menos por mês durante {PROMO.months} meses</span>, em qualquer unidade.
+                            </span>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {PRODUCTS.map(product => {
@@ -956,8 +975,19 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{product.audience}</span>
                                     <h3 className="text-xl font-black text-white uppercase italic tracking-tight mt-1 mb-3">{product.name}</h3>
                                     <div className="mb-4">
-                                        <span className="text-3xl font-black text-rose-500">{product.price}</span>
-                                        <span className="text-slate-400 text-[11px] font-bold ml-1">{product.priceNote}</span>
+                                        {promoActive && (
+                                            <span className="block text-slate-500 text-sm font-bold line-through">{formatBRL(product.price)}</span>
+                                        )}
+                                        <span className="text-3xl font-black text-rose-500">{formatBRL(promoActive ? product.price - PROMO.discount : product.price)}</span>
+                                        <span className="text-slate-400 text-[11px] font-bold ml-1">/mês{product.couplePrice ? '' : ' • até 2 pessoas'}</span>
+                                        {product.couplePrice && (
+                                            <span className="block text-slate-400 text-[11px] font-bold mt-1">
+                                                Casal: {formatBRL(promoActive ? product.couplePrice - PROMO.discount : product.couplePrice)}/mês
+                                            </span>
+                                        )}
+                                        {promoActive && (
+                                            <span className="block text-amber-400 text-[10px] font-black uppercase tracking-widest mt-2">Por {PROMO.months} meses • contratos até {PROMO.deadline}</span>
+                                        )}
                                     </div>
                                     <p className="text-slate-300 text-sm leading-relaxed mb-5 italic">"{product.promise}"</p>
                                     <ul className="space-y-2 mt-auto">
@@ -1066,7 +1096,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                                 </div>
 
                                                 <div className="absolute top-4 right-4 bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
-                                                    <span className="text-white font-black text-lg">R$ {room.rent_value}</span>
+                                                    <span className="text-white font-black text-lg">{formatBRL(promoActive ? room.rent_value - PROMO.discount : room.rent_value)}</span>
                                                     <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest ml-1">/mês</span>
                                                 </div>
                                             </div>
@@ -1155,7 +1185,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             <div className="space-y-3 text-sm text-slate-300 border-t border-rose-500/20 pt-6">
                                 <div className="flex items-center justify-between py-1">
                                     <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Unidade Mobiliada</span>
-                                    <span className="text-white font-black">A partir de R$ 700</span>
+                                    <span className="text-white font-black">A partir de {formatBRL(fromPrice)}</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
                                     <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Condomínio & IPTU</span>

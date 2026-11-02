@@ -1034,12 +1034,13 @@ app.post('/api/chat', async (req, res) => {
             - ARGUMENTO: "Pague menos do que na Zona Sul e chegue ao Centro em 20 minutos." Ideal para quem trabalha no Centro, Tijuca, Maracanã e nos hospitais da região.
 
             UNIDADES E VALORES (todas mobiliadas):
-            - Quarto Individual: R$ 700/mês. Banheiro privativo, que fica fora do quarto. Usa a cozinha compartilhada. Uma pessoa.
-            - Suíte Independente: R$ 800/mês. Entrada independente e banheiro na suíte. Usa a cozinha compartilhada. Uma pessoa.
-            - Studio: R$ 900/mês para uma pessoa ou R$ 1.100/mês para casal. Cozinha e banheiro próprios.
-            - Apartamento MoronaVila (quarto e sala): R$ 1.500/mês, até 2 pessoas. Cozinha e banheiro próprios.
-            - Casais sem filhos são aceitos apenas nos studios e no apartamento.
-            - Algumas unidades estão em renovação e podem ser reservadas antecipadamente. Para saber quais estão livres, oriente o contato pelo WhatsApp.
+            - Quarto Individual: R$ 800/mês para uma pessoa ou R$ 1.100/mês para casal. Banheiro privativo, que fica fora do quarto. Usa a cozinha compartilhada.
+            - Suíte Independente: R$ 900/mês para uma pessoa ou R$ 1.200/mês para casal. Entrada independente e banheiro na suíte. Usa a cozinha compartilhada.
+            - Studio: R$ 1.000/mês para uma pessoa ou R$ 1.350/mês para casal. Cozinha e banheiro próprios.
+            - Apartamento MoronaVila (quarto e sala): R$ 1.700/mês, até 2 pessoas. Cozinha e banheiro próprios.
+            - Casais sem filhos são aceitos em todas as unidades.
+${Date.now() <= new Date('2026-11-10T23:59:59-03:00').getTime() ? `            - PROMOÇÃO DE LANÇAMENTO: quem fechar contrato até 10/11 paga R$ 100 a menos por mês durante 12 meses, em qualquer unidade, inclusive no valor de casal (ex.: Quarto Individual R$ 700, Suíte Independente R$ 800, Studio R$ 900, Apartamento R$ 1.600). Depois dos 12 meses, volta ao valor normal. Use a promoção para criar urgência, com educação.
+` : ''}            - Algumas unidades estão em renovação e podem ser reservadas antecipadamente. Para saber quais estão livres, oriente o contato pelo WhatsApp.
 
             CONTAS:
             - Sem condomínio, sem IPTU, sem rateio. Wi-Fi, gás da cozinha compartilhada e limpeza das áreas comuns são por conta da casa.

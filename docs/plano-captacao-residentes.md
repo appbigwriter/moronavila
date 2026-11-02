@@ -18,19 +18,19 @@
 
 | Tipo | Total | **Onda 1:** prontas e vagas agora | **Onda 2:** liberadas pelos estudantes a partir de dez. | Ocupada (estudante que fica) |
 |---|---|---|---|---|
-| Suíte Independente (R$ 800) | 4 | 3 | — | 1 |
-| Quarto Individual (R$ 700) | 2 | 1 | 1 | — |
-| Studio (R$ 900 / R$ 1.100) | 5 | 1 | 4 | — |
-| Apartamento (R$ 1.500) | 1 | 1 | — | — |
+| Suíte Independente (R$ 900 / R$ 1.200) | 4 | 3 | — | 1 |
+| Quarto Individual (R$ 800 / R$ 1.100) | 2 | 1 | 1 | — |
+| Studio (R$ 1.000 / R$ 1.350) | 5 | 1 | 4 | — |
+| Apartamento (R$ 1.700) | 1 | 1 | — | — |
 | **Total** | **12** | **6** | **5** | **1** |
 
-- **Onda 1 (agora):** R$ 5.500 a R$ 5.700 por mês em jogo. São 4 unidades para quem mora sozinho (3 suítes e 1 quarto) e 2 que servem a casais (studio e apartamento).
+- **Onda 1 (agora):** R$ 6.200 por mês em jogo com uma pessoa por unidade (mais com casais). Todas as unidades aceitam casal sem filhos.
 - **Onda 2 (dez → fev):** R$ 4.300 a R$ 5.100 por mês. **4 dos 5 são studios**, então os casais e a campanha de residência médica (que começa em março) pesam mais nessa onda.
 - As unidades da onda 2 podem precisar de reparo depois da saída. Prazo total de até 90 dias.
-| Preço | Quarto individual R$ 700 · Suíte Independente R$ 800 · Studio R$ 900 (1 pessoa) / R$ 1.100 (casal) · Apartamento R$ 1.500 |
+| Preço | Quarto Individual R$ 800 / R$ 1.100 (casal) · Suíte Independente R$ 900 / R$ 1.200 · Studio R$ 1.000 / R$ 1.350 · Apartamento R$ 1.700 (até 2 pessoas). Revisado em 02/11/2026 após pesquisa de mercado. **Promoção:** contratos fechados até 10/11/2026 pagam R$ 100 a menos por mês durante 12 meses, em qualquer unidade e valor. |
 | Em andamento | Interfone individual em todas as unidades; luz e água individualizadas a partir de **janeiro/2027** |
 | Verba inicial | **R$ 500** |
-| Receita em jogo | Casa cheia: **R$ 10,6 mil/mês** (studios com uma pessoa) a **R$ 11,6 mil/mês** (studios com casal). Cada mês de unidade vazia custa de R$ 700 a R$ 1.500, mais que a verba inteira. Velocidade importa mais que perfeição. |
+| Receita em jogo | Casa cheia: **R$ 11,9 mil/mês** (uma pessoa por unidade) a **R$ 15,4 mil/mês** (todas com casal). Cada mês de unidade vazia custa de R$ 800 a R$ 1.700, mais que a verba inteira. Velocidade importa mais que perfeição. |
 
 **Meta:** 6 contratos até 31/12/2026 (onda 1) e +5 até 28/02/2027 (onda 2). Todos com contrato de 12 meses.
 
@@ -49,16 +49,16 @@
 
 | Produto | Unidades | Preço | Para quem | Promessa |
 |---|---|---|---|---|
-| **Quarto Individual** com banheiro privativo | 2 | **R$ 700** | Profissional sozinho, porta de entrada | "Seu quarto e seu banheiro, só seus, numa casa silenciosa." |
-| **Suíte Independente** | 4 | **R$ 800** | Profissional sozinho | "Sua porta, sua rotina. Ninguém passa pelo seu quarto." |
-| **Studio** | 5 | **R$ 900** (1 pessoa) / **R$ 1.100** (casal) | Profissional ou casal | "Seu primeiro lar a dois: mobiliado e sem fiador." |
-| **Apartamento MoronaVila** (quarto/sala) | 1 | **R$ 1.500** (até 2 pessoas) | Casal ou quem trabalha de casa | "Um apartamento completo sem condomínio, IPTU ou fiador." |
+| **Quarto Individual** com banheiro privativo | 2 | **R$ 800** (1 pessoa) / **R$ 1.100** (casal) | Profissional sozinho ou casal, porta de entrada | "Seu quarto e seu banheiro, só seus, numa casa silenciosa." |
+| **Suíte Independente** | 4 | **R$ 900** (1 pessoa) / **R$ 1.200** (casal) | Profissional sozinho ou casal | "Sua porta, sua rotina. Ninguém passa pelo seu quarto." |
+| **Studio** | 5 | **R$ 1.000** (1 pessoa) / **R$ 1.350** (casal) | Profissional ou casal | "Seu primeiro lar a dois: mobiliado e sem fiador." |
+| **Apartamento MoronaVila** (quarto/sala) | 1 | **R$ 1.700** (até 2 pessoas) | Casal ou quem trabalha de casa | "Um apartamento completo sem condomínio, IPTU ou fiador." |
 
-**Gancho de preço nos anúncios:** *"Moradia independente na Vila Isabel a partir de R$ 700, sem fiador."*
+**Gancho de preço nos anúncios:** *"Moradia independente na Vila Isabel a partir de R$ 800, sem fiador."* Até 10/11: *"a partir de R$ 700 na promoção de lançamento"*.
 
 **Transparência no Quarto Individual:** o banheiro é privativo, mas fica fora do quarto. Dizer isso no anúncio e mostrar na foto. Quem descobre só na visita sente que foi enganado e desiste, e o preço de R$ 700 já compensa.
 
-**Escada de permanência:** Quarto Individual (R$ 700) → Suíte Independente (R$ 800) → Studio (R$ 900–1.100) → Apartamento (R$ 1.500). Quem quer mais privacidade sobe para a suíte, quem começa a namorar vai para o studio, e o casal que precisa de mais espaço vai para o apartamento. Quem cresce na vida não precisa se mudar de casa. Dar **prioridade de troca** aos residentes atuais sempre que uma unidade maior vagar.
+**Escada de permanência:** Quarto Individual (R$ 800) → Suíte Independente (R$ 900) → Studio (R$ 1.000–1.350) → Apartamento (R$ 1.700). Quem quer mais privacidade sobe para a suíte, quem começa a namorar vai para o studio, e o casal que precisa de mais espaço vai para o apartamento. Quem cresce na vida não precisa se mudar de casa. Dar **prioridade de troca** aos residentes atuais sempre que uma unidade maior vagar.
 
 ---
 
@@ -141,7 +141,7 @@ O residente que indica alguém que completa 3 meses ganha **R$ 200 de desconto**
 ### Pagos (R$ 500)
 | Item | Valor | Objetivo |
 |---|---|---|
-| Anúncio Meta (Facebook/Instagram) com destino ao WhatsApp | R$ 300 | ~15 dias × R$ 20. Raio de 5 km em volta de Vila Isabel/Tijuca/Centro, idade 25–50. Dois criativos: "a partir de R$ 700, sem fiador" (quartos e suítes) e "studio para casal por R$ 1.100" (studios e apartamento). |
+| Anúncio Meta (Facebook/Instagram) com destino ao WhatsApp | R$ 300 | ~15 dias × R$ 20. Raio de 5 km em volta de Vila Isabel/Tijuca/Centro, idade 25–50. Dois criativos: "a partir de R$ 800, sem fiador" (quartos e suítes) e "studio para casal por R$ 1.100" (studios e apartamento). |
 | Destaque no OLX | R$ 100 | Subir os anúncios das 6 unidades prontas na primeira quinzena. |
 | Impressão de cartazes com QR code | R$ 100 | ~50 cartazes A4/A3 para os murais. |
 
@@ -198,7 +198,7 @@ Quem passa vai para a visita. Na entrada: comprovante de trabalho ou renda, uma 
 
 - [ ] Trocar "Coliving" e "vida acadêmica" por residência para profissionais
 - [ ] Abrir com "Seu quarto independente, sem as dores de um apartamento"
-- [ ] Mostrar os 4 produtos com fotos reais e preço (R$ 700 / R$ 800 / R$ 900–1.100 / R$ 1.500), com "a partir de R$ 700" no topo
+- [ ] Mostrar os 4 produtos com fotos reais e preço (R$ 800 / R$ 900 / R$ 1.000 / R$ 1.700, com valor de casal), com "a partir de R$ 800" no topo
 - [ ] Deixar claro no Quarto Individual que o banheiro é privativo e fica fora do quarto
 - [ ] Destacar entrada independente, silêncio garantido e casa organizada
 - [ ] Explicar a regra de visitas como segurança

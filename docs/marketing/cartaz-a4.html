@@ -67,6 +67,11 @@
   .price { margin-top: 1.6mm; font-weight: 900; font-size: 7.4mm; letter-spacing: -.3mm; line-height: 1; }
   .price small { font-size: 2.8mm; font-weight: 700; color: var(--muted); letter-spacing: 0; }
   .price-note { font-size: 2.5mm; color: var(--rose); font-weight: 800; margin-top: 1mm; min-height: 3mm; }
+  .price-note s { color: var(--muted); font-weight: 700; }
+  .promo-pill { display: none; }
+  .is-promo .units-sub { display: none; }
+  .is-promo .promo-pill { display: block; background: var(--rose); color: #fff; font-size: 2.7mm; font-weight: 700; line-height: 1.3; padding: 1.8mm 3.5mm; border-radius: 2.5mm; text-align: right; }
+  .is-promo .promo-pill b { font-weight: 900; text-transform: uppercase; letter-spacing: .2mm; }
   .unit ul { list-style: none; margin-top: 2.2mm; border-top: .3mm dashed var(--line); padding-top: 2mm; }
   .unit li { font-size: 2.6mm; line-height: 1.35; color: #334155; padding-left: 3mm; position: relative; margin-bottom: .6mm; }
   .unit li::before { content: ""; position: absolute; left: 0; top: 1.1mm; width: 1.4mm; height: 1.4mm; border-radius: 50%; background: var(--rose); }
@@ -148,31 +153,32 @@
         <div class="eyebrow">Escolha sua unidade</div>
         <h2>Quatro formas de morar bem</h2>
       </div>
-      <p>Todas mobiliadas • aluguel mensal fixo</p>
+      <p class="units-sub">Todas mobiliadas • aceitam casal sem filhos</p>
+      <p class="promo-pill">R$ 100 OFF por mês durante 12 meses<br><b>Para contratos fechados até 10/11</b></p>
     </div>
     <div class="units">
-      <div class="unit">
+      <div class="unit" data-price="800" data-couple="1100">
         <h3>Quarto Individual</h3>
-        <div class="price">R$ 700<small>/mês</small></div>
-        <div class="price-note">Melhor custo-benefício</div>
+        <div class="price"></div>
+        <div class="price-note"></div>
         <ul><li>Banheiro privativo ao lado</li><li>Cama, armário e mesa</li><li>Cozinha compartilhada</li></ul>
       </div>
-      <div class="unit feat">
+      <div class="unit feat" data-price="900" data-couple="1200">
         <h3>Suíte Independente</h3>
-        <div class="price">R$ 800<small>/mês</small></div>
-        <div class="price-note">Entrada própria</div>
-        <ul><li>Quarto + banheiro</li><li>Acesso sem passar pela casa</li><li>Cozinha compartilhada</li></ul>
+        <div class="price"></div>
+        <div class="price-note"></div>
+        <ul><li>Entrada própria</li><li>Quarto + banheiro</li><li>Cozinha compartilhada</li></ul>
       </div>
-      <div class="unit">
+      <div class="unit" data-price="1000" data-couple="1350">
         <h3>Studio</h3>
-        <div class="price">R$ 900<small>/mês</small></div>
-        <div class="price-note">Casal: R$ 1.100</div>
+        <div class="price"></div>
+        <div class="price-note"></div>
         <ul><li>Quarto, cozinha e banheiro</li><li>Ideal para casal sem filhos</li><li>Privacidade total</li></ul>
       </div>
-      <div class="unit">
+      <div class="unit" data-price="1700">
         <h3>Apartamento MoronaVila</h3>
-        <div class="price">R$ 1.500<small>/mês</small></div>
-        <div class="price-note">1 ou 2 pessoas</div>
+        <div class="price"></div>
+        <div class="price-note"></div>
         <ul><li>Quarto e sala separados</li><li>Cozinha e banheiro próprios</li><li>Espaço de apartamento</li></ul>
       </div>
     </div>
@@ -220,17 +226,36 @@
   </section>
 
   <footer class="tabs">
-    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3">a partir de R$ 700</div></div></div>
-    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3">a partir de R$ 700</div></div></div>
-    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3">a partir de R$ 700</div></div></div>
-    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3">a partir de R$ 700</div></div></div>
-    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3">a partir de R$ 700</div></div></div>
-    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3">a partir de R$ 700</div></div></div>
-    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3">a partir de R$ 700</div></div></div>
-    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3">a partir de R$ 700</div></div></div>
-    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3">a partir de R$ 700</div></div></div>
+    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3"></div></div></div>
+    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3"></div></div></div>
+    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3"></div></div></div>
+    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3"></div></div></div>
+    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3"></div></div></div>
+    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3"></div></div></div>
+    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3"></div></div></div>
+    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3"></div></div></div>
+    <div class="tab"><div><div class="t1">MORONA<span>VILA</span></div><div class="t2">(21) 98190-0803</div><div class="t3"></div></div></div>
   </footer>
 
 </div>
+
+<script>
+  // Versão com promoção: abra o arquivo com ?promo no fim do endereço.
+  const promo = new URLSearchParams(location.search).has('promo');
+  const OFF = 100;
+  const brl = v => 'R$ ' + v.toLocaleString('pt-BR');
+  if (promo) document.documentElement.classList.add('is-promo');
+  document.querySelectorAll('.unit').forEach(u => {
+    const price = +u.dataset.price;
+    const couple = u.dataset.couple ? +u.dataset.couple : null;
+    const now = promo ? price - OFF : price;
+    u.querySelector('.price').innerHTML = brl(now) + '<small>/mês</small>';
+    const coupleText = couple ? 'Casal: ' + brl(promo ? couple - OFF : couple) : '1 ou 2 pessoas';
+    u.querySelector('.price-note').innerHTML = promo ? '<s>' + brl(price) + '</s> · ' + coupleText : coupleText;
+  });
+  document.querySelectorAll('.tab .t3').forEach(t => {
+    t.textContent = promo ? 'R$ 700 até 10/11' : 'a partir de R$ 800';
+  });
+</script>
 </body>
 </html>
