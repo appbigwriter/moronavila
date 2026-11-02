@@ -1,12 +1,15 @@
 export enum RoomType {
   BEDROOM = 'Quarto',
+  SUITE = 'Suíte',
+  STUDIO = 'Studio',
+  APARTMENT = 'Apartamento',
   KITCHEN = 'Cozinha',
   LIVING_ROOM = 'Sala de Estar',
   BATHROOM = 'Banheiro',
   LAUNDRY = 'Lavanderia',
+  BALCONY = 'Varanda',
   OTHER = 'Outro',
-  COMMON_AREA = 'Área Comum',
-  SUITE = 'Suíte'
+  COMMON_AREA = 'Área Comum'
 }
 
 export enum PaymentStatus {

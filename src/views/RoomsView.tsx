@@ -239,7 +239,7 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Capacidade</span>
                                     <div className="flex flex-col items-center">
                                         <span className="text-xl font-black text-white">{room.residents?.length || 0} / {room.capacity}</span>
-                                        {room.type === 'Quarto' && room.capacity > 0 && (
+                                        {['Quarto', 'Suíte', 'Studio', 'Apartamento'].includes(room.type) && room.capacity > 0 && (
                                             <span className="text-[8px] font-black text-rose-500/50 uppercase tracking-tighter mt-0.5">
                                                 Slots: {Array.from({ length: room.capacity }, (_, i) => String.fromCharCode(65 + i)).join(', ')}
                                             </span>
@@ -627,6 +627,8 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                                         <select value={editRoomData.type} onChange={e => setEditRoomData({ ...editRoomData, type: e.target.value as any })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none appearance-none">
                                             <option value="Quarto">Quarto</option>
                                             <option value="Suíte">Suíte</option>
+                                            <option value="Studio">Studio</option>
+                                            <option value="Apartamento">Apartamento</option>
                                             <option value="Sala">Sala</option>
                                             <option value="Cozinha">Cozinha</option>
                                             <option value="Banheiro">Banheiro</option>
@@ -731,6 +733,8 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                             >
                                 <option value="Quarto">Quarto</option>
                                 <option value="Suíte">Suíte</option>
+                                <option value="Studio">Studio</option>
+                                <option value="Apartamento">Apartamento</option>
                                 <option value="Sala">Sala</option>
                                 <option value="Cozinha">Cozinha</option>
                                 <option value="Banheiro">Banheiro</option>
