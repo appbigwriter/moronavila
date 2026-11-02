@@ -26,7 +26,7 @@ const AMENITY_DATA: AmenityCategory[] = [
         icon: Sparkles,
         badge: 'Privacidade & Conforto',
         subtitle: 'Acomodações prontas para morar com foco e tranquilidade',
-        description: 'Quartos privativos planejados para estudantes e profissionais, com cama confortável, escrivaninha de estudos, armário, ar-condicionado e ventilação natural.',
+        description: 'Quartos, suítes independentes, studios e apartamento planejados para profissionais e casais, com cama confortável, escrivaninha de trabalho, armário, ar-condicionado e ventilação natural.',
         images: [
             '/fotos/98905_0gMXlxxyf06MJQMP.jpg',
             '/fotos/98905_CYCX7spXgRfrsz7H.jpg',
@@ -36,8 +36,8 @@ const AMENITY_DATA: AmenityCategory[] = [
         ],
         features: [
             'Cama confortável e colchão de alta densidade',
-            'Guarda-roupa amplo e escrivaninha de estudos no quarto',
-            'Opções de suítes privativas ou banheiros compartilhados otimizados',
+            'Guarda-roupa amplo e escrivaninha de trabalho',
+            'Suítes com entrada independente, studios e apartamento com cozinha e banheiro próprios',
             'Janelas com ventilação natural e ambiente silencioso'
         ],
         benefit: 'Mudança instantânea no mesmo dia, sem gastar milhares de reais com frete ou compra de móveis.'
@@ -69,7 +69,7 @@ const AMENITY_DATA: AmenityCategory[] = [
         icon: Coffee,
         badge: 'Descompressão & Bem-Estar',
         subtitle: 'Espaço ao ar livre para relaxar, tomar ar fresco e socializar',
-        description: 'Ambiente externo arejado com mesas e bancos para ler um livro ao sol, descontrair com os colegas de casa ou tomar um café da manhã ao ar livre.',
+        description: 'Ambiente externo arejado com mesas e bancos para ler um livro ao sol, descansar depois do trabalho ou tomar um café da manhã ao ar livre.',
         images: [
             '/fotos/vprimage1.jpg',
             '/fotos/vprimage4.jpg',
@@ -83,11 +83,11 @@ const AMENITY_DATA: AmenityCategory[] = [
         ],
         features: [
             'Ambiente aberto e bem ventilado',
-            'Mesas para descanso e socialização tranquila',
+            'Mesas para descanso e convivência tranquila',
             'Área verde e iluminação acolhedora',
             'Espaço seguro dentro dos limites da propriedade'
         ],
-        benefit: 'Equilíbrio mental garantido após um dia intenso de estudos ou trabalho.'
+        benefit: 'Equilíbrio garantido depois de um dia intenso de trabalho.'
     },
     {
         id: 'estudos',
@@ -104,10 +104,10 @@ const AMENITY_DATA: AmenityCategory[] = [
         features: [
             'Mesas espaçosas e cadeiras confortáveis',
             'Iluminação focada e tomadas ao alcance das mãos',
-            'Wi-Fi dedicado de alta performance para aulas e reuniões',
+            'Wi-Fi dedicado de alta performance para reuniões e trabalho remoto',
             'Regras de silêncio rigorosas para máxima concentração'
         ],
-        benefit: 'Perfeito para estudantes da UERJ/HUPE e profissionais remotos que precisam de disciplina e foco diário.'
+        benefit: 'Perfeito para quem trabalha de casa, estuda para concursos ou se prepara para plantões e provas de residência.'
     },
     {
         id: 'seguranca',
@@ -115,28 +115,28 @@ const AMENITY_DATA: AmenityCategory[] = [
         shortTitle: 'Segurança & Interfonia',
         icon: ShieldCheck,
         badge: 'Tranquilidade 24h',
-        subtitle: 'Acesso seguro e interfone individualizado (Em breve)',
-        description: 'Fachada moderna e segura na Rua Torres Homem com controle de acesso, monitoramento e sistema exclusivo de interfonia individualizada que permitirá atender portaria e entregas diretamente com comodidade.',
+        subtitle: 'Acesso seguro e interfone individual em cada unidade',
+        description: 'Fachada moderna e segura na Rua Torres Homem com controle de acesso, monitoramento e interfone individual em cada unidade para atender entregas e receber seus visitantes cadastrados com segurança.',
         images: [
             '/fotos/vprimage11_entrada.jpg'
         ],
         features: [
             'Entrada segura e identificada',
-            'Interfone individualizado para cada morador (Em breve)',
-            'Câmeras de monitoramento nas áreas comuns',
-            'Aplicativo exclusivo para moradores abrirem chamados e reservas'
+            'Interfone individual em cada unidade (em instalação)',
+            'Câmeras de monitoramento 24h nas áreas comuns',
+            'Visitantes previamente cadastrados: só entra quem é conhecido'
         ],
         benefit: 'Sensação total de segurança para você e tranquilidade absoluta para sua família.'
     }
 ];
 
 const INCLUDED_BENEFITS = [
-    { icon: Zap, title: 'Energia Elétrica', desc: 'Sem surpresa na conta de luz' },
-    { icon: Droplets, title: 'Água & Esgoto', desc: 'Consumo totalmente incluso' },
+    { icon: Zap, title: 'Luz Individual', desc: 'Medidor próprio: pague só o que usa (jan/2027)' },
+    { icon: Droplets, title: 'Água Individual', desc: 'Sem rateio com ninguém (jan/2027)' },
     { icon: Wifi, title: 'Wi-Fi Ultra-Rápido', desc: 'Fibra óptica de alta velocidade' },
     { icon: Brush, title: 'Limpeza Semanal', desc: 'Áreas comuns sempre limpas' },
     { icon: Wrench, title: 'Manutenção Ágil', desc: 'Suporte rápido direto no app' },
-    { icon: Smartphone, title: 'App do Morador', desc: 'Lavanderia, avisos e interfone (em breve)' }
+    { icon: Smartphone, title: 'App do Morador', desc: 'Lavanderia, avisos e chamados' }
 ];
 
 export function AmenitiesShowcase({ onSelectRoom }: { onSelectRoom?: () => void }) {
@@ -320,10 +320,10 @@ export function AmenitiesShowcase({ onSelectRoom }: { onSelectRoom?: () => void 
 
                 <div className="max-w-3xl mb-10">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-3">
-                        <CheckCircle2 size={14} /> Zero Surpresas no Final do Mês
+                        <CheckCircle2 size={14} /> Sem Condomínio, Sem IPTU, Sem Fiador
                     </div>
                     <h3 className="text-3xl md:text-4xl font-black text-white uppercase italic tracking-tight mb-3">
-                        Tudo em uma única conta, sem burocracia
+                        Aluguel fixo e justo, sem burocracia
                     </h3>
                     <p className="text-slate-300 text-sm md:text-base leading-relaxed">
                         Esqueça a dor de cabeça de negociar com imobiliárias, pagar condomínio à parte, IPTU, taxas extras ou ter que comprar geladeira e fogão.

@@ -21,7 +21,7 @@ interface LandingPageProps {
 
 const DEFAULT_PROPERTY_DESC: PropertyDescription = {
     id: 'default',
-    main_text: "Viver com conforto, foco e praticidade no coração da Vila Isabel\nQuartos mobiliados e climatizados, cozinha equipada, sala de estudos e tudo incluso na Rua Torres Homem, a poucos minutos de faculdades e shoppings.",
+    main_text: "Seu quarto independente, sem as dores de um apartamento\nEntrada própria, mobiliado e sem fiador na Rua Torres Homem, Vila Isabel. Para quem trabalha e quer voltar para casa e descansar.",
     main_media: ['/fotos/vprimage11_entrada.jpg'],
     gallery_media: [
         '/fotos/vprimage1.jpg',
@@ -36,13 +36,63 @@ const DEFAULT_PROPERTY_DESC: PropertyDescription = {
         '/fotos/vprimage10_cozinha.jpg',
         '/fotos/vprimage11_entrada.jpg'
     ],
-    rooms_text: "Quartos individuais mobiliados, silenciosos e prontos para morar com todas as contas inclusas.",
+    rooms_text: "Quartos, suítes independentes, studios e apartamento mobiliados, silenciosos e prontos para morar.",
     location_text: "Rua Torres Homem, 886 - Vila Isabel, Rio de Janeiro. A 300m do Shopping Boulevard e fácil acesso ao Maracanã, UERJ e Centro.",
     location_media: ['/fotos/vprimage11_entrada.jpg'],
     amenities_text: "Wi-Fi alta velocidade, ar condicionado, cozinha completa, lavanderia e área de estudos.",
     amenities_media: [],
-    rules_text: "Prezamos pelo respeito mútuo, colaboração e silêncio a partir das 22h para que todos tenham um ambiente propício para estudos e descanso."
+    rules_text: "Prezamos pela confiança, consideração e respeito, com silêncio a partir das 22h para que todos descansem."
 };
+
+// Linha de produtos da casa. Preços definidos pela gestão (nov/2026).
+const PRODUCTS = [
+    {
+        name: 'Quarto Individual',
+        price: 'R$ 700',
+        priceNote: '/mês',
+        audience: 'Para quem mora sozinho',
+        promise: 'Seu quarto e seu banheiro, só seus, numa casa silenciosa.',
+        features: ['Banheiro privativo (fora do quarto)', 'Mobiliado', 'Cozinha compartilhada com armário individual'],
+        icon: Bed
+    },
+    {
+        name: 'Suíte Independente',
+        price: 'R$ 800',
+        priceNote: '/mês',
+        audience: 'Para quem mora sozinho',
+        promise: 'Sua porta, sua rotina. Ninguém passa pelo seu quarto.',
+        features: ['Entrada independente', 'Banheiro na suíte', 'Mobiliada', 'Cozinha compartilhada com armário individual'],
+        icon: Home
+    },
+    {
+        name: 'Studio',
+        price: 'R$ 900',
+        priceNote: '/mês • R$ 1.100 para casal',
+        audience: 'Para profissionais ou casais sem filhos',
+        promise: 'Seu primeiro lar a dois: mobiliado e sem fiador.',
+        features: ['Cozinha e banheiro próprios', 'Mobiliado', 'Até 2 pessoas'],
+        icon: Layers
+    },
+    {
+        name: 'Apartamento MoronaVila',
+        price: 'R$ 1.500',
+        priceNote: '/mês • até 2 pessoas',
+        audience: 'Para casais ou quem trabalha de casa',
+        promise: 'Um apartamento completo sem condomínio, IPTU ou fiador.',
+        features: ['Quarto e sala', 'Cozinha e banheiro próprios', 'Mobiliado', 'Até 2 pessoas'],
+        icon: Sofa
+    }
+];
+
+const HOUSE_RULES = [
+    'Silêncio a partir das 22h, para residentes e visitantes.',
+    'Visitas com pernoite permitidas até 2 noites por semana, apenas para até 2 visitantes previamente cadastrados por unidade.',
+    'O visitante entra sempre pelo interfone da unidade, recebido pelo residente, e não fica na casa sem ele.',
+    'Não é permitido fumar nas dependências.',
+    'Não são permitidos pets.',
+    'Sem bebida alcoólica nas áreas comuns.',
+    'Cozinha e áreas comuns limpas e organizadas após o uso.'
+];
 
 const DEFAULT_RENTAL_CONDITIONS: RentalConditions = {
     id: 'default',
@@ -229,17 +279,15 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
         loadPublicData();
     }, []);
 
-    const {
-        main_text, main_media,
-        rules_text
-    } = propertyDesc;
+    const { main_media } = propertyDesc;
 
     // Foto do Hero com fallback para a fachada real
     const heroMedia = main_media?.[0] || '/fotos/vprimage11_entrada.jpg';
 
-    const textLines = main_text ? main_text.split('\n').filter(line => line.trim() !== '') : [];
-    const heroTitle = textLines[0] || "Viver com conforto, foco e praticidade no coração da Vila Isabel";
-    const heroSubtitle = textLines.slice(1).join('\n') || "Quartos mobiliados e climatizados, cozinha equipada, sala de estudos e tudo incluso na Rua Torres Homem, a poucos minutos de faculdades e shoppings.";
+    // Título e subtítulo fixos no código: refletem o posicionamento de residência para profissionais
+    // (o texto antigo cadastrado no banco ainda fala em vida acadêmica).
+    const heroTitle = "Seu quarto independente, sem as dores de um apartamento";
+    const heroSubtitle = "Entrada própria, mobiliado e sem fiador. Para quem trabalha e quer voltar para casa e descansar. Pague menos do que na Zona Sul e chegue ao Centro em 20 minutos.";
 
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -290,11 +338,19 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
         },
         {
             q: 'Quais são as regras básicas da propriedade?',
-            a: `1 - Não é permitido visitas\n2 - Não é permitido fumantes\n3 - Não é permitido pets\n4 - Não é permitido som alto em nenhum horário\n5 - A limpeza dos quartos é obrigação do residente\n6 - O aluguel cobre sempre o período de 1 a último dia de cada mês, pagos até o quinto dia útil do mês subsequente.`
+            a: `1 - Silêncio a partir das 22h\n2 - Visitas apenas de pessoas previamente cadastradas, com pernoite de até 2 noites por semana\n3 - Não é permitido fumar\n4 - Não são permitidos pets\n5 - Sem bebida alcoólica nas áreas comuns\n6 - A limpeza da unidade é responsabilidade do residente; as áreas comuns são limpas pela casa\n7 - O aluguel cobre sempre o período de 1 ao último dia de cada mês, pago até o quinto dia útil do mês subsequente.\n\nA casa é monitorada por câmeras 24h. Infrações comprovadas geram multa automática no próximo vencimento, conforme a tabela da casa.`
         },
         {
-            q: 'Como funciona o valor mensal? Realmente não há contas extras?',
-            a: 'Exatamente! O valor do aluguel já inclui todas as despesas essenciais: energia elétrica, água, esgoto, internet Wi-Fi de alta velocidade e a limpeza periódica das áreas comuns. Sem IPTU, taxa de condomínio ou rateios surpresa.'
+            q: 'Posso receber visitas?',
+            a: 'Sim. Cada unidade pode cadastrar até 2 visitantes fixos, com documento e foto. Visitas com pernoite são permitidas até 2 noites por semana. O visitante entra pelo interfone da sua unidade, recebido por você. Assim você recebe quem ama, e sabe que seu vizinho também só recebe gente conhecida.'
+        },
+        {
+            q: 'Como funcionam as contas? Há despesas extras?',
+            a: 'Não há condomínio, IPTU ou rateio. A internet Wi-Fi, o gás da cozinha compartilhada e a limpeza das áreas comuns são por conta da casa. A partir de janeiro de 2027, luz e água passam a ser cobradas pelo medidor individual da sua unidade: você paga só o que usa. Nos studios e no apartamento, que têm cozinha própria, o gás é por conta do residente.'
+        },
+        {
+            q: 'Vocês aceitam casais?',
+            a: 'Sim. Os studios (R$ 1.100 para casal) e o Apartamento MoronaVila (R$ 1.500, até 2 pessoas) recebem casais sem filhos. Os quartos e suítes são individuais.'
         },
         {
             q: 'Preciso de fiador ou seguro fiança para alugar?',
@@ -302,7 +358,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
         },
         {
             q: 'Os quartos já vêm mobiliados?',
-            a: 'Sim, todos os quartos contam com cama, colchão confortável, armário/guarda-roupa e escrivaninha de estudos/trabalho. Basta trazer suas malas e roupas pessoais.'
+            a: 'Sim, todas as unidades contam com cama, colchão confortável, armário/guarda-roupa e escrivaninha de trabalho. Basta trazer suas malas e roupas pessoais.'
         },
         {
             q: 'Posso agendar uma visita para conhecer a casa antes de fechar?',
@@ -407,7 +463,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             {/* Valor Principal */}
                             <div className="flex items-baseline gap-2 mb-6">
                                 <span className="text-3xl font-black text-rose-500">R$ {room.rent_value}</span>
-                                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">/ mês com tudo incluso</span>
+                                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">/ mês</span>
                             </div>
 
                             {/* Grid de Especificações do Cadastro */}
@@ -432,19 +488,19 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
 
                                 <div className="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80">
                                     <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
-                                        <ShieldCheck size={13} className="text-rose-400" /> Manutenção/Limpeza
+                                        <ShieldCheck size={13} className="text-rose-400" /> Entrada
                                     </div>
                                     <div className="text-white text-xs font-bold">
-                                        {room.cleaning_fee ? `R$ ${room.cleaning_fee} cadastrada` : 'Inclusa no pacote'}
+                                        Sem fiador • caução de 1 mês
                                     </div>
                                 </div>
 
                                 <div className="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80">
                                     <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
-                                        <Sparkles size={13} className="text-rose-400" /> Contas Inclusas
+                                        <Sparkles size={13} className="text-rose-400" /> Inclusos
                                     </div>
                                     <div className="text-emerald-400 text-xs font-bold">
-                                        Água, Luz e Wi-Fi
+                                        Wi-Fi, IPTU e limpeza das áreas comuns
                                     </div>
                                 </div>
                             </div>
@@ -465,7 +521,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             <div className="mb-8">
                                 <div className="flex items-center justify-between mb-3">
                                     <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] flex items-center gap-1.5">
-                                        <Sofa size={13} /> Mobiliário Cadastrado ({room.furniture ? room.furniture.length : 0})
+                                        <Sofa size={13} /> Mobiliário
                                     </h4>
                                 </div>
 
@@ -499,9 +555,6 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                         <p className="text-slate-400 text-xs font-medium">
                                             Acomodação mobiliada com cama, armário e escrivaninha.
                                         </p>
-                                        <span className="text-[9px] text-slate-600 uppercase font-black tracking-widest mt-1 block">
-                                            Inventário individual sendo sincronizado
-                                        </span>
                                     </div>
                                 )}
                             </div>
@@ -509,7 +562,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             {/* Botões de Ação */}
                             <div className="mt-auto pt-4 flex flex-col gap-3">
                                 <a
-                                    href={`https://wa.me/5521981900803?text=${encodeURIComponent(`Olá! Tenho interesse no ${room.name} (R$ ${room.rent_value}/mês) no Coliving MoronaVila. Gostaria de agendar uma visita ou tirar dúvidas!`)}`}
+                                    href={`https://wa.me/5521981900803?text=${encodeURIComponent(`Olá! Tenho interesse no ${room.name} (R$ ${room.rent_value}/mês) na MoronaVila. Gostaria de agendar uma visita ou tirar dúvidas!`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="w-full flex items-center justify-center gap-2.5 border border-rose-500/40 hover:bg-rose-500/10 text-rose-400 px-6 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all"
@@ -693,12 +746,10 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
 
                                     {/* 4. Ocupação */}
                                     <div className="space-y-4">
-                                        <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-[0.3em] border-b border-rose-500/20 pb-2">4. Perfil Acadêmico / Profissional</h4>
+                                        <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-[0.3em] border-b border-rose-500/20 pb-2">4. Perfil Profissional</h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <input required placeholder="Ocupação Atual (Estudante, Profissional...) *" value={regForm.occupation} onChange={e => setRegForm({...regForm, occupation: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
-                                            <input placeholder="Empresa ou Instituição" value={regForm.company} onChange={e => setRegForm({...regForm, company: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
-                                            <input placeholder="Universidade (se aplicável)" value={regForm.university} onChange={e => setRegForm({...regForm, university: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
-                                            <input placeholder="Curso" value={regForm.course} onChange={e => setRegForm({...regForm, course: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
+                                            <input required placeholder="Profissão / Cargo *" value={regForm.occupation} onChange={e => setRegForm({...regForm, occupation: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
+                                            <input required placeholder="Empresa onde trabalha *" value={regForm.company} onChange={e => setRegForm({...regForm, company: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
                                             <input required placeholder="Perfil no Instagram (URL ou @) *" value={regForm.instagram} onChange={e => setRegForm({...regForm, instagram: e.target.value})} className="w-full md:col-span-2 bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
                                         </div>
                                     </div>
@@ -751,24 +802,17 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase italic leading-none">
                                 MORONA<span className="text-rose-600">VILA</span>
                             </h1>
-                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400">Coliving</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400">Residencial</span>
                         </div>
                     </div>
 
                     <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
+                        <a href="#unidades" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Unidades</a>
                         <a href="#comodidades" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Comodidades</a>
-                        <a href="#localizacao" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Mapa da Região</a>
-                        <a href="#vagas" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Acomodações</a>
-                        <a href="#comparativo" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Custo-Benefício</a>
-                        <a
-                            href="https://docs.google.com/forms/d/1kZBOzDBFKPABY_IGq1eXscTUT3YUkNHZrSxxEo1q4ZA/preview"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-bold text-amber-400 hover:text-amber-300 uppercase tracking-wider transition-colors inline-flex items-center gap-1.5"
-                        >
-                            Regras e cadastro de residentes
-                            <ExternalLink size={12} />
-                        </a>
+                        <a href="#localizacao" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Localização</a>
+                        <a href="#vagas" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Disponíveis</a>
+                        <a href="#comparativo" className="hidden xl:inline text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Custo-Benefício</a>
+                        <a href="#regras" className="text-xs font-bold text-amber-400 hover:text-amber-300 uppercase tracking-wider transition-colors">Regras</a>
                         <a href="#contato" className="text-xs font-bold text-rose-500 hover:text-rose-400 uppercase tracking-wider transition-colors">Agendar Visita</a>
                     </nav>
 
@@ -827,10 +871,13 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                 <MapPin size={13} /> Rua Torres Homem, 886 • Vila Isabel
                             </span>
                             <span className="px-3 py-1.5 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-white/10">
-                                100% Mobiliado
+                                Silêncio Garantido
+                            </span>
+                            <span className="px-3 py-1.5 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-white/10">
+                                Casa Organizada
                             </span>
                             <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-emerald-500/30">
-                                Contas Inclusas
+                                Sem Fiador
                             </span>
                         </div>
 
@@ -847,10 +894,10 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         {/* Botões de Ação */}
                         <div className="flex flex-wrap items-center gap-4 pt-2">
                             <a
-                                href="#vagas"
+                                href="#unidades"
                                 className="inline-flex items-center gap-3 bg-rose-600 hover:bg-rose-700 text-white px-8 py-5 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all shadow-2xl shadow-rose-900/50 hover:scale-105 active:scale-95"
                             >
-                                Ver Vagas Disponíveis <ArrowRight size={18} />
+                                Ver Unidades a partir de R$ 700 <ArrowRight size={18} />
                             </a>
                             <a
                                 href="#localizacao"
@@ -863,22 +910,83 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         {/* Quick Stats Grid */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-white/10">
                             <div>
-                                <div className="text-2xl font-black text-white">300m</div>
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Shopping Boulevard</div>
+                                <div className="text-2xl font-black text-white">20 min</div>
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Até o Centro</div>
                             </div>
                             <div>
-                                <div className="text-2xl font-black text-rose-400">100m</div>
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Praça Sete & Parmê</div>
+                                <div className="text-2xl font-black text-rose-400">11 min</div>
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">A pé do HUPE / UERJ</div>
                             </div>
                             <div>
-                                <div className="text-2xl font-black text-amber-400">150m</div>
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Vila Isabel & Extra</div>
+                                <div className="text-2xl font-black text-amber-400">16 min</div>
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">A pé do Metrô Maracanã</div>
                             </div>
                             <div>
                                 <div className="text-2xl font-black text-emerald-400">Zero</div>
                                 <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Fiador ou Burocracia</div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* SEÇÃO 0: LINHA DE UNIDADES E PREÇOS */}
+            <section id="unidades" className="py-28 relative">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="mb-16 max-w-3xl mx-auto text-center">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-black uppercase tracking-[0.2em] mb-4">
+                            <Home size={14} /> Nossas Unidades
+                        </div>
+                        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase italic mb-4">
+                            Moradia independente a partir de <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">R$ 700</span>
+                        </h2>
+                        <p className="text-slate-400 text-base md:text-lg leading-relaxed">
+                            Uma residência para profissionais: quem trabalha fora e quer voltar para uma casa tranquila. Todas as unidades são mobiliadas, sem fiador e com contrato pensado para quem quer ficar.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {PRODUCTS.map(product => {
+                            const Icon = product.icon;
+                            return (
+                                <div key={product.name} className="bg-slate-900/60 border border-slate-800 rounded-[2rem] p-7 flex flex-col hover:border-rose-500/40 transition-all">
+                                    <div className="p-3 bg-rose-500/10 text-rose-400 rounded-2xl w-fit mb-5">
+                                        <Icon size={24} />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{product.audience}</span>
+                                    <h3 className="text-xl font-black text-white uppercase italic tracking-tight mt-1 mb-3">{product.name}</h3>
+                                    <div className="mb-4">
+                                        <span className="text-3xl font-black text-rose-500">{product.price}</span>
+                                        <span className="text-slate-400 text-[11px] font-bold ml-1">{product.priceNote}</span>
+                                    </div>
+                                    <p className="text-slate-300 text-sm leading-relaxed mb-5 italic">"{product.promise}"</p>
+                                    <ul className="space-y-2 mt-auto">
+                                        {product.features.map(feature => (
+                                            <li key={feature} className="flex items-start gap-2 text-xs text-slate-300">
+                                                <Check size={14} className="text-emerald-400 shrink-0 mt-0.5" /> {feature}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="mt-10 flex flex-wrap justify-center gap-4">
+                        <a
+                            href="#vagas"
+                            className="inline-flex items-center gap-3 bg-rose-600 hover:bg-rose-700 text-white px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-rose-900/40"
+                        >
+                            Ver Unidades Disponíveis <ArrowRight size={16} />
+                        </a>
+                        <a
+                            href="https://wa.me/5521981900803?text=Ol%C3%A1%21%20Quero%20reservar%20uma%20unidade%20renovada%20da%20MoronaVila%20com%20pre%C3%A7o%20de%20lan%C3%A7amento."
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-3 bg-slate-900/80 hover:bg-slate-800 text-slate-200 px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all border border-slate-700"
+                        >
+                            <MessageCircle size={16} className="text-emerald-400" /> Reservar Unidade em Renovação
+                        </a>
                     </div>
                 </div>
             </section>
@@ -906,13 +1014,13 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="mb-16 max-w-3xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-black uppercase tracking-[0.2em] mb-4">
-                            <Home size={14} /> Espaços Privativos
+                            <Home size={14} /> Disponíveis Agora
                         </div>
                         <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase italic mb-4">
-                            Escolha sua <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">Acomodação Ideal</span>
+                            Escolha sua <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">Unidade</span>
                         </h2>
                         <p className="text-slate-400 text-base md:text-lg leading-relaxed">
-                            Quartos individuais mobiliados, silenciosos e prontos para morar com todas as contas inclusas (água, luz, gás, Wi-Fi e limpeza) e acesso livre às áreas comuns.
+                            Unidades mobiliadas, silenciosas e prontas para morar, com Wi-Fi, IPTU e limpeza das áreas comuns inclusos e acesso livre às áreas comuns. Mude-se rápido: sem fiador, com caução simples.
                         </p>
                     </div>
 
@@ -1040,25 +1148,29 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-black text-white uppercase">Na MoronaVila</h3>
-                                    <span className="text-xs text-rose-400 font-bold">Tudo em Uma Parcela Única</span>
+                                    <span className="text-xs text-rose-400 font-bold">Aluguel fixo, sem surpresas</span>
                                 </div>
                             </div>
 
                             <div className="space-y-3 text-sm text-slate-300 border-t border-rose-500/20 pt-6">
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Aluguel do Quarto Mobiliado</span>
-                                    <span className="text-white font-black">Incluso</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Unidade Mobiliada</span>
+                                    <span className="text-white font-black">A partir de R$ 700</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Luz, Água, Gás & IPTU</span>
-                                    <span className="text-white font-black">Incluso</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Condomínio & IPTU</span>
+                                    <span className="text-white font-black">Não tem</span>
+                                </div>
+                                <div className="flex items-center justify-between py-1">
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Luz & Água</span>
+                                    <span className="text-white font-black">Só o que você usa*</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
                                     <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Wi-Fi Alta Velocidade</span>
                                     <span className="text-white font-black">Incluso</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Cozinha Equipada & Coworking</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Cozinha Compartilhada Equipada & Gás</span>
                                     <span className="text-white font-black">Incluso</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
@@ -1066,13 +1178,17 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     <span className="text-white font-black">Incluso</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Interfone Individualizado (Em breve)</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Interfone Individual na Unidade</span>
                                     <span className="text-white font-black">Incluso</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
                                     <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Sem Fiador / Caução Simples</span>
                                     <span className="text-emerald-400 font-black">100% Flexível</span>
                                 </div>
+                            </div>
+
+                            <div className="text-[11px] text-slate-400 italic leading-relaxed">
+                                *A partir de janeiro de 2027, luz e água por medidor individual, sem rateio. Nos studios e no apartamento, que têm cozinha própria, o gás é do residente.
                             </div>
 
                             <a
@@ -1087,15 +1203,25 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
             </section>
 
             {/* SEÇÃO 5: REGRAS E FILOSOFIA */}
-            <section className="py-24 relative">
+            <section id="regras" className="py-24 relative scroll-mt-20">
                 <div className="max-w-4xl mx-auto px-6 text-center">
                     <div className="inline-flex items-center justify-center p-5 rounded-[2rem] bg-gradient-to-br from-amber-500/20 to-amber-700/10 text-amber-500 shadow-xl border border-amber-500/20 mb-8">
                         <Shield size={36} />
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase italic mb-6">Convivência Harmoniosa</h2>
-                    <p className="text-slate-300 text-base md:text-lg leading-relaxed whitespace-pre-line text-left md:text-center p-8 md:p-12 bg-slate-900/40 backdrop-blur-sm shadow-xl rounded-[2.5rem] border border-slate-800">
-                        {rules_text || "Prezamos pelo respeito mútuo, colaboração e silêncio a partir das 22h para que todos tenham um ambiente propício para estudos e descanso."}
+                    <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase italic mb-4">Silêncio garantido. Casa organizada.</h2>
+                    <p className="text-slate-300 text-base md:text-lg leading-relaxed mb-8 max-w-2xl mx-auto">
+                        Aqui a convivência é feita de confiança, consideração e respeito. Você recebe quem ama, e sabe que seu vizinho também só recebe gente conhecida.
                     </p>
+                    <div className="text-left p-8 md:p-12 bg-slate-900/40 backdrop-blur-sm shadow-xl rounded-[2.5rem] border border-slate-800 space-y-4">
+                        {HOUSE_RULES.map(rule => (
+                            <div key={rule} className="flex items-start gap-3 text-sm md:text-base text-slate-200">
+                                <CheckCircle2 size={18} className="text-amber-400 shrink-0 mt-0.5" /> {rule}
+                            </div>
+                        ))}
+                        <div className="pt-4 mt-4 border-t border-slate-800 text-xs md:text-sm text-slate-400 leading-relaxed">
+                            Casa monitorada por câmeras 24h. Regras claras, iguais para todos: infrações comprovadas geram multa automática no próximo vencimento.
+                        </div>
+                    </div>
                     <div className="mt-8 flex justify-center">
                         <a
                             href="https://docs.google.com/forms/d/1kZBOzDBFKPABY_IGq1eXscTUT3YUkNHZrSxxEo1q4ZA/preview"
@@ -1283,7 +1409,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             <span className="font-black text-white text-xl uppercase italic tracking-tighter">MORONA<span className="text-rose-600">VILA</span></span>
                         </div>
                         <p className="text-slate-500 text-xs leading-relaxed max-w-sm">
-                            Moradia compartilhada moderna, segura e sem burocracia na Vila Isabel, Rio de Janeiro.
+                            Residência para profissionais em Vila Isabel, Rio de Janeiro. Unidades independentes, mobiliadas e sem fiador.
                         </p>
                     </div>
 
