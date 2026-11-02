@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
     Utensils, BookOpen, Coffee, Sparkles, ShieldCheck,
     Wifi, CheckCircle2, Droplets, Zap, Brush, Wrench,
-    Smartphone, ArrowRight, Eye, ChevronLeft, ChevronRight
+    Smartphone, ArrowRight, Eye, ChevronLeft, ChevronRight, Shirt
 } from 'lucide-react';
 
 interface AmenityCategory {
@@ -64,30 +64,45 @@ const AMENITY_DATA: AmenityCategory[] = [
     },
     {
         id: 'convivencia',
-        title: 'Área Externa & Convivência',
-        shortTitle: 'Área Externa & Convivência',
+        title: 'Área Externa, Churrasqueira & Lounge',
+        shortTitle: 'Área Externa & Lounge',
         icon: Coffee,
         badge: 'Descompressão & Bem-Estar',
-        subtitle: 'Espaço ao ar livre para relaxar, tomar ar fresco e socializar',
-        description: 'Ambiente externo arejado com mesas e bancos para ler um livro ao sol, descansar depois do trabalho ou tomar um café da manhã ao ar livre.',
+        subtitle: 'Ampla área ao ar livre com churrasqueira e lounge para receber visitas',
+        description: 'Ampla área externa arejada, com churrasqueira, mesas e terraço com vista para descansar depois do trabalho. E um lounge para receber seus visitantes com conforto, sem precisar levá-los para dentro da sua unidade.',
         images: [
-            '/fotos/vprimage1.jpg',
-            '/fotos/vprimage4.jpg',
-            '/fotos/vprimage5.jpg',
-            '/fotos/vprimage6.jpg',
+            '/fotos/98905_aBdAfNfiZ6MqqyKB.jpg',
             '/fotos/vprimage7.jpg',
-            '/fotos/vprimage8.jpg',
             '/fotos/vprimage9_areaexterna2.jpg',
             '/fotos/vprimage9_areaexterna.jpg',
             '/fotos/vprimage9_areaexterna3.jpg'
         ],
         features: [
-            'Ambiente aberto e bem ventilado',
-            'Mesas para descanso e convivência tranquila',
-            'Área verde e iluminação acolhedora',
-            'Espaço seguro dentro dos limites da propriedade'
+            'Ampla área externa, aberta e bem ventilada',
+            'Churrasqueira para os residentes',
+            'Lounge para receber visitantes',
+            'Terraço com vista e área verde'
         ],
-        benefit: 'Equilíbrio garantido depois de um dia intenso de trabalho.'
+        benefit: 'Espaço de sobra para respirar e receber quem você gosta, sem abrir mão da tranquilidade da casa.'
+    },
+    {
+        id: 'lavanderia',
+        title: 'Lavanderia',
+        shortTitle: 'Lavanderia',
+        icon: Shirt,
+        badge: 'Praticidade no Dia a Dia',
+        subtitle: 'Lave sua roupa em casa, sem lavanderia paga',
+        description: 'Lavanderia coberta com máquinas de lavar, tanque e varal, de uso dos residentes, com horários organizados pelo app do morador.',
+        images: [
+            '/fotos/98905_GxHlp9Nr0ZME7gd1.jpg'
+        ],
+        features: [
+            'Máquinas de lavar de uso dos residentes',
+            'Tanque e varal',
+            'Horários organizados pelo app do morador',
+            'Área coberta e ventilada'
+        ],
+        benefit: 'Uma despesa e um deslocamento a menos na sua semana.'
     },
     {
         id: 'estudos',

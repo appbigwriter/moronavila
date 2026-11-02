@@ -1046,7 +1046,7 @@ app.post('/api/chat', async (req, res) => {
             - A partir de janeiro de 2027, luz e água são cobradas pelo medidor individual de cada unidade (o residente paga só o que usa).
             - Nos studios e no apartamento, o gás da cozinha própria é por conta do residente.
 
-            ÁREAS COMUNS: cozinha compartilhada equipada com armários individuais para mantimentos e utensílios, lavanderia, coworking/sala de estudos e área externa. Interfone individual em cada unidade (em instalação). Câmeras de segurança 24h.
+            ÁREAS COMUNS: cozinha compartilhada equipada com armários individuais para mantimentos e utensílios, lavanderia, coworking/sala de estudos, lounge para receber visitantes e ampla área externa com churrasqueira. Interfone individual em cada unidade (em instalação). Câmeras de segurança 24h.
 
             REGRAS DE CONVIVÊNCIA (base: confiança, consideração e respeito):
             - Silêncio a partir das 22h, para residentes e visitantes.

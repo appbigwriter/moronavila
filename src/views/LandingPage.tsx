@@ -39,7 +39,7 @@ const DEFAULT_PROPERTY_DESC: PropertyDescription = {
     rooms_text: "Quartos, suítes independentes, studios e apartamento mobiliados, silenciosos e prontos para morar.",
     location_text: "Rua Torres Homem, 886 - Vila Isabel, Rio de Janeiro. A 300m do Shopping Boulevard e fácil acesso ao Maracanã, UERJ e Centro.",
     location_media: ['/fotos/vprimage11_entrada.jpg'],
-    amenities_text: "Wi-Fi alta velocidade, ar condicionado, cozinha completa, lavanderia e área de estudos.",
+    amenities_text: "Wi-Fi alta velocidade, ar condicionado, cozinha completa, lavanderia, sala de estudo, lounge para visitantes e área externa com churrasqueira.",
     amenities_media: [],
     rules_text: "Prezamos pela confiança, consideração e respeito, com silêncio a partir das 22h para que todos descansem."
 };
