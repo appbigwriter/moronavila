@@ -1057,6 +1057,8 @@ ${Date.now() <= new Date('2026-11-10T23:59:59-03:00').getTime() ? `            -
             - Cozinha: tudo deve ser deixado limpo imediatamente após o uso. Câmeras 24h. Multa sumária: R$ 20,00 por infração.
             - Armários Individuais: louças e pertences guardados nos armários individuais; itens deixados fora são recolhidos. Multa oficial: R$ 10,00 por infração.
             - Privacidade: proibido entrar ou ocupar quartos/banheiros de outros residentes. Multa oficial: R$ 50,00 por infração.
+            - Eletrodomésticos Compartilhados: usar com zelo. Em manutenção/reposição por problema técnico o custo é rateado igualmente entre todos os residentes. Problemas por mau uso registrados por câmeras implicam na cobrança integral do reparo ou reposição do responsável.
+            - Lounge, Churrasqueira e Área Externa: quem usar se responsabiliza pela limpeza pós-uso e por quaisquer danos; multa oficial de R$ 20,00 por infração.
             - Valores de multas são somados à fatura do mês subsequente e pagos via internet.
             - Pagamento: aluguel referente do 1º ao último dia do mês, pago antecipado até o 5º dia útil via PIX (21) 983245000 para Sergio Oswaldo de Castro.
             - Página oficial de regras e cadastro: /#regras ou Google Forms: https://forms.gle/nQnbXWZgQesmoUmm6.

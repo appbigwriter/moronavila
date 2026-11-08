@@ -6,7 +6,7 @@ import {
     Home, Phone, Mail, User, Info, AlertCircle, HeartHandshake,
     Printer, ChevronDown, ChevronUp, UserPlus, X, ArrowRight,
     UserCheck, BadgeCheck, Instagram, Facebook, Upload, Trash2,
-    Image as ImageIcon
+    Image as ImageIcon, Plug, Flame
 } from 'lucide-react';
 import { Resident, UserRole } from '../types';
 import { createResident, uploadResidentDocument } from '../lib/database';
@@ -119,6 +119,24 @@ export const RULES_DATA = [
         fine: 'R$ 50,00 por infração',
         icon: Lock,
         color: 'red'
+    },
+    {
+        id: 11,
+        title: 'Regras de Uso dos Eletrodomésticos de Uso Compartilhado',
+        description: 'Os eletrodomésticos e utensílios das partes compartilhadas deverão ser usados com zelo e caso haja necessidade de reposição ou manutenção por problemas técnicos o valor será rateado por todos os residentes independente de terem usado ou não. Os problemas ocasionados por mau uso e registrados pelas câmeras de segurança implicarão na cobrança total do reparo ou reposição do residente responsável pelo problema.',
+        tags: ['Eletrodomésticos', 'Uso com zelo', 'Rateio por falha técnica', 'Cobrança total por mau uso', 'Câmeras 24h'],
+        fine: 'Cobrança total do reparo ou reposição por mau uso',
+        icon: Plug,
+        color: 'amber'
+    },
+    {
+        id: 12,
+        title: 'Uso do Lounge, Churrasqueira e Área Externa da Casa',
+        description: 'Os residentes que por ventura desejarem usar essas áreas da casa se responsabilizam pela limpeza após o uso e por quaisquer danos que possam ocorrer e multa de 20 reais por infração.',
+        tags: ['Lounge e Churrasqueira', 'Área externa', 'Limpeza obrigatória após uso', 'Responsabilidade por danos', 'Multa de R$ 20,00'],
+        fine: 'R$ 20,00 por infração',
+        icon: Flame,
+        color: 'rose'
     }
 ];
 
@@ -317,7 +335,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
         setSubmitError('');
 
         if (!acceptedAll) {
-            setSubmitError('É necessário aceitar todas as 10 regras de conduta para concluir o cadastro.');
+            setSubmitError('É necessário aceitar todas as 12 regras de conduta para concluir o cadastro.');
             return;
         }
 
@@ -566,7 +584,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     </div>
                 </div>
 
-                {/* AS 10 REGRAS DE CONDUTA RESIDENCIAL */}
+                {/* AS 12 REGRAS DE CONDUTA RESIDENCIAL */}
                 <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
@@ -574,7 +592,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                 Termos Obrigatórios
                             </span>
                             <h2 className="text-2xl sm:text-3xl font-black uppercase text-white tracking-tight mt-1">
-                                As 10 Regras de Conduta Residencial
+                                As 12 Regras de Conduta Residencial
                             </h2>
                         </div>
                         <div className="flex items-center gap-3 self-start sm:self-auto">
@@ -700,7 +718,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                         "Os valores de multas aplicadas por infrações ao regulamento da casa serão anexados à fatura do mês subsequente e pagos diretamente via internet."
                     </p>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
                         {/* Multa Fumo e Álcool */}
                         <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
@@ -753,6 +771,24 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                             </span>
                             <span className="text-xl font-black text-red-500">R$ 50,00</span>
                             <span className="text-[11px] text-slate-400 block">por infração registrada</span>
+                        </div>
+
+                        {/* Multa Lounge, Churrasqueira & Área Externa */}
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
+                                Lounge, Churrasqueira & Externa
+                            </span>
+                            <span className="text-xl font-black text-rose-400">R$ 20,00</span>
+                            <span className="text-[11px] text-slate-400 block">por infração / danos / sujeira</span>
+                        </div>
+
+                        {/* Reposição / Mau Uso de Eletrodomésticos */}
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-amber-500/30 space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 block">
+                                Eletrodomésticos Compartilhados
+                            </span>
+                            <span className="text-xl font-black text-amber-300">Cobrança Total</span>
+                            <span className="text-[11px] text-slate-400 block">mau uso integral / rateio se técnico</span>
                         </div>
                     </div>
                 </div>
@@ -832,7 +868,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     Aceite & Cadastro Registrados com Sucesso!
                                 </h3>
                                 <p className="text-sm text-slate-300 max-w-lg mx-auto">
-                                    Seus dados foram recebidos e seu aceite às 10 Regras de Conduta Residencial VouPruRio foi confirmado.
+                                    Seus dados foram recebidos e seu aceite às 12 Regras de Conduta Residencial VouPruRio foi confirmado.
                                 </p>
                             </div>
 
@@ -1220,7 +1256,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             <strong className="text-white block mb-1">
                                                 DECLARAÇÃO FORMAL DE ACEITE INTEGRAL DAS REGRAS
                                             </strong>
-                                            Declaro que li, compreendi e aceito integralmente todas as <strong className="text-amber-400">10 Regras de Conduta Residencial VouPruRio</strong>, incluindo as multas aplicáveis por infração (fumo/álcool: R$ 20,00; silêncio/TV alta: R$ 20,00; lavar/passar roupa fora do padrão: R$ 20,00; cozinha suja: R$ 20,00; louça fora do armário: R$ 10,00; quartos alheios: R$ 50,00), as condições de pagamento do aluguel (R$ 960,00 ou R$ 860,00 promocional até 10/11), pagamento antecipado até o 5º dia útil via PIX para Sergio Oswaldo de Castro, cobrança de multas no mês subsequente, necessidade de aviso prévio de 30 dias para saída e quitação do último mês através do depósito caução.
+                                            Declaro que li, compreendi e aceito integralmente todas as <strong className="text-amber-400">12 Regras de Conduta Residencial VouPruRio</strong>, incluindo as multas aplicáveis por infração (fumo/álcool: R$ 20,00; silêncio/TV alta: R$ 20,00; lavar/passar roupa fora do padrão: R$ 20,00; cozinha suja: R$ 20,00; louça fora do armário: R$ 10,00; quartos alheios: R$ 50,00; lounge/churrasqueira/área externa: R$ 20,00; e cobrança total por mau uso de eletrodomésticos compartilhados), as condições de pagamento do aluguel (R$ 960,00 ou R$ 860,00 promocional até 10/11), pagamento antecipado até o 5º dia útil via PIX para Sergio Oswaldo de Castro, cobrança de multas no mês subsequente, necessidade de aviso prévio de 30 dias para saída e quitação do último mês através do depósito caução.
                                         </label>
                                     </div>
 

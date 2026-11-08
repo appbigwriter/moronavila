@@ -102,7 +102,9 @@ const HOUSE_RULES = [
     '7. Entregas devem ser recebidas pelos próprios residentes, informando o número da unidade como complemento de endereço para aviso via interfone.',
     '8. Pratos, copos, talheres e pertences individuais devem ser guardados nos armários individuais da cozinha; itens fora serão recolhidos (multa de R$ 10,00 por infração).',
     '9. Cozinha deve ser deixada limpa imediatamente após o uso; câmeras registrarão infrações com multa sumária de R$ 20,00.',
-    '10. Proibido que residentes entrem ou ocupem quartos ou banheiros de outros residentes (multa de R$ 50,00 por infração).'
+    '10. Proibido que residentes entrem ou ocupem quartos ou banheiros de outros residentes (multa de R$ 50,00 por infração).',
+    '11. Os eletrodomésticos e utensílios das partes compartilhadas deverão ser usados com zelo e caso haja necessidade de reposição ou manutenção por problemas técnicos o valor será rateado por todos os residentes independente de terem usado ou não. Os problemas ocasionados por mau uso e registrados pelas câmeras de segurança implicarão na cobrança total do reparo ou reposição do residente responsável pelo problema.',
+    '12. Os residentes que por ventura desejarem usar o lounge, a churrasqueira e a área externa da casa se responsabilizam pela limpeza após o uso e por quaisquer danos que possam ocorrer, com multa de R$ 20,00 por infração.'
 ];
 
 const DEFAULT_RENTAL_CONDITIONS: RentalConditions = {
@@ -352,7 +354,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
         },
         {
             q: 'Quais são as regras básicas da propriedade?',
-            a: `1 - Visitas apenas para familiares ou cadastrados (máx. 2 dias/semana); sem crianças ou pets.\n2 - Proibido fumar ou beber bebidas alcoólicas em toda a propriedade (multa de R$ 20,00).\n3 - Passar roupa apenas na sala; proibido lavar no banheiro; uso agendado da lavanderia (multa de R$ 20,00).\n4 - Aluguel pago antecipado até o 5º dia útil via PIX (21) 983245000 para Sergio Oswaldo de Castro.\n5 - Aviso de saída de 30 dias; depósito quita o último mês.\n6 - Proibido som ou TV alto em qualquer horário (multa de R$ 20,00).\n7 - Entregas recebidas pelo morador via interfone da unidade.\n8 - Louças guardadas nos armários individuais (multa de R$ 10,00 se deixadas fora).\n9 - Cozinha limpa após o uso (multa de R$ 20,00).\n10 - Proibido entrar em quartos/banheiros alheios (multa de R$ 50,00).\n\nAs multas são lançadas na fatura subsequente. A casa é monitorada por câmeras 24h.`
+            a: `1 - Visitas apenas para familiares ou cadastrados (máx. 2 dias/semana); sem crianças ou pets.\n2 - Proibido fumar ou beber bebidas alcoólicas em toda a propriedade (multa de R$ 20,00).\n3 - Passar roupa apenas na sala; proibido lavar no banheiro; uso agendado da lavanderia (multa de R$ 20,00).\n4 - Aluguel pago antecipado até o 5º dia útil via PIX (21) 983245000 para Sergio Oswaldo de Castro.\n5 - Aviso de saída de 30 dias; depósito quita o último mês.\n6 - Proibido som ou TV alto em qualquer horário (multa de R$ 20,00).\n7 - Entregas recebidas pelo morador via interfone da unidade.\n8 - Louças guardadas nos armários individuais (multa de R$ 10,00 se deixadas fora).\n9 - Cozinha limpa após o uso (multa de R$ 20,00).\n10 - Proibido entrar em quartos/banheiros alheios (multa de R$ 50,00).\n11 - Eletrodomésticos compartilhados usados com zelo; rateio de manutenção apenas para problemas técnicos, com cobrança total do residente em caso de mau uso.\n12 - Lounge, churrasqueira e área externa: morador responsável por limpeza e danos (multa de R$ 20,00 por infração).\n\nAs multas são lançadas na fatura subsequente. A casa é monitorada por câmeras 24h.`
         },
         {
             q: 'Posso receber visitas?',

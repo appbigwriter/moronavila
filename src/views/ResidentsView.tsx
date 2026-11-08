@@ -434,12 +434,37 @@ export function ResidentsView({ residents, isAdmin, currentUser, onRefresh, init
                                         <input value={editingResident.company || ''} onChange={(event) => setEditingResident({ ...editingResident, company: event.target.value })} className="rounded-xl border border-slate-200 p-3 bg-white" placeholder="Empresa" />
                                         <input value={editingResident.work_address || ''} onChange={(event) => setEditingResident({ ...editingResident, work_address: event.target.value })} className="rounded-xl border border-slate-200 p-3 bg-white" placeholder="Endereço Comercial" />
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                                         <input value={editingResident.university || ''} onChange={(event) => setEditingResident({ ...editingResident, university: event.target.value })} className="rounded-xl border border-slate-200 p-3 bg-white" placeholder="Universidade" />
                                         <input value={editingResident.course || ''} onChange={(event) => setEditingResident({ ...editingResident, course: event.target.value })} className="rounded-xl border border-slate-200 p-3 bg-white" placeholder="Curso" />
                                         <input value={editingResident.instagram || ''} onChange={(event) => setEditingResident({ ...editingResident, instagram: event.target.value })} className="rounded-xl border border-slate-200 p-3 bg-white" placeholder="Perfil Instagram" />
+                                        <input value={editingResident.facebook || ''} onChange={(event) => setEditingResident({ ...editingResident, facebook: event.target.value })} className="rounded-xl border border-slate-200 p-3 bg-white" placeholder="Perfil Facebook" />
                                     </div>
                                 </div>
+
+                                {(editingResident.document_front_url || editingResident.document_back_url) && (
+                                    <div className="md:col-span-2 bg-slate-50 p-4 rounded-2xl space-y-3">
+                                        <h4 className="text-sm font-bold text-slate-700 uppercase">Documentos de Identidade com Foto</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {editingResident.document_front_url && (
+                                                <div>
+                                                    <span className="text-xs font-bold text-slate-500 block mb-1">Frente do Documento:</span>
+                                                    <a href={editingResident.document_front_url} target="_blank" rel="noopener noreferrer" className="block group">
+                                                        <img src={editingResident.document_front_url} alt="Frente" className="w-full h-36 object-cover rounded-xl border border-slate-200 group-hover:opacity-90 transition-opacity" />
+                                                    </a>
+                                                </div>
+                                            )}
+                                            {editingResident.document_back_url && (
+                                                <div>
+                                                    <span className="text-xs font-bold text-slate-500 block mb-1">Verso do Documento:</span>
+                                                    <a href={editingResident.document_back_url} target="_blank" rel="noopener noreferrer" className="block group">
+                                                        <img src={editingResident.document_back_url} alt="Verso" className="w-full h-36 object-cover rounded-xl border border-slate-200 group-hover:opacity-90 transition-opacity" />
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex justify-end gap-3 pt-2"><button type="button" onClick={() => setEditingResident(null)} className="rounded-xl px-6 py-3 font-bold text-slate-600 hover:bg-slate-100">Cancelar</button><button type="submit" disabled={isSubmitting} className="rounded-xl bg-indigo-600 px-6 py-3 font-bold text-white disabled:opacity-50">{isSubmitting ? 'Salvando...' : 'Salvar Alteracoes'}</button></div>
                         </form>
