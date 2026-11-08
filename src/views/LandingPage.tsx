@@ -95,7 +95,7 @@ const MIN_PRICE = Math.min(...PRODUCTS.map(p => p.price));
 const HOUSE_RULES = [
     '1. Visitas apenas para familiares do residente ou pessoas previamente cadastradas (máx. 2 dias/semana). Não é permitido receber crianças ou animais de estimação. Toda visita deve ser previamente cadastrada.',
     '2. Não é permitido fumar nem ingerir bebidas alcoólicas em nenhuma dependência da propriedade (multa de R$ 20,00 por infração).',
-    '3. Proibido passar roupa nos quartos (espaço na sala para isso) e lavar roupa no banheiro do quarto. Uso da lavanderia agendado com a administração e respeito ao limite de peso da máquina (multa de R$ 20,00 por infração).',
+    '3. Proibido passar roupa nos quartos (espaço na sala para isso) e lavar roupa no banheiro do quarto. O uso da lavanderia precisa ser agendado com a administração, sendo a lavagem de roupa na máquina limitada a uma vez por semana e sem exceder o limite de peso do equipamento (multa de R$ 20,00 por infração).',
     '4. Aluguel sempre referente do 1º ao último dia do mês, pago antecipado até o 5º dia útil via PIX (21) 983245000 em nome de Sergio Oswaldo de Castro.',
     '5. Saída do imóvel mediante aviso prévio por e-mail ou WhatsApp com pelo menos 30 dias de antecedência. O depósito caução quita o último mês de permanência.',
     '6. Não é permitido som ou TV em volume alto em qualquer horário (multa de R$ 20,00 por infração).',
@@ -233,6 +233,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
         university: '',
         course: '',
         instagram: '',
+        facebook: '',
         room_id: '',
         entry_date: ''
     });
@@ -690,7 +691,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
 
                                         <div className="space-y-4">
                                             <div className="flex justify-between items-center text-sm">
-                                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Primeiro Aluguel {rentalConditions.pro_rata_enabled && '(Pró-Rata)'}</span>
+                                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Aluguel Mês Corrente</span>
                                                 <span className="text-white font-black">R$ {calculation?.proRata || 0}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-sm">
@@ -764,7 +765,8 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <input required placeholder="Profissão / Cargo *" value={regForm.occupation} onChange={e => setRegForm({...regForm, occupation: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
                                             <input required placeholder="Empresa onde trabalha *" value={regForm.company} onChange={e => setRegForm({...regForm, company: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
-                                            <input required placeholder="Perfil no Instagram (URL ou @) *" value={regForm.instagram} onChange={e => setRegForm({...regForm, instagram: e.target.value})} className="w-full md:col-span-2 bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
+                                            <input required placeholder="Perfil no Instagram (URL ou @) *" value={regForm.instagram} onChange={e => setRegForm({...regForm, instagram: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
+                                            <input placeholder="Perfil no Facebook (URL ou Nome)" value={regForm.facebook} onChange={e => setRegForm({...regForm, facebook: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
                                         </div>
                                     </div>
                                 </div>

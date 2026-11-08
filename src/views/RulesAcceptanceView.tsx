@@ -5,10 +5,11 @@ import {
     Coffee, Camera, Lock, FileText, Send, Sparkles, CheckCircle2,
     Home, Phone, Mail, User, Info, AlertCircle, HeartHandshake,
     Printer, ChevronDown, ChevronUp, UserPlus, X, ArrowRight,
-    UserCheck, BadgeCheck
+    UserCheck, BadgeCheck, Instagram, Facebook, Upload, Trash2,
+    Image as ImageIcon
 } from 'lucide-react';
 import { Resident, UserRole } from '../types';
-import { createResident } from '../lib/database';
+import { createResident, uploadResidentDocument } from '../lib/database';
 
 interface RulesAcceptanceViewProps {
     onBack: () => void;
@@ -51,8 +52,8 @@ export const RULES_DATA = [
     {
         id: 3,
         title: 'Passar e Lavar Roupas & Lavanderia',
-        description: 'Não é permitido passar roupa nos quartos (há um espaço na sala para isso) bem como não é permitido lavar roupa no banheiro do quarto, o uso da lavanderia precisa ser agendada com a administração. A lavagem de roupa na máquina não poderá exceder o limite de peso do equipamento. As câmeras de segurança registrarão as infrações e os responsáveis receberão uma multa de R$ 20,00 por infração.',
-        tags: ['Passar roupa na sala', 'Proibido lavar no quarto', 'Agendar lavanderia', 'Limite de peso', 'Multa de R$ 20,00'],
+        description: 'Não é permitido passar roupa nos quartos (há um espaço na sala para isso) bem como não é permitido lavar roupa no banheiro do quarto, o uso da lavanderia precisa ser agendada com a administração. A lavagem de roupa na máquina é limitada a uma vez por semana e não poderá exceder o limite de peso do equipamento. As câmeras de segurança registrarão as infrações e os responsáveis receberão uma multa de R$ 20,00 por infração.',
+        tags: ['Passar roupa na sala', 'Proibido lavar no quarto', 'Agendar lavanderia', '1x por semana', 'Limite de peso', 'Multa de R$ 20,00'],
         fine: 'R$ 20,00 por infração',
         icon: Shirt,
         color: 'amber'
@@ -176,9 +177,47 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
         emergency_contact_phone: currentUser?.emergency_contact_phone || '',
         occupation: currentUser?.occupation || '',
         company: currentUser?.company || '',
+        instagram: currentUser?.instagram || '',
+        facebook: (currentUser as any)?.facebook || '',
         desired_room_type: 'Quarto Individual',
         entry_date: ''
     });
+
+    // Upload de Imagens de Documentos de Identidade
+    const [docFrontFile, setDocFrontFile] = useState<File | null>(null);
+    const [docFrontPreview, setDocFrontPreview] = useState<string | null>(null);
+    const [docBackFile, setDocBackFile] = useState<File | null>(null);
+    const [docBackPreview, setDocBackPreview] = useState<string | null>(null);
+
+    const handleDocFrontSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setDocFrontFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setDocFrontPreview(reader.result as string);
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleDocBackSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setDocBackFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setDocBackPreview(reader.result as string);
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleRemoveDocFront = () => {
+        setDocFrontFile(null);
+        setDocFrontPreview(null);
+    };
+
+    const handleRemoveDocBack = () => {
+        setDocBackFile(null);
+        setDocBackPreview(null);
+    };
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -290,6 +329,28 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
         setIsSubmitting(true);
 
         try {
+            let docFrontUrl = '';
+            let docBackUrl = '';
+
+            // Tenta upload das fotos do documento se fornecidas
+            if (docFrontFile) {
+                try {
+                    docFrontUrl = await uploadResidentDocument(docFrontFile, 'doc_frente');
+                } catch (e) {
+                    console.warn('Upload doc frente:', e);
+                    docFrontUrl = docFrontPreview || '';
+                }
+            }
+
+            if (docBackFile) {
+                try {
+                    docBackUrl = await uploadResidentDocument(docBackFile, 'doc_verso');
+                } catch (e) {
+                    console.warn('Upload doc verso:', e);
+                    docBackUrl = docBackPreview || '';
+                }
+            }
+
             await createResident({
                 name: formData.name,
                 email: formData.email,
@@ -303,6 +364,10 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                 emergency_contact_phone: formData.emergency_contact_phone,
                 occupation: formData.occupation,
                 company: formData.company,
+                instagram: formData.instagram,
+                facebook: formData.facebook,
+                document_front_url: docFrontUrl,
+                document_back_url: docBackUrl,
                 entry_date: formData.entry_date || new Date().toISOString().split('T')[0],
                 status: 'Candidato',
                 role: UserRole.RESIDENT,
@@ -320,7 +385,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
     };
 
     const handleWhatsAppConfirm = () => {
-        const text = `Olá, Sérgio! Acabei de ler e aceitar todas as Regras de Conduta Residencial VouPruRio.%0A%0A*Nome:* ${formData.name}%0A*WhatsApp:* ${formData.phone}%0A*E-mail:* ${formData.email}%0A*Entrada Prevista:* ${formData.entry_date || 'A combinar'}%0A%0AConfirmo o aceite das regras e o envio do cadastro.`;
+        const text = `Olá, Sérgio! Acabei de preencher o formulário e aceitar todas as Regras de Conduta Residencial VouPruRio.%0A%0A*Nome:* ${formData.name}%0A*WhatsApp:* ${formData.phone}%0A*E-mail:* ${formData.email}%0A*Instagram:* ${formData.instagram || 'Não informado'}%0A*Facebook:* ${formData.facebook || 'Não informado'}%0A*Doc. Frente:* ${docFrontFile ? 'Anexado no site' : 'A enviar'}%0A*Doc. Verso:* ${docBackFile ? 'Anexado no site' : 'A enviar'}%0A*Entrada Prevista:* ${formData.entry_date || 'A combinar'}%0A%0AConfirmo o aceite integral das regras e das condições financeiras.`;
         window.open(`https://wa.me/5521983245000?text=${text}`, '_blank');
     };
 
@@ -959,6 +1024,185 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             placeholder="(21) 98888-8888"
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
+                                    </div>
+
+                                    {/* Instagram */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                            <Instagram size={14} className="text-rose-400" />
+                                            <span>Instagram (URL ou @)</span>
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">@</span>
+                                            <input
+                                                type="text"
+                                                value={formData.instagram}
+                                                onChange={e => setFormData({ ...formData, instagram: e.target.value })}
+                                                placeholder="seuperfil ou link"
+                                                className="w-full pl-9 pr-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Facebook */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                            <Facebook size={14} className="text-blue-400" />
+                                            <span>Facebook (URL ou Nome)</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.facebook}
+                                            onChange={e => setFormData({ ...formData, facebook: e.target.value })}
+                                            placeholder="facebook.com/seuperfil ou nome"
+                                            className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
+                                        />
+                                    </div>
+
+                                    {/* Imagens dos Documentos de Identidade */}
+                                    <div className="sm:col-span-2 lg:col-span-3 space-y-3 pt-3">
+                                        <div className="border-t border-slate-800 pt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                            <div>
+                                                <h4 className="text-xs font-black text-rose-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                                    <ImageIcon size={16} />
+                                                    <span>Imagens do Documento de Identidade (RG ou CNH)</span>
+                                                </h4>
+                                                <p className="text-[11px] text-slate-400 mt-0.5">
+                                                    Anexe fotos legíveis da frente (com foto) e do verso do seu documento de identificação
+                                                </p>
+                                            </div>
+                                            <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-800 px-2.5 py-1 rounded-lg self-start sm:self-auto">
+                                                JPG, PNG ou PDF (Máx. 10MB)
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                                            {/* Documento Frente */}
+                                            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                                        <span>Frente do Documento</span>
+                                                        <span className="text-[10px] text-slate-500 font-normal">(com foto)</span>
+                                                    </span>
+                                                    {docFrontPreview && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleRemoveDocFront}
+                                                            className="text-slate-400 hover:text-rose-400 p-1 transition-colors cursor-pointer"
+                                                            title="Remover imagem"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {docFrontPreview ? (
+                                                    <div className="relative group rounded-xl overflow-hidden border border-slate-700 bg-slate-900">
+                                                        <img
+                                                            src={docFrontPreview}
+                                                            alt="Frente do documento"
+                                                            className="w-full h-36 object-cover object-center"
+                                                        />
+                                                        <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                            <label className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold cursor-pointer transition-colors">
+                                                                Trocar Imagem
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*,.pdf"
+                                                                    onChange={handleDocFrontSelect}
+                                                                    className="hidden"
+                                                                />
+                                                            </label>
+                                                        </div>
+                                                        <div className="p-2 bg-slate-900/90 text-[10px] text-emerald-400 font-bold flex items-center gap-1.5">
+                                                            <Check size={12} />
+                                                            <span>Frente carregada ({docFrontFile?.name})</span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-800 hover:border-rose-500/50 rounded-2xl cursor-pointer bg-slate-900/30 hover:bg-slate-900/50 transition-all text-center group">
+                                                        <div className="w-10 h-10 rounded-xl bg-slate-800 group-hover:bg-rose-500/10 text-slate-400 group-hover:text-rose-400 flex items-center justify-center transition-colors mb-2">
+                                                            <Upload size={18} />
+                                                        </div>
+                                                        <span className="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">
+                                                            Clique para enviar a Frente
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-500 mt-1">
+                                                            RG com foto ou CNH
+                                                        </span>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*,.pdf"
+                                                            onChange={handleDocFrontSelect}
+                                                            className="hidden"
+                                                        />
+                                                    </label>
+                                                )}
+                                            </div>
+
+                                            {/* Documento Verso */}
+                                            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                                        <span>Verso do Documento</span>
+                                                        <span className="text-[10px] text-slate-500 font-normal">(ou CNH completa)</span>
+                                                    </span>
+                                                    {docBackPreview && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleRemoveDocBack}
+                                                            className="text-slate-400 hover:text-rose-400 p-1 transition-colors cursor-pointer"
+                                                            title="Remover imagem"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {docBackPreview ? (
+                                                    <div className="relative group rounded-xl overflow-hidden border border-slate-700 bg-slate-900">
+                                                        <img
+                                                            src={docBackPreview}
+                                                            alt="Verso do documento"
+                                                            className="w-full h-36 object-cover object-center"
+                                                        />
+                                                        <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                            <label className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold cursor-pointer transition-colors">
+                                                                Trocar Imagem
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*,.pdf"
+                                                                    onChange={handleDocBackSelect}
+                                                                    className="hidden"
+                                                                />
+                                                            </label>
+                                                        </div>
+                                                        <div className="p-2 bg-slate-900/90 text-[10px] text-emerald-400 font-bold flex items-center gap-1.5">
+                                                            <Check size={12} />
+                                                            <span>Verso carregado ({docBackFile?.name})</span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-800 hover:border-rose-500/50 rounded-2xl cursor-pointer bg-slate-900/30 hover:bg-slate-900/50 transition-all text-center group">
+                                                        <div className="w-10 h-10 rounded-xl bg-slate-800 group-hover:bg-rose-500/10 text-slate-400 group-hover:text-rose-400 flex items-center justify-center transition-colors mb-2">
+                                                            <Upload size={18} />
+                                                        </div>
+                                                        <span className="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">
+                                                            Clique para enviar o Verso
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-500 mt-1">
+                                                            Verso do RG ou comprovante
+                                                        </span>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*,.pdf"
+                                                            onChange={handleDocBackSelect}
+                                                            className="hidden"
+                                                        />
+                                                    </label>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 

@@ -571,6 +571,17 @@ export async function uploadProfilePhoto(residentId: string, file: File): Promis
     return data.publicUrl;
 }
 
+export async function uploadResidentDocument(file: File, documentType = 'identity'): Promise<string> {
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const safeId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const fileName = `${documentType}-${safeId}.${fileExt}`;
+    const filePath = `documents/${fileName}`;
+    const { error: uploadError } = await supabase.storage.from('room-media').upload(filePath, file);
+    if (uploadError) throw uploadError;
+    const { data } = supabase.storage.from('room-media').getPublicUrl(filePath);
+    return data.publicUrl;
+}
+
 // ── LAUNDRY SCHEDULES ──────────────────────────────────────────────────────────
 export async function fetchLaundrySchedules(): Promise<LaundrySchedule[]> {
     const { data, error } = await supabase.from('laundry_schedules').select('*').order('date', { ascending: true });

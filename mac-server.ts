@@ -1053,7 +1053,7 @@ ${Date.now() <= new Date('2026-11-10T23:59:59-03:00').getTime() ? `            -
             - Visitas: apenas familiares ou pessoas previamente cadastradas (máx. 2 dias por semana; pernoite máx. 2 noites). Toda visita requer cadastro prévio. Proibido crianças e animais de estimação por segurança. O visitante entra pelo interfone recebido pelo morador e não fica na casa sem ele.
             - Fumo e Álcool: proibido fumar ou ingerir bebidas alcoólicas em qualquer dependência. Multa oficial: R$ 20,00 por infração.
             - Silêncio: proibido som ou TV em volume alto em qualquer horário. Multa oficial: R$ 20,00 por infração.
-            - Lavanderia e Passar Roupa: passar roupa apenas na sala; proibido lavar no banheiro do quarto; uso agendado da máquina respeitando limite de peso. Multa oficial: R$ 20,00 por infração.
+            - Lavanderia e Passar Roupa: passar roupa apenas na sala; proibido lavar no banheiro do quarto; uso agendado da máquina limitado a uma vez por semana e respeitando o limite de peso do equipamento. Multa oficial: R$ 20,00 por infração.
             - Cozinha: tudo deve ser deixado limpo imediatamente após o uso. Câmeras 24h. Multa sumária: R$ 20,00 por infração.
             - Armários Individuais: louças e pertences guardados nos armários individuais; itens deixados fora são recolhidos. Multa oficial: R$ 10,00 por infração.
             - Privacidade: proibido entrar ou ocupar quartos/banheiros de outros residentes. Multa oficial: R$ 50,00 por infração.

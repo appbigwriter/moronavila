@@ -51,6 +51,10 @@ export interface Resident {
   work_address?: string;   // Endereço de trabalho (empresa)
   photo_url?: string;
   instagram?: string;
+  facebook?: string;
+  document_front_url?: string;
+  document_back_url?: string;
+  document_urls?: string[];
   mac_address?: string;
   mac_address_pc?: string;
   room_id?: string;
