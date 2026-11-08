@@ -1039,7 +1039,7 @@ app.post('/api/chat', async (req, res) => {
             - Studio: R$ 1.000/mês para uma pessoa ou R$ 1.350/mês para casal. Cozinha e banheiro próprios.
             - Apartamento MoronaVila (quarto e sala): R$ 1.700/mês, até 2 pessoas. Cozinha e banheiro próprios.
             - Casais sem filhos são aceitos em todas as unidades.
-${Date.now() <= new Date('2026-11-10T23:59:59-03:00').getTime() ? `            - PROMOÇÃO DE LANÇAMENTO: quem fechar contrato até 10/11 paga R$ 100 a menos por mês durante 12 meses, em qualquer unidade, inclusive no valor de casal (ex.: Quarto Individual R$ 700, Suíte Independente R$ 800, Studio R$ 900, Apartamento R$ 1.600). Depois dos 12 meses, volta ao valor normal. Use a promoção para criar urgência, com educação.
+${Date.now() <= new Date('2026-11-10T23:59:59-03:00').getTime() ? `            - PROMOÇÃO DE LANÇAMENTO: quem fechar contrato até 10/11 ganha desconto de R$ 100/mês no aluguel mensal por um período de 6 meses (ex.: aluguel mensal de R$ 900 + R$ 60 limpeza = R$ 960 fica por R$ 860/mês). Use a promoção para criar urgência, com educação.
 ` : ''}            - Algumas unidades estão em renovação e podem ser reservadas antecipadamente. Para saber quais estão livres, oriente o contato pelo WhatsApp.
 
             CONTAS:
@@ -1049,19 +1049,24 @@ ${Date.now() <= new Date('2026-11-10T23:59:59-03:00').getTime() ? `            -
 
             ÁREAS COMUNS: cozinha compartilhada equipada com armários individuais para mantimentos e utensílios, lavanderia, coworking/sala de estudos, lounge para receber visitantes e ampla área externa com churrasqueira. Interfone individual em cada unidade (em instalação). Câmeras de segurança 24h.
 
-            REGRAS DE CONVIVÊNCIA (base: confiança, consideração e respeito):
-            - Silêncio a partir das 22h, para residentes e visitantes.
-            - Visitas: cada unidade cadastra até 2 visitantes fixos (documento e foto). Pernoite permitido até 2 noites por semana. O visitante entra pelo interfone da unidade, recebido pelo residente, e não fica na casa sem ele. Visitante não cadastrado não entra.
-            - Não é permitido fumar. Não são permitidos pets. Sem bebida alcoólica nas áreas comuns.
-            - Cozinha e áreas comuns limpas após o uso. A limpeza da unidade é do residente.
-            - Infrações comprovadas pelas câmeras geram multa automática no próximo vencimento, conforme a tabela da casa. Não invente valores de multa.
+            REGRAS DE CONVIVÊNCIA E TABELA DE MULTAS OFICIAIS:
+            - Visitas: apenas familiares ou pessoas previamente cadastradas (máx. 2 dias por semana; pernoite máx. 2 noites). Toda visita requer cadastro prévio. Proibido crianças e animais de estimação por segurança. O visitante entra pelo interfone recebido pelo morador e não fica na casa sem ele.
+            - Fumo e Álcool: proibido fumar ou ingerir bebidas alcoólicas em qualquer dependência. Multa oficial: R$ 20,00 por infração.
+            - Silêncio: proibido som ou TV em volume alto em qualquer horário. Multa oficial: R$ 20,00 por infração.
+            - Lavanderia e Passar Roupa: passar roupa apenas na sala; proibido lavar no banheiro do quarto; uso agendado da máquina respeitando limite de peso. Multa oficial: R$ 20,00 por infração.
+            - Cozinha: tudo deve ser deixado limpo imediatamente após o uso. Câmeras 24h. Multa sumária: R$ 20,00 por infração.
+            - Armários Individuais: louças e pertences guardados nos armários individuais; itens deixados fora são recolhidos. Multa oficial: R$ 10,00 por infração.
+            - Privacidade: proibido entrar ou ocupar quartos/banheiros de outros residentes. Multa oficial: R$ 50,00 por infração.
+            - Valores de multas são somados à fatura do mês subsequente e pagos via internet.
+            - Pagamento: aluguel referente do 1º ao último dia do mês, pago antecipado até o 5º dia útil via PIX (21) 983245000 para Sergio Oswaldo de Castro.
+            - Página oficial de regras e cadastro: /#regras ou Google Forms: https://forms.gle/nQnbXWZgQesmoUmm6.
 
             PROCESSO DE ENTRADA:
             1. Conversa rápida pelo WhatsApp (trabalho, se mora sozinho ou em casal, tempo de permanência, data de mudança).
             2. Visita presencial ou tour por vídeo.
             3. Pré-cadastro com documentos e comprovante de trabalho/renda. Sem fiador nem seguro-fiança.
-            4. Pagamento do aluguel proporcional do primeiro mês + 1 mês de caução (que quita o último mês após aviso de 30 dias) + depósito das chaves (R$ 65).
-            - O aluguel cobre do dia 1 ao último dia do mês e é pago até o 5º dia útil do mês seguinte.
+            4. Pagamento do aluguel proporcional do primeiro mês + 1 mês de caução (que quita o último mês após aviso prévio de 30 dias).
+            - O aluguel cobre do dia 1 ao último dia do mês e é pago antecipado até o 5º dia útil.
 
             DIRETRIZES DE COMUNICAÇÃO:
             - PERSONA: Seja acolhedor, empático e elucidativo. Use o nome (${safeName || 'Interessado'}).

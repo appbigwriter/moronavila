@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     ShieldCheck, ArrowLeft, ExternalLink, Copy, Check, AlertTriangle,
     Users, Ban, Shirt, DollarSign, Calendar, Clock, Volume2, Package,
     Coffee, Camera, Lock, FileText, Send, Sparkles, CheckCircle2,
     Home, Phone, Mail, User, Info, AlertCircle, HeartHandshake,
-    Printer, ChevronDown, ChevronUp
+    Printer, ChevronDown, ChevronUp, UserPlus, X, ArrowRight,
+    UserCheck, BadgeCheck
 } from 'lucide-react';
 import { Resident, UserRole } from '../types';
 import { createResident } from '../lib/database';
@@ -14,20 +15,36 @@ interface RulesAcceptanceViewProps {
     currentUser?: Resident | null;
 }
 
+export interface AuthorizedVisitor {
+    id: string;
+    residentName: string;
+    residentUnit: string;
+    visitorName: string;
+    visitorDoc: string;
+    visitorPhone: string;
+    relationship: string;
+    daysPerWeek: string;
+    overnight: boolean;
+    registeredAt: string;
+    status: 'Autorizado' | 'Pendente';
+}
+
 export const RULES_DATA = [
     {
         id: 1,
         title: 'Visitas & Segurança',
-        description: 'Visitas apenas para membros da família do residente ou pessoas previamente cadastrados por no máximo dois dias por semana. Por questões de segurança não podemos receber crianças ou animais de estimação.',
-        tags: ['Familiares ou Pré-cadastrados', 'Máx. 2 dias/semana', 'Sem crianças', 'Sem animais de estimação'],
+        description: 'Visitas apenas para membros da família do residente ou pessoas previamente cadastradas por no máximo dois dias por semana. Por questões de segurança não podemos receber crianças ou animais de estimação. O visitante só entra após prévio cadastro e recebimento via interfone pelo próprio morador.',
+        tags: ['Familiares ou Cadastrados', 'Máx. 2 dias/semana', 'Sem crianças', 'Sem animais de estimação'],
+        actionText: 'Cadastrar Visita Autorizada',
         icon: Users,
         color: 'indigo'
     },
     {
         id: 2,
         title: 'Proibição de Fumo e Álcool',
-        description: 'Não é permitido fumar nem beber bebidas alcoólicas em nenhuma dependência da propriedade.',
-        tags: ['Tolerância zero', 'Proibido fumar', 'Sem bebidas alcoólicas', 'Todas as áreas'],
+        description: 'Não é permitido fumar nem beber bebidas alcoólicas em nenhuma dependência da propriedade. As infrações registradas por câmeras ou relatos comprovados acarretarão multa de R$ 20,00 por ocorrência.',
+        tags: ['Tolerância zero', 'Proibido fumar', 'Sem bebidas alcoólicas', 'Multa de R$ 20,00', 'Todas as áreas'],
+        fine: 'R$ 20,00 por infração',
         icon: Ban,
         color: 'rose'
     },
@@ -61,8 +78,9 @@ export const RULES_DATA = [
     {
         id: 6,
         title: 'Silêncio & Televisão e Som',
-        description: 'Não é permitido som ou TV em volume alto em qualquer horário.',
-        tags: ['Silêncio 24h', 'Qualquer horário', 'Respeito ao descanso alheio'],
+        description: 'Não é permitido som ou TV em volume alto em qualquer horário. O descumprimento do silêncio e do sossego alheio acarretará multa de R$ 20,00 por ocorrência registrada.',
+        tags: ['Silêncio 24h', 'Qualquer horário', 'Respeito ao descanso alheio', 'Multa de R$ 20,00'],
+        fine: 'R$ 20,00 por infração',
         icon: Volume2,
         color: 'purple'
     },
@@ -77,8 +95,9 @@ export const RULES_DATA = [
     {
         id: 8,
         title: 'Organização da Cozinha & Armários Individuais',
-        description: 'Pratos, copos, talheres e outros pertences individuais devem ser guardados nos respectivos armários individuais da cozinha, qualquer item deixado fora será recolhido.',
-        tags: ['Armários individuais', 'Guarda obrigatória', 'Itens fora serão recolhidos'],
+        description: 'Pratos, copos, talheres e outros pertences individuais devem ser guardados nos respectivos armários individuais da cozinha, qualquer item deixado fora será recolhido e o residente estará sujeito a multa de R$ 10,00 por infração.',
+        tags: ['Armários individuais', 'Guarda obrigatória', 'Itens fora serão recolhidos', 'Multa de R$ 10,00'],
+        fine: 'R$ 10,00 por infração',
         icon: Coffee,
         color: 'cyan'
     },
@@ -111,6 +130,37 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
     const [copiedFormUrl, setCopiedFormUrl] = useState(false);
     const [acceptedRules, setAcceptedRules] = useState<Record<number, boolean>>({});
     const [acceptedAll, setAcceptedAll] = useState(false);
+
+    // Modal de Cadastro de Visita Autorizada
+    const [isVisitorModalOpen, setIsVisitorModalOpen] = useState(false);
+    const [visitorSuccess, setVisitorSuccess] = useState(false);
+    const [visitorProtocol, setVisitorProtocol] = useState('');
+    const [authorizedVisitors, setAuthorizedVisitors] = useState<AuthorizedVisitor[]>([]);
+
+    const [visitorForm, setVisitorForm] = useState({
+        residentName: currentUser?.name || '',
+        residentUnit: '',
+        visitorName: '',
+        visitorDoc: '',
+        visitorPhone: '',
+        relationship: 'Familiar',
+        daysPerWeek: '2 dias por semana',
+        overnight: false,
+        notes: '',
+        termsAccepted: false
+    });
+
+    // Carregar visitas salvas localmente
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem('vpr_authorized_visitors');
+            if (saved) {
+                setAuthorizedVisitors(JSON.parse(saved));
+            }
+        } catch (e) {
+            console.error('Erro ao ler visitas autorizadas:', e);
+        }
+    }, []);
 
     // Formulário de Cadastro e Aceite
     const [formData, setFormData] = useState({
@@ -166,6 +216,63 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
         setAcceptedRules(newMap);
     };
 
+    const handleVisitorSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!visitorForm.visitorName.trim() || !visitorForm.visitorDoc.trim() || !visitorForm.visitorPhone.trim()) {
+            alert('Por favor, preencha todos os campos obrigatórios do visitante (Nome, Documento e Telefone).');
+            return;
+        }
+
+        if (!visitorForm.termsAccepted) {
+            alert('É obrigatório declarar ciência e responsabilidade sobre as regras da residência.');
+            return;
+        }
+
+        const protocol = `VPR-VIS-${Math.floor(1000 + Math.random() * 9000)}`;
+        const newVisitor: AuthorizedVisitor = {
+            id: protocol,
+            residentName: visitorForm.residentName || 'Residente',
+            residentUnit: visitorForm.residentUnit || 'Geral',
+            visitorName: visitorForm.visitorName,
+            visitorDoc: visitorForm.visitorDoc,
+            visitorPhone: visitorForm.visitorPhone,
+            relationship: visitorForm.relationship,
+            daysPerWeek: visitorForm.daysPerWeek,
+            overnight: visitorForm.overnight,
+            registeredAt: new Date().toLocaleDateString('pt-BR'),
+            status: 'Autorizado'
+        };
+
+        const updated = [newVisitor, ...authorizedVisitors];
+        setAuthorizedVisitors(updated);
+        try {
+            localStorage.setItem('vpr_authorized_visitors', JSON.stringify(updated));
+        } catch (err) {
+            console.error('Erro ao salvar localmente:', err);
+        }
+
+        setVisitorProtocol(protocol);
+        setVisitorSuccess(true);
+    };
+
+    const handleSendVisitorWhatsApp = () => {
+        const text = `*CADASTRO DE VISITA AUTORIZADA - VOUPRURIO*%0A` +
+            `*Protocolo:* ${visitorProtocol}%0A%0A` +
+            `*Morador(a):* ${visitorForm.residentName}%0A` +
+            `*Unidade/Quarto:* ${visitorForm.residentUnit}%0A` +
+            `*Nome do Visitante:* ${visitorForm.visitorName}%0A` +
+            `*CPF/RG do Visitante:* ${visitorForm.visitorDoc}%0A` +
+            `*WhatsApp do Visitante:* ${visitorForm.visitorPhone}%0A` +
+            `*Relação/Parentesco:* ${visitorForm.relationship}%0A` +
+            `*Frequência:* ${visitorForm.daysPerWeek}%0A` +
+            `*Pernoite:* ${visitorForm.overnight ? 'Sim (máx. 2 noites/semana)' : 'Não'}%0A` +
+            `*Observações:* ${visitorForm.notes || 'Nenhuma'}%0A%0A` +
+            `_Declaro que o visitante cumprirá rigorosamente as regras da casa (silêncio, sem fumo/álcool, sem crianças/pets) e entrará pelo interfone sob minha responsabilidade direta._`;
+
+        window.open(`https://wa.me/5521983245000?text=${text}`, '_blank');
+    };
+
     const handleSubmitRegistration = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitError('');
@@ -183,7 +290,6 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
         setIsSubmitting(true);
 
         try {
-            // Tenta persistir no Supabase como Candidato
             await createResident({
                 name: formData.name,
                 email: formData.email,
@@ -207,7 +313,6 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
             setSubmitSuccess(true);
         } catch (err: any) {
             console.warn('Erro ao salvar no Supabase, mantendo confirmação amigável:', err);
-            // Mesmo se houver restrição no banco anônimo, confirmamos o envio e orientamos abrir o Forms/WhatsApp
             setSubmitSuccess(true);
         } finally {
             setIsSubmitting(false);
@@ -226,7 +331,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
                     <button
                         onClick={onBack}
-                        className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition-colors py-2 px-3 rounded-xl hover:bg-slate-900 border border-transparent hover:border-slate-800"
+                        className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition-colors py-2 px-3 rounded-xl hover:bg-slate-900 border border-transparent hover:border-slate-800 cursor-pointer"
                     >
                         <ArrowLeft size={16} />
                         <span>Voltar ao Início</span>
@@ -242,6 +347,18 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => {
+                                setVisitorSuccess(false);
+                                setIsVisitorModalOpen(true);
+                            }}
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-950/30 cursor-pointer"
+                            title="Cadastrar visitante autorizado"
+                        >
+                            <UserPlus size={14} />
+                            <span className="hidden sm:inline">Cadastrar Visita</span>
+                        </button>
+
                         <a
                             href={googleFormsUrl}
                             target="_blank"
@@ -255,7 +372,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
 
                         <button
                             onClick={() => window.print()}
-                            className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-bold transition-all"
+                            className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-bold transition-all cursor-pointer"
                             title="Imprimir termo de regras"
                         >
                             <Printer size={14} />
@@ -376,7 +493,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         <button
                             onClick={handleCopyPix}
-                            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-950/40"
+                            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
                         >
                             {copiedPix ? <Check size={16} /> : <Copy size={16} />}
                             <span>{copiedPix ? 'Chave Copiada!' : 'Copiar Chave PIX'}</span>
@@ -395,18 +512,19 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                 As 10 Regras de Conduta Residencial
                             </h2>
                         </div>
-                        <button
-                            onClick={handleToggleAll}
-                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 transition-all self-start sm:self-auto"
-                        >
-                            <CheckCircle2 size={16} className={acceptedAll ? 'text-emerald-400' : 'text-slate-500'} />
-                            <span>{acceptedAll ? 'Desmarcar Todas' : 'Marcar Todas como Lidas'}</span>
-                        </button>
+                        <div className="flex items-center gap-3 self-start sm:self-auto">
+                            <button
+                                onClick={handleToggleAll}
+                                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 transition-all cursor-pointer"
+                            >
+                                <CheckCircle2 size={16} className={acceptedAll ? 'text-emerald-400' : 'text-slate-500'} />
+                                <span>{acceptedAll ? 'Desmarcar Todas' : 'Marcar Todas como Lidas'}</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {RULES_DATA.map((rule) => {
-                            const IconComponent = rule.icon;
                             const isAccepted = !!acceptedRules[rule.id];
 
                             return (
@@ -429,7 +547,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                         {rule.title}
                                                     </h3>
                                                     {rule.fine && (
-                                                        <span className="inline-block mt-0.5 text-[11px] font-black text-rose-400 bg-rose-950/50 px-2 py-0.5 rounded-md border border-rose-800/50">
+                                                        <span className="inline-block mt-0.5 text-[11px] font-black text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded-md border border-rose-800/60">
                                                             {rule.fine}
                                                         </span>
                                                     )}
@@ -449,6 +567,36 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                                             {rule.description}
                                         </p>
+
+                                        {/* LINK VISÍVEL E PROEMINENTE NA REGRA 1 PARA CADASTRO DE VISITAS */}
+                                        {rule.id === 1 && (
+                                            <div className="pt-2" onClick={e => e.stopPropagation()}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setVisitorSuccess(false);
+                                                        setIsVisitorModalOpen(true);
+                                                    }}
+                                                    className="w-full inline-flex items-center justify-center gap-2.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-950/50 hover:scale-[1.02] active:scale-[0.98] border border-indigo-400/30 cursor-pointer"
+                                                >
+                                                    <UserPlus size={16} />
+                                                    <span>Cadastrar Visita Autorizada</span>
+                                                    <ArrowRight size={14} />
+                                                </button>
+
+                                                {authorizedVisitors.length > 0 && (
+                                                    <div className="mt-2 text-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setIsVisitorModalOpen(true)}
+                                                            className="text-[11px] text-indigo-300 hover:text-indigo-200 underline font-semibold transition-colors cursor-pointer"
+                                                        >
+                                                            Ver {authorizedVisitors.length} visita(s) cadastrada(s)
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="pt-4 mt-4 border-t border-slate-800/60 flex flex-wrap gap-1.5 items-center">
@@ -468,17 +616,17 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                 </div>
 
                 {/* POLÍTICA DE MULTAS E SEGURANÇA */}
-                <div className="p-8 rounded-[2.5rem] bg-gradient-to-r from-rose-950/40 via-slate-900 to-amber-950/30 border border-rose-500/30 shadow-2xl space-y-4">
+                <div className="p-8 rounded-[2.5rem] bg-gradient-to-r from-rose-950/40 via-slate-900 to-amber-950/30 border border-rose-500/30 shadow-2xl space-y-5">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-900/50">
                             <AlertTriangle size={24} />
                         </div>
                         <div>
                             <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-tight">
-                                Regras de Aplicação de Multas por Infração
+                                Tabela e Aplicação de Multas por Infração
                             </h3>
                             <p className="text-xs text-rose-300 font-semibold">
-                                Segurança e monitoramento eletrônico 24 horas por dia
+                                Segurança e monitoramento eletrônico 24 horas por dia em todas as áreas comuns
                             </p>
                         </div>
                     </div>
@@ -487,25 +635,55 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                         "Os valores de multas aplicadas por infrações ao regulamento da casa serão anexados à fatura do mês subsequente e pagos diretamente via internet."
                     </p>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1">
-                                Roupa no quarto / Peso máquina
-                            </span>
-                            <span className="text-xl font-black text-amber-400">R$ 20,00</span>
-                            <span className="text-[11px] text-slate-400 block">por infração registrada</span>
-                        </div>
-
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1">
-                                Deixar cozinha / louça suja
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                        {/* Multa Fumo e Álcool */}
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
+                                Fumo & Bebidas Alcoólicas
                             </span>
                             <span className="text-xl font-black text-rose-400">R$ 20,00</span>
                             <span className="text-[11px] text-slate-400 block">por infração registrada</span>
                         </div>
 
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-1">
+                        {/* Multa Silêncio & TV/Som */}
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
+                                Silêncio / Som ou TV Alto
+                            </span>
+                            <span className="text-xl font-black text-purple-400">R$ 20,00</span>
+                            <span className="text-[11px] text-slate-400 block">por infração em qualquer horário</span>
+                        </div>
+
+                        {/* Multa Roupa no quarto / Lavanderia */}
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
+                                Roupa no quarto / Peso lavanderia
+                            </span>
+                            <span className="text-xl font-black text-amber-400">R$ 20,00</span>
+                            <span className="text-[11px] text-slate-400 block">por infração registrada</span>
+                        </div>
+
+                        {/* Multa Cozinha Suja */}
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
+                                Deixar cozinha / louça suja
+                            </span>
+                            <span className="text-xl font-black text-rose-400">R$ 20,00</span>
+                            <span className="text-[11px] text-slate-400 block">por infração sumária</span>
+                        </div>
+
+                        {/* Multa Armários Individuais */}
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
+                                Louça/Pertence fora do armário
+                            </span>
+                            <span className="text-xl font-black text-cyan-400">R$ 10,00</span>
+                            <span className="text-[11px] text-slate-400 block">por infração (item recolhido)</span>
+                        </div>
+
+                        {/* Multa Quarto Alheio */}
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
                                 Entrada em quarto/banheiro alheio
                             </span>
                             <span className="text-xl font-black text-red-500">R$ 50,00</span>
@@ -547,7 +725,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
 
                             <button
                                 onClick={handleCopyFormUrl}
-                                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-all border border-slate-700"
+                                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-all border border-slate-700 cursor-pointer"
                                 title="Copiar link do formulário"
                             >
                                 {copiedFormUrl ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
@@ -573,7 +751,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                         </div>
                         <button
                             onClick={() => setShowDetailedForm(!showDetailedForm)}
-                            className="p-3 rounded-2xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all text-xs font-bold inline-flex items-center gap-1"
+                            className="p-3 rounded-2xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
                         >
                             {showDetailedForm ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                         </button>
@@ -603,7 +781,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                                 <button
                                     onClick={handleWhatsAppConfirm}
-                                    className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-950/40"
+                                    className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
                                 >
                                     Confirmar via WhatsApp da Administração
                                 </button>
@@ -798,7 +976,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             <strong className="text-white block mb-1">
                                                 DECLARAÇÃO FORMAL DE ACEITE INTEGRAL DAS REGRAS
                                             </strong>
-                                            Declaro que li, compreendi e aceito integralmente todas as <strong className="text-amber-400">10 Regras de Conduta Residencial VouPruRio</strong>, bem como as condições de pagamento do aluguel (R$ 960,00 ou R$ 860,00 promocional até 10/11), pagamento antecipado até o 5º dia útil via PIX para Sergio Oswaldo de Castro, cobrança de multas no mês subsequente, necessidade de aviso prévio de 30 dias para saída e quitação do último mês através do depósito caução.
+                                            Declaro que li, compreendi e aceito integralmente todas as <strong className="text-amber-400">10 Regras de Conduta Residencial VouPruRio</strong>, incluindo as multas aplicáveis por infração (fumo/álcool: R$ 20,00; silêncio/TV alta: R$ 20,00; lavar/passar roupa fora do padrão: R$ 20,00; cozinha suja: R$ 20,00; louça fora do armário: R$ 10,00; quartos alheios: R$ 50,00), as condições de pagamento do aluguel (R$ 960,00 ou R$ 860,00 promocional até 10/11), pagamento antecipado até o 5º dia útil via PIX para Sergio Oswaldo de Castro, cobrança de multas no mês subsequente, necessidade de aviso prévio de 30 dias para saída e quitação do último mês através do depósito caução.
                                         </label>
                                     </div>
 
@@ -824,7 +1002,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         type="submit"
                                         disabled={isSubmitting || !acceptedAll}
                                         className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-2 ${acceptedAll && !isSubmitting
-                                            ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/50 hover:scale-105 active:scale-95'
+                                            ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/50 hover:scale-105 active:scale-95 cursor-pointer'
                                             : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                                             }`}
                                     >
@@ -842,6 +1020,307 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                         )
                     )}
                 </div>
+
+                {/* MODAL: CADASTRO DE VISITAS AUTORIZADAS */}
+                {isVisitorModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+                        <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-[2.5rem] p-6 sm:p-8 shadow-2xl overflow-y-auto max-h-[90vh] space-y-6">
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-2xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
+                                        <UserPlus size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                                            Cadastro de Visita Autorizada
+                                        </h3>
+                                        <p className="text-xs text-slate-400">
+                                            Regra 1: Familiares ou convidados cadastrados (máx. 2 dias/semana)
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsVisitorModalOpen(false)}
+                                    className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+
+                            {visitorSuccess ? (
+                                <div className="text-center py-6 space-y-5 animate-in zoom-in-95 duration-200">
+                                    <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
+                                        <BadgeCheck size={36} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                                            Protocolo Gerado com Sucesso
+                                        </span>
+                                        <h4 className="text-2xl font-black text-white uppercase tracking-tight">
+                                            {visitorProtocol}
+                                        </h4>
+                                        <p className="text-xs text-slate-300 max-w-md mx-auto">
+                                            A visita <strong className="text-white">{visitorForm.visitorName}</strong> foi cadastrada como autorizada para o residente <strong className="text-white">{visitorForm.residentName || 'Morador'}</strong>.
+                                        </p>
+                                    </div>
+
+                                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left text-xs text-slate-300 max-w-md mx-auto space-y-1.5">
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Documento:</span>
+                                            <span className="font-mono text-white">{visitorForm.visitorDoc}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Telefone:</span>
+                                            <span className="font-mono text-white">{visitorForm.visitorPhone}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Relação:</span>
+                                            <span className="text-white">{visitorForm.relationship}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Pernoite:</span>
+                                            <span className="text-white">{visitorForm.overnight ? 'Sim (até 2 noites/sem)' : 'Não'}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleSendVisitorWhatsApp}
+                                            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
+                                        >
+                                            Enviar Comprovante no WhatsApp
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setVisitorSuccess(false);
+                                                setVisitorForm({
+                                                    residentName: currentUser?.name || '',
+                                                    residentUnit: '',
+                                                    visitorName: '',
+                                                    visitorDoc: '',
+                                                    visitorPhone: '',
+                                                    relationship: 'Familiar',
+                                                    daysPerWeek: '2 dias por semana',
+                                                    overnight: false,
+                                                    notes: '',
+                                                    termsAccepted: false
+                                                });
+                                            }}
+                                            className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                                        >
+                                            Cadastrar Outra Visita
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleVisitorSubmit} className="space-y-4">
+                                    <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start gap-2.5">
+                                        <Info size={16} className="shrink-0 mt-0.5" />
+                                        <span>
+                                            <strong>Lembrete de Segurança:</strong> Não é permitido receber crianças ou animais de estimação. O visitante entra obrigatoriamente pelo interfone recebido pelo morador e não fica na casa sem ele.
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* Morador Responsável */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                                                Nome do Morador *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={visitorForm.residentName}
+                                                onChange={e => setVisitorForm({ ...visitorForm, residentName: e.target.value })}
+                                                placeholder="Seu nome"
+                                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none"
+                                            />
+                                        </div>
+
+                                        {/* Unidade / Quarto */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                                                Unidade / Quarto *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={visitorForm.residentUnit}
+                                                onChange={e => setVisitorForm({ ...visitorForm, residentUnit: e.target.value })}
+                                                placeholder="Ex: Quarto 3, Suíte B"
+                                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none"
+                                            />
+                                        </div>
+
+                                        {/* Nome do Visitante */}
+                                        <div className="space-y-1.5 sm:col-span-2">
+                                            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                                                Nome Completo do Visitante *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={visitorForm.visitorName}
+                                                onChange={e => setVisitorForm({ ...visitorForm, visitorName: e.target.value })}
+                                                placeholder="Nome completo de quem vai visitar"
+                                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none"
+                                            />
+                                        </div>
+
+                                        {/* Documento do Visitante */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                                                CPF ou RG do Visitante *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={visitorForm.visitorDoc}
+                                                onChange={e => setVisitorForm({ ...visitorForm, visitorDoc: e.target.value })}
+                                                placeholder="000.000.000-00"
+                                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none"
+                                            />
+                                        </div>
+
+                                        {/* Telefone do Visitante */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                                                WhatsApp do Visitante *
+                                            </label>
+                                            <input
+                                                type="tel"
+                                                required
+                                                value={visitorForm.visitorPhone}
+                                                onChange={e => setVisitorForm({ ...visitorForm, visitorPhone: e.target.value })}
+                                                placeholder="(21) 99999-9999"
+                                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none"
+                                            />
+                                        </div>
+
+                                        {/* Grau de Parentesco / Relação */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                                                Parentesco ou Relação
+                                            </label>
+                                            <select
+                                                value={visitorForm.relationship}
+                                                onChange={e => setVisitorForm({ ...visitorForm, relationship: e.target.value })}
+                                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-indigo-500 focus:outline-none"
+                                            >
+                                                <option value="Familiar">Familiar (Pais/Filhos/Irmãos/Parentes)</option>
+                                                <option value="Cônjuge/Namorado(a)">Cônjuge / Namorado(a)</option>
+                                                <option value="Amigo(a) Cadastrado">Amigo(a) Pré-Cadastrado</option>
+                                                <option value="Colega de Trabalho/Estudo">Colega de Trabalho/Estudo</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Frequência */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                                                Frequência (Máx. 2 dias/sem)
+                                            </label>
+                                            <select
+                                                value={visitorForm.daysPerWeek}
+                                                onChange={e => setVisitorForm({ ...visitorForm, daysPerWeek: e.target.value })}
+                                                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:border-indigo-500 focus:outline-none"
+                                            >
+                                                <option value="1 dia por semana">1 dia por semana</option>
+                                                <option value="2 dias por semana">2 dias por semana (limite da casa)</option>
+                                                <option value="Visita Pontual / Esporádica">Visita Pontual / Esporádica</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Pernoite Switch */}
+                                    <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                                        <div>
+                                            <span className="text-xs font-bold text-white block">
+                                                Haverá pernoite na visita?
+                                            </span>
+                                            <span className="text-[11px] text-slate-400">
+                                                Permitido no máximo até 2 noites por semana
+                                            </span>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={visitorForm.overnight}
+                                                onChange={e => setVisitorForm({ ...visitorForm, overnight: e.target.checked })}
+                                                className="sr-only peer"
+                                            />
+                                            <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                        </label>
+                                    </div>
+
+                                    {/* Termo de Responsabilidade */}
+                                    <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-start gap-2.5">
+                                        <input
+                                            type="checkbox"
+                                            id="checkVisitorTerms"
+                                            required
+                                            checked={visitorForm.termsAccepted}
+                                            onChange={e => setVisitorForm({ ...visitorForm, termsAccepted: e.target.checked })}
+                                            className="w-4 h-4 rounded mt-0.5 accent-indigo-600 cursor-pointer"
+                                        />
+                                        <label htmlFor="checkVisitorTerms" className="text-[11px] text-slate-300 leading-relaxed cursor-pointer">
+                                            Declaro que o visitante está ciente e cumprirá todas as regras da propriedade (silêncio, proibição de álcool e fumo, sem pets e sem crianças), que será recebido por mim via interfone e que não permanecerá no imóvel sem minha presença.
+                                        </label>
+                                    </div>
+
+                                    <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsVisitorModalOpen(false)}
+                                            className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-950/40 cursor-pointer"
+                                        >
+                                            Salvar & Autorizar Visita
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
+
+                            {/* Lista de Visitas Já Cadastradas */}
+                            {authorizedVisitors.length > 0 && !visitorSuccess && (
+                                <div className="pt-4 border-t border-slate-800 space-y-3">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                        Visitas Atualmente Cadastradas ({authorizedVisitors.length})
+                                    </span>
+                                    <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                                        {authorizedVisitors.map(v => (
+                                            <div key={v.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+                                                <div>
+                                                    <div className="font-bold text-white flex items-center gap-1.5">
+                                                        <span>{v.visitorName}</span>
+                                                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800/40 font-normal">
+                                                            {v.relationship}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-[11px] text-slate-500">
+                                                        Doc: {v.visitorDoc} • {v.daysPerWeek} {v.overnight ? '• Com pernoite' : ''}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800/40">
+                                                        {v.status}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* FOOTER INFORMATIVO */}
                 <div className="pt-8 border-t border-slate-800/80 text-center space-y-3 pb-12 text-xs text-slate-500">

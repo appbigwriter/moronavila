@@ -85,21 +85,24 @@ const PRODUCTS = [
     }
 ];
 
-// Promoção de lançamento: R$ 100 a menos por mês, durante 12 meses, para contratos fechados até 10/11/2026.
+// Promoção de lançamento: R$ 100 a menos por mês, durante 6 meses, para contratos fechados até 10/11/2026.
 // Depois do prazo, o site volta sozinho aos preços normais.
-const PROMO = { discount: 100, months: 12, deadline: '10/11', endsAt: new Date('2026-11-10T23:59:59-03:00') };
+const PROMO = { discount: 100, months: 6, deadline: '10/11', endsAt: new Date('2026-11-10T23:59:59-03:00') };
 const isPromoActive = () => Date.now() <= PROMO.endsAt.getTime();
 const formatBRL = (value: number) => `R$ ${value.toLocaleString('pt-BR')}`;
 const MIN_PRICE = Math.min(...PRODUCTS.map(p => p.price));
 
 const HOUSE_RULES = [
-    'Silêncio a partir das 22h, para residentes e visitantes.',
-    'Visitas com pernoite permitidas até 2 noites por semana, apenas para até 2 visitantes previamente cadastrados por unidade.',
-    'O visitante entra sempre pelo interfone da unidade, recebido pelo residente, e não fica na casa sem ele.',
-    'Não é permitido fumar nas dependências.',
-    'Não são permitidos pets.',
-    'Sem bebida alcoólica nas áreas comuns.',
-    'Cozinha e áreas comuns limpas e organizadas após o uso.'
+    '1. Visitas apenas para familiares do residente ou pessoas previamente cadastradas (máx. 2 dias/semana). Não é permitido receber crianças ou animais de estimação. Toda visita deve ser previamente cadastrada.',
+    '2. Não é permitido fumar nem ingerir bebidas alcoólicas em nenhuma dependência da propriedade (multa de R$ 20,00 por infração).',
+    '3. Proibido passar roupa nos quartos (espaço na sala para isso) e lavar roupa no banheiro do quarto. Uso da lavanderia agendado com a administração e respeito ao limite de peso da máquina (multa de R$ 20,00 por infração).',
+    '4. Aluguel sempre referente do 1º ao último dia do mês, pago antecipado até o 5º dia útil via PIX (21) 983245000 em nome de Sergio Oswaldo de Castro.',
+    '5. Saída do imóvel mediante aviso prévio por e-mail ou WhatsApp com pelo menos 30 dias de antecedência. O depósito caução quita o último mês de permanência.',
+    '6. Não é permitido som ou TV em volume alto em qualquer horário (multa de R$ 20,00 por infração).',
+    '7. Entregas devem ser recebidas pelos próprios residentes, informando o número da unidade como complemento de endereço para aviso via interfone.',
+    '8. Pratos, copos, talheres e pertences individuais devem ser guardados nos armários individuais da cozinha; itens fora serão recolhidos (multa de R$ 10,00 por infração).',
+    '9. Cozinha deve ser deixada limpa imediatamente após o uso; câmeras registrarão infrações com multa sumária de R$ 20,00.',
+    '10. Proibido que residentes entrem ou ocupem quartos ou banheiros de outros residentes (multa de R$ 50,00 por infração).'
 ];
 
 const DEFAULT_RENTAL_CONDITIONS: RentalConditions = {
@@ -348,7 +351,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
         },
         {
             q: 'Quais são as regras básicas da propriedade?',
-            a: `1 - Silêncio a partir das 22h\n2 - Visitas apenas de pessoas previamente cadastradas, com pernoite de até 2 noites por semana\n3 - Não é permitido fumar\n4 - Não são permitidos pets\n5 - Sem bebida alcoólica nas áreas comuns\n6 - A limpeza da unidade é responsabilidade do residente; as áreas comuns são limpas pela casa\n7 - O aluguel cobre sempre o período de 1 ao último dia de cada mês, pago até o quinto dia útil do mês subsequente.\n\nA casa é monitorada por câmeras 24h. Infrações comprovadas geram multa automática no próximo vencimento, conforme a tabela da casa.`
+            a: `1 - Visitas apenas para familiares ou cadastrados (máx. 2 dias/semana); sem crianças ou pets.\n2 - Proibido fumar ou beber bebidas alcoólicas em toda a propriedade (multa de R$ 20,00).\n3 - Passar roupa apenas na sala; proibido lavar no banheiro; uso agendado da lavanderia (multa de R$ 20,00).\n4 - Aluguel pago antecipado até o 5º dia útil via PIX (21) 983245000 para Sergio Oswaldo de Castro.\n5 - Aviso de saída de 30 dias; depósito quita o último mês.\n6 - Proibido som ou TV alto em qualquer horário (multa de R$ 20,00).\n7 - Entregas recebidas pelo morador via interfone da unidade.\n8 - Louças guardadas nos armários individuais (multa de R$ 10,00 se deixadas fora).\n9 - Cozinha limpa após o uso (multa de R$ 20,00).\n10 - Proibido entrar em quartos/banheiros alheios (multa de R$ 50,00).\n\nAs multas são lançadas na fatura subsequente. A casa é monitorada por câmeras 24h.`
         },
         {
             q: 'Posso receber visitas?',
