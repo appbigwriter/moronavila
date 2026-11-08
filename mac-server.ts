@@ -1065,7 +1065,7 @@ ${Date.now() <= new Date('2026-11-10T23:59:59-03:00').getTime() ? `            -
             1. Conversa rápida pelo WhatsApp (trabalho, se mora sozinho ou em casal, tempo de permanência, data de mudança).
             2. Visita presencial ou tour por vídeo.
             3. Pré-cadastro com documentos e comprovante de trabalho/renda. Sem fiador nem seguro-fiança.
-            4. Pagamento do aluguel proporcional do primeiro mês + 1 mês de caução (que quita o último mês após aviso prévio de 30 dias).
+            4. Pagamento do depósito + mês corrente à entrada (o depósito caução quita o último mês após aviso prévio de 30 dias).
             - O aluguel cobre do dia 1 ao último dia do mês e é pago antecipado até o 5º dia útil.
 
             DIRETRIZES DE COMUNICAÇÃO:

@@ -460,10 +460,10 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                         </div>
                         <div className="space-y-2">
                             <div className="text-sm font-black text-white uppercase tracking-wider">
-                                Depósito + Proporcional
+                                Depósito + Mês Corrente
                             </div>
                             <p className="text-xs text-slate-400 leading-relaxed">
-                                Para entrada na casa é necessário 1 mês de aluguel como depósito + os dias proporcionais do mês corrente à entrada.
+                                Para entrada na casa é necessário 1 mês de aluguel como depósito + mês corrente à entrada.
                             </p>
                         </div>
                         <div className="pt-3 border-t border-slate-800/60 text-xs text-emerald-400 font-medium">
