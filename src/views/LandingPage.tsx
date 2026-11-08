@@ -4,7 +4,7 @@ import {
     ArrowRight, MessageCircle, Send, X, Sofa, Check, Info,
     Calendar, CreditCard, CheckCircle2, XCircle, HelpCircle,
     Phone, Mail, User, Clock, Star, Users, ExternalLink,
-    Bed, Bath, Layers, ShieldCheck
+    Bed, Bath, Layers, ShieldCheck, FileText
 } from 'lucide-react';
 import { fetchPublicPropertyDescription, fetchPublicRooms, fetchRentalConditions, signUpResident } from '../lib/database';
 import { getLocalApiBase } from '../lib/localApi';
@@ -17,6 +17,7 @@ interface LandingPageProps {
     isLoggedIn?: boolean;
     currentUser?: Resident | null;
     onGoToDashboard?: () => void;
+    onOpenRules?: () => void;
 }
 
 const DEFAULT_PROPERTY_DESC: PropertyDescription = {
@@ -198,7 +199,7 @@ const DEFAULT_SAMPLE_ROOMS: Room[] = [
     }
 ];
 
-export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashboard }: LandingPageProps) {
+export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashboard, onOpenRules }: LandingPageProps) {
     const promoActive = isPromoActive();
     const fromPrice = promoActive ? MIN_PRICE - PROMO.discount : MIN_PRICE;
     const [propertyDesc, setPropertyDesc] = useState<PropertyDescription>(DEFAULT_PROPERTY_DESC);
@@ -1252,14 +1253,20 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             Casa monitorada por câmeras 24h. Regras claras, iguais para todos: infrações comprovadas geram multa automática no próximo vencimento.
                         </div>
                     </div>
-                    <div className="mt-8 flex justify-center">
+                    <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button
+                            onClick={onOpenRules ? onOpenRules : () => { window.location.hash = '#regras'; }}
+                            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-black uppercase tracking-widest transition-all hover:scale-105 shadow-lg shadow-amber-950/20 cursor-pointer"
+                        >
+                            <FileText size={15} /> Regras e Cadastro de Residentes
+                        </button>
                         <a
-                            href="https://docs.google.com/forms/d/1kZBOzDBFKPABY_IGq1eXscTUT3YUkNHZrSxxEo1q4ZA/preview"
+                            href="https://forms.gle/nQnbXWZgQesmoUmm6"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-black uppercase tracking-widest transition-all hover:scale-105 shadow-lg shadow-amber-950/20"
+                            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-black uppercase tracking-widest transition-all hover:scale-105"
                         >
-                            <ExternalLink size={15} /> Regras e cadastro de residentes
+                            <ExternalLink size={15} /> Formulário Google Forms
                         </a>
                     </div>
                 </div>
@@ -1447,14 +1454,20 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         <div className="font-bold text-slate-200">Endereço</div>
                         <div>Rua Torres Homem, 886 - Vila Isabel</div>
                         <div>Rio de Janeiro - RJ • CEP 20551-075</div>
-                        <div className="pt-2">
+                        <div className="pt-2 flex flex-col items-center gap-1">
+                            <button
+                                onClick={onOpenRules ? onOpenRules : () => { window.location.hash = '#regras'; }}
+                                className="text-amber-400 hover:text-amber-300 font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                                <FileText size={12} /> Regras e cadastro de residentes
+                            </button>
                             <a
-                                href="https://docs.google.com/forms/d/1kZBOzDBFKPABY_IGq1eXscTUT3YUkNHZrSxxEo1q4ZA/preview"
+                                href="https://forms.gle/nQnbXWZgQesmoUmm6"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-amber-400 hover:text-amber-300 font-bold inline-flex items-center gap-1.5 transition-colors"
+                                className="text-slate-400 hover:text-slate-200 text-[11px] inline-flex items-center gap-1 transition-colors"
                             >
-                                <ExternalLink size={12} /> Regras e cadastro de residentes
+                                <ExternalLink size={10} /> Link Google Forms
                             </a>
                         </div>
                     </div>

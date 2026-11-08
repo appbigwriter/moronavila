@@ -29,6 +29,7 @@ import { CalendarView } from './views/CalendarView';
 import { LaundryView } from './views/LaundryView';
 import { PropertyDescView } from './views/PropertyDescView';
 import { LandingPage } from './views/LandingPage';
+import { RulesAcceptanceView } from './views/RulesAcceptanceView';
 
 const SoftphoneDock = lazy(() =>
   import('./modules/softphone/SoftphoneDock').then((module) => ({
@@ -39,8 +40,8 @@ const SoftphoneDock = lazy(() =>
 function App() {
   const [session, setSession] = useState<any>(null);
   const [loadingInitial, setLoadingInitial] = useState(true);
-  // Controla se estamos vendo 'landing', 'login' ou 'app' (dashboard)
-  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'app'>('landing');
+  // Controla se estamos vendo 'landing', 'login', 'app' (dashboard) ou 'regras'
+  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'app' | 'regras'>('landing');
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [initialModal, setInitialModal] = useState<string | null>(null);
@@ -100,13 +101,31 @@ function App() {
       }
     });
 
-    // Permitir link direto por URL: /?view=login ou /#login
-    const params = new URLSearchParams(window.location.search);
-    if (window.location.hash === '#login' || params.get('view') === 'login') {
-      setCurrentView('login');
-    }
+    // Permitir link direto por URL: /?view=login, /#login, /?view=regras, /#regras
+    const checkViewFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (window.location.hash === '#login' || params.get('view') === 'login') {
+        setCurrentView('login');
+      } else if (
+        window.location.hash === '#regras' ||
+        window.location.hash === '#rules' ||
+        params.get('view') === 'regras' ||
+        params.get('view') === 'rules' ||
+        window.location.pathname.startsWith('/regras')
+      ) {
+        setCurrentView('regras');
+      }
+    };
 
-    return () => subscription.unsubscribe();
+    checkViewFromUrl();
+    window.addEventListener('hashchange', checkViewFromUrl);
+    window.addEventListener('popstate', checkViewFromUrl);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('hashchange', checkViewFromUrl);
+      window.removeEventListener('popstate', checkViewFromUrl);
+    };
   }, []);
 
   // Limpar modal inicial ao mudar de aba
@@ -191,7 +210,26 @@ function App() {
     );
   }
 
-  // 1. O DOMÍNIO CARREGA DIRETAMENTE A LANDING PAGE
+  // 1. PÁGINA: ACEITE DE REGRAS E CADASTRO DE RESIDENTE
+  if (currentView === 'regras') {
+    return (
+      <RulesAcceptanceView
+        onBack={() => {
+          if (window.location.hash === '#regras' || window.location.hash === '#rules') {
+            window.location.hash = '';
+          }
+          if (currentUser) {
+            setCurrentView('app');
+          } else {
+            setCurrentView('landing');
+          }
+        }}
+        currentUser={currentUser}
+      />
+    );
+  }
+
+  // 2. O DOMÍNIO CARREGA DIRETAMENTE A LANDING PAGE
   if (currentView === 'landing') {
     return (
       <LandingPage
@@ -205,11 +243,15 @@ function App() {
         isLoggedIn={!!currentUser}
         currentUser={currentUser}
         onGoToDashboard={() => setCurrentView('app')}
+        onOpenRules={() => {
+          window.location.hash = '#regras';
+          setCurrentView('regras');
+        }}
       />
     );
   }
 
-  // 2. TELA DE LOGIN DO MORADOR
+  // 3. TELA DE LOGIN DO MORADOR
   if (currentView === 'login' || !currentUser) {
     return (
       <Login
@@ -238,6 +280,10 @@ function App() {
       }}
       onRefresh={() => loadAllData(session.user.id)}
       onGoToLanding={() => setCurrentView('landing')}
+      onOpenRules={() => {
+        window.location.hash = '#regras';
+        setCurrentView('regras');
+      }}
     >
       {errorMsg && (
         <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-3">

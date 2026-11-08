@@ -30,10 +30,11 @@ interface LayoutProps {
     onLogout: () => void;
     onRefresh: () => void;
     onGoToLanding?: () => void;
+    onOpenRules?: () => void;
     children: React.ReactNode;
 }
 
-export function Layout({ currentUser, activeTab, setActiveTab, onLogout, onRefresh, onGoToLanding, children }: LayoutProps) {
+export function Layout({ currentUser, activeTab, setActiveTab, onLogout, onRefresh, onGoToLanding, onOpenRules, children }: LayoutProps) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const isAdmin = currentUser.role === UserRole.ADMIN;
@@ -107,12 +108,10 @@ export function Layout({ currentUser, activeTab, setActiveTab, onLogout, onRefre
                         <SidebarItem icon={MessageSquare} label="Reclamações" active={activeTab === 'complaints'} onClick={() => handleSetActiveTab('complaints')} />
                     )}
 
-                    <div className="pt-2 border-t border-slate-800/60 my-2">
-                        <a
-                            href="https://docs.google.com/forms/d/1kZBOzDBFKPABY_IGq1eXscTUT3YUkNHZrSxxEo1q4ZA/preview"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-all duration-300 group"
+                    <div className="pt-2 border-t border-slate-800/60 my-2 space-y-1">
+                        <button
+                            onClick={onOpenRules ? onOpenRules : () => { window.location.hash = '#regras'; }}
+                            className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-all duration-300 group text-left cursor-pointer"
                             title="Regras e cadastro de residentes"
                         >
                             <div className="flex items-center gap-3">
@@ -120,6 +119,16 @@ export function Layout({ currentUser, activeTab, setActiveTab, onLogout, onRefre
                                 <span className="font-semibold text-xs leading-tight">Regras e cadastro de residentes</span>
                             </div>
                             <ExternalLink size={14} className="text-slate-500 group-hover:text-slate-300 shrink-0 ml-1" />
+                        </button>
+                        <a
+                            href="https://forms.gle/nQnbXWZgQesmoUmm6"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center justify-between px-4 py-2 rounded-xl text-slate-500 hover:bg-slate-800/60 hover:text-amber-400 text-[11px] font-medium transition-all group"
+                            title="Abrir no Google Forms"
+                        >
+                            <span>Google Forms Oficial</span>
+                            <ExternalLink size={12} className="text-slate-600 group-hover:text-amber-400" />
                         </a>
                     </div>
                 </nav>
