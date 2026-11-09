@@ -11,6 +11,9 @@ import { getLocalApiBase } from '../lib/localApi';
 import { PropertyDescription, Room, RentalConditions, Resident } from '../types';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { AmenitiesShowcase } from '../components/AmenitiesShowcase';
+import { Language } from '../i18n/types';
+import { TRANSLATIONS } from '../i18n/translations';
+import { LanguageSelector } from '../components/LanguageSelector';
 
 interface LandingPageProps {
     onLoginClick: () => void;
@@ -205,6 +208,18 @@ const DEFAULT_SAMPLE_ROOMS: Room[] = [
 ];
 
 export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashboard, onOpenRules }: LandingPageProps) {
+    const [currentLang, setCurrentLang] = useState<Language>(() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const urlLang = params.get('lang') as Language;
+            if (urlLang && ['pt', 'en', 'es'].includes(urlLang)) return urlLang;
+            const saved = localStorage.getItem('moronavila_lang') as Language;
+            if (saved && ['pt', 'en', 'es'].includes(saved)) return saved;
+        } catch {}
+        return 'pt';
+    });
+    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.pt;
+
     const promoActive = isPromoActive();
     const fromPrice = promoActive ? MIN_PRICE - PROMO.discount : MIN_PRICE;
     const [propertyDesc, setPropertyDesc] = useState<PropertyDescription>(DEFAULT_PROPERTY_DESC);
@@ -300,10 +315,9 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
     // Foto do Hero com fallback para a fachada real
     const heroMedia = main_media?.[0] || '/fotos/vprimage11_entrada.jpg';
 
-    // Título e subtítulo fixos no código: refletem o posicionamento de residência para profissionais
-    // (o texto antigo cadastrado no banco ainda fala em vida acadêmica).
-    const heroTitle = "Seu quarto independente, sem as dores de um apartamento";
-    const heroSubtitle = "Entrada própria, mobiliado e sem fiador. Para quem trabalha e quer voltar para casa e descansar. Pague menos do que na Zona Sul e chegue ao Centro em 20 minutos.";
+    // Título e subtítulo dinâmicos de acordo com o idioma selecionado
+    const heroTitle = t.hero.title;
+    const heroSubtitle = t.hero.subtitle;
 
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -389,7 +403,9 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
             : [{ type: 'image' as const, url: '/fotos/vprimage1.jpg' }, { type: 'image' as const, url: '/fotos/vprimage6.jpg' }];
 
         const isSuite = (room as any).suite === true;
-        const availability = room.is_blocked_for_repairs ? 'Em Manutenção' : (room.availability_status || 'Disponível');
+        const availability = room.is_blocked_for_repairs
+            ? (currentLang === 'pt' ? 'Em Manutenção' : currentLang === 'es' ? 'En Mantenimiento' : 'Under Maintenance')
+            : (room.availability_status || t.roomModal.availability);
 
         return (
             <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-6">
@@ -461,7 +477,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     {room.type}
                                 </span>
                                 <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border ${
-                                    availability === 'Disponível'
+                                    availability === 'Disponível' || availability === t.roomModal.availability
                                         ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                                         : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                                 }`}>
@@ -469,7 +485,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                 </span>
                                 {isSuite && (
                                     <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-indigo-500/20">
-                                        Suíte Privativa
+                                        {t.roomModal.privateSuite}
                                     </span>
                                 )}
                             </div>
@@ -480,44 +496,44 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             <div className="flex items-baseline gap-2 mb-6">
                                 {promoActive && <span className="text-slate-500 text-sm font-bold line-through">{formatBRL(room.rent_value)}</span>}
                                 <span className="text-3xl font-black text-rose-500">{formatBRL(promoActive ? room.rent_value - PROMO.discount : room.rent_value)}</span>
-                                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">/ mês</span>
+                                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">/ {t.vacanciesSection.perMonth}</span>
                             </div>
 
                             {/* Grid de Especificações do Cadastro */}
                             <div className="grid grid-cols-2 gap-3 mb-6">
                                 <div className="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80">
                                     <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
-                                        <Users size={13} className="text-rose-400" /> Capacidade
+                                        <Users size={13} className="text-rose-400" /> {t.roomModal.capacityLabel}
                                     </div>
                                     <div className="text-white text-xs font-bold">
-                                        {room.capacity > 1 ? `${room.capacity} Vagas (Compartilhado)` : '1 Pessoa (Individual)'}
+                                        {room.capacity > 1 ? `${room.capacity} ${t.roomModal.shared}` : t.roomModal.individual}
                                     </div>
                                 </div>
 
                                 <div className="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80">
                                     <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
-                                        <Bath size={13} className="text-rose-400" /> Banheiro
+                                        <Bath size={13} className="text-rose-400" /> {t.roomModal.bathroomLabel}
                                     </div>
                                     <div className="text-white text-xs font-bold">
-                                        {isSuite ? 'Privativo (Suíte)' : 'Compartilhado'}
+                                        {isSuite ? t.roomModal.privateSuite : t.roomModal.sharedBathroom}
                                     </div>
                                 </div>
 
                                 <div className="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80">
                                     <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
-                                        <ShieldCheck size={13} className="text-rose-400" /> Entrada
+                                        <ShieldCheck size={13} className="text-rose-400" /> {t.roomModal.entryLabel}
                                     </div>
                                     <div className="text-white text-xs font-bold">
-                                        Sem fiador • caução de 1 mês
+                                        {t.roomModal.entryDetails}
                                     </div>
                                 </div>
 
                                 <div className="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80">
                                     <div className="flex items-center gap-2 text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">
-                                        <Sparkles size={13} className="text-rose-400" /> Inclusos
+                                        <Sparkles size={13} className="text-rose-400" /> {t.roomModal.includedLabel}
                                     </div>
                                     <div className="text-emerald-400 text-xs font-bold">
-                                        Wi-Fi, IPTU e limpeza das áreas comuns
+                                        {t.roomModal.includedDetails}
                                     </div>
                                 </div>
                             </div>
@@ -525,11 +541,11 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             {/* Descrição Cadastrada */}
                             <div className="mb-6">
                                 <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-2 flex items-center gap-1.5">
-                                    <Info size={13} /> Descrição da Acomodação
+                                    <Info size={13} /> {t.roomModal.descTitle}
                                 </h4>
                                 <div className="p-4 bg-slate-950/40 border border-slate-800/60 rounded-2xl">
                                     <p className="text-slate-300 text-xs leading-relaxed whitespace-pre-line font-medium">
-                                        {room.description || "Quarto confortável, ventilado e silencioso, ideal para quem busca praticidade no dia a dia da Vila Isabel."}
+                                        {room.description || t.roomModal.defaultDesc}
                                     </p>
                                 </div>
                             </div>
@@ -538,7 +554,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             <div className="mb-8">
                                 <div className="flex items-center justify-between mb-3">
                                     <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] flex items-center gap-1.5">
-                                        <Sofa size={13} /> Mobiliário
+                                        <Sofa size={13} /> {t.roomModal.furnitureTitle}
                                     </h4>
                                 </div>
 
@@ -553,7 +569,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                                     <div>
                                                         <div className="text-slate-200 text-xs font-bold uppercase">{item.name}</div>
                                                         {item.description && (
-                                                            <div className="text-[10px] text-slate-500">{item.description}</div>
+                                                             <div className="text-[10px] text-slate-500">{item.description}</div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -562,7 +578,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                                     item.condition === 'Bom' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                                                     'bg-amber-500/10 text-amber-400 border-amber-500/20'
                                                 }`}>
-                                                    {item.condition}
+                                                    {item.condition === 'Novo' ? t.roomModal.newBadge : item.condition === 'Bom' ? t.roomModal.goodBadge : t.roomModal.fairBadge}
                                                 </span>
                                             </div>
                                         ))}
@@ -570,7 +586,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                 ) : (
                                     <div className="p-4 bg-slate-950/40 border border-dashed border-slate-800/80 rounded-2xl text-center">
                                         <p className="text-slate-400 text-xs font-medium">
-                                            Acomodação mobiliada com cama, armário e escrivaninha.
+                                            {t.roomModal.furnitureDefault}
                                         </p>
                                     </div>
                                 )}
@@ -584,7 +600,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     rel="noopener noreferrer"
                                     className="w-full flex items-center justify-center gap-2.5 border border-rose-500/40 hover:bg-rose-500/10 text-rose-400 px-6 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all"
                                 >
-                                    <MessageCircle size={16} /> Agendar Visita no WhatsApp
+                                    <MessageCircle size={16} /> {t.roomModal.whatsappCta}
                                 </a>
                                 <button
                                     onClick={() => {
@@ -595,7 +611,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     }}
                                     className="w-full flex items-center justify-center gap-3 bg-rose-600 hover:bg-rose-700 text-white px-6 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-rose-900/40 hover:scale-[1.01] active:scale-98"
                                 >
-                                    Simular Entrada & Reserva <ArrowRight size={16} />
+                                    {t.roomModal.simulateCta} <ArrowRight size={16} />
                                 </button>
                             </div>
                         </div>
@@ -654,16 +670,16 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     <div className="inline-flex items-center justify-center p-4 bg-rose-500/10 text-rose-500 rounded-2xl">
                                         <CreditCard size={32} />
                                     </div>
-                                    <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Condições para Alugar</h3>
+                                    <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">{t.simulatorModal.title}</h3>
                                     <p className="text-slate-400 text-sm max-w-lg mx-auto">
-                                        {rentalConditions.calculation_instructions || "Informe a data prevista de entrada para simular os valores do seu primeiro mês com total transparência."}
+                                        {rentalConditions.calculation_instructions || (currentLang === 'pt' ? "Informe a data prevista de entrada para simular os valores do seu primeiro mês com total transparência." : currentLang === 'es' ? "Ingrese la fecha prevista de llegada para simular los valores de su primer mes con total transparencia." : "Enter your expected move-in date to simulate your first month costs with total transparency.")}
                                     </p>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                                     <div className="space-y-6">
                                         <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Data Prevista de Entrada</label>
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">{t.simulatorModal.step1Title}</label>
                                             <div className="relative">
                                                 <Calendar size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
                                                 <input
@@ -680,10 +696,10 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
 
                                         <div className="p-6 bg-slate-950/50 border border-slate-800 rounded-3xl space-y-4">
                                             <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                                                <Info size={14} /> Regras Gerais
+                                                <Info size={14} /> {t.simulatorModal.step2Title}
                                             </h4>
                                             <p className="text-xs text-slate-400 leading-relaxed italic">
-                                                {rentalConditions.rules_summary || "O pagamento é mensal e antecipado. A reserva é confirmada mediante o pagamento do caução."}
+                                                {rentalConditions.rules_summary || (currentLang === 'pt' ? "O pagamento é mensal e antecipado. A reserva é confirmada mediante o pagamento do caução." : currentLang === 'es' ? "El pago es mensual y por adelantado. La reserva se confirma con el pago del depósito." : "Payment is monthly in advance. Reservation is confirmed upon deposit payment.")}
                                             </p>
                                         </div>
                                     </div>
@@ -693,20 +709,20 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
 
                                         <div className="space-y-4">
                                             <div className="flex justify-between items-center text-sm">
-                                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Aluguel Mês Corrente</span>
+                                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t.simulatorModal.monthlyRent}</span>
                                                 <span className="text-white font-black">R$ {calculation?.proRata || 0}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-sm">
-                                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Depósito Caução</span>
+                                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t.simulatorModal.securityDeposit}</span>
                                                 <span className="text-white font-black">R$ {calculation?.deposit || 0}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-sm">
-                                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Taxa de Limpeza Entrada</span>
+                                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t.simulatorModal.cleaningFee}</span>
                                                 <span className="text-white font-black">R$ {calculation?.cleaning || 0}</span>
                                             </div>
                                             <div className="h-px bg-slate-800 my-2" />
                                             <div className="flex justify-between items-center">
-                                                <span className="text-rose-500 font-black uppercase tracking-widest text-xs">Total para Entrada</span>
+                                                <span className="text-rose-500 font-black uppercase tracking-widest text-xs">{t.simulatorModal.totalToMoveIn}</span>
                                                 <span className="text-3xl font-black text-white tracking-tighter">R$ {calculation?.total || 0}</span>
                                             </div>
                                         </div>
@@ -716,7 +732,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                             onClick={() => setRegistrationStep('form')}
                                             className="w-full flex items-center justify-center gap-3 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white px-8 py-5 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-rose-900/40"
                                         >
-                                            Estou de Acordo <Check size={18} />
+                                            {t.simulatorModal.agreeCta} <Check size={18} />
                                         </button>
                                     </div>
                                 </div>
@@ -726,8 +742,8 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         {registrationStep === 'form' && (
                             <form onSubmit={handleSignUp} className="space-y-10 animate-in fade-in slide-in-from-bottom-4">
                                 <div className="text-center space-y-4">
-                                    <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Pré-Cadastro de Residente</h3>
-                                    <p className="text-slate-400 text-sm">Preencha seus dados para solicitar reserva no <span className="text-rose-500 font-bold underline">{registrationRoom.name}</span>.</p>
+                                    <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">{t.simulatorModal.preRegisterTitle}</h3>
+                                    <p className="text-slate-400 text-sm">{t.simulatorModal.preRegisterSubtitle} <span className="text-rose-500 font-bold underline">{registrationRoom.name}</span>.</p>
                                 </div>
 
                                 <div className="space-y-8">
@@ -736,10 +752,10 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                         <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-[0.3em] border-b border-rose-500/20 pb-2">1. Dados Pessoais</h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <input required placeholder="Nome Completo *" value={regForm.name} onChange={e => setRegForm({...regForm, name: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
-                                            <input required placeholder="CPF *" value={regForm.cpf} onChange={e => setRegForm({...regForm, cpf: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
-                                            <input required placeholder="Identidade (RG) *" value={regForm.rg} onChange={e => setRegForm({...regForm, rg: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
-                                            <input required placeholder="Telefone (WhatsApp) *" value={regForm.phone} onChange={e => setRegForm({...regForm, phone: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
-                                            <input required type="email" placeholder="Seu melhor e-mail *" value={regForm.email} onChange={e => setRegForm({...regForm, email: e.target.value})} className="w-full md:col-span-2 bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
+                                            <input required placeholder="CPF / Passport *" value={regForm.cpf} onChange={e => setRegForm({...regForm, cpf: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
+                                            <input required placeholder="Identidade / ID (RG) *" value={regForm.rg} onChange={e => setRegForm({...regForm, rg: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
+                                            <input required placeholder="Telefone / WhatsApp *" value={regForm.phone} onChange={e => setRegForm({...regForm, phone: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
+                                            <input required type="email" placeholder="E-mail *" value={regForm.email} onChange={e => setRegForm({...regForm, email: e.target.value})} className="w-full md:col-span-2 bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
                                         </div>
                                     </div>
 
@@ -768,7 +784,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                             <input required placeholder="Profissão / Cargo *" value={regForm.occupation} onChange={e => setRegForm({...regForm, occupation: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
                                             <input required placeholder="Empresa onde trabalha *" value={regForm.company} onChange={e => setRegForm({...regForm, company: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
                                             <input required placeholder="Perfil no Instagram (URL ou @) *" value={regForm.instagram} onChange={e => setRegForm({...regForm, instagram: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
-                                            <input placeholder="Perfil no Facebook (URL ou Nome)" value={regForm.facebook} onChange={e => setRegForm({...regForm, facebook: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
+                                            <input placeholder="Perfil no Facebook / LinkedIn (URL ou Nome)" value={regForm.facebook} onChange={e => setRegForm({...regForm, facebook: e.target.value})} className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-rose-500" />
                                         </div>
                                     </div>
                                 </div>
@@ -777,7 +793,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     type="submit"
                                     className="w-full flex items-center justify-center gap-3 bg-rose-600 hover:bg-rose-700 text-white px-8 py-6 rounded-full font-black text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-rose-900/40 hover:scale-[1.02] active:scale-95"
                                 >
-                                    Enviar Solicitação de Reserva <ArrowRight size={20} />
+                                    {t.simulatorModal.preRegisterTitle} <ArrowRight size={20} />
                                 </button>
                             </form>
                         )}
@@ -788,16 +804,16 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     <Check size={48} />
                                 </div>
                                 <div className="space-y-4">
-                                    <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter">Reserva Solicitada!</h3>
+                                    <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter">{t.simulatorModal.successTitle}</h3>
                                     <p className="text-slate-400 text-lg max-w-xl mx-auto leading-relaxed">
-                                        Seu pré-cadastro foi enviado com sucesso. Analisaremos seu perfil e entraremos em contato no seu WhatsApp em breve!
+                                        {t.simulatorModal.successText}
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setShowRegisterForm(false)}
                                     className="px-12 py-5 bg-white/5 hover:bg-white/10 text-white font-black text-xs uppercase tracking-widest rounded-full border border-white/10 transition-all"
                                 >
-                                    Voltar ao Início
+                                    {t.simulatorModal.backToHome}
                                 </button>
                             </div>
                         )}
@@ -825,29 +841,35 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                     </div>
 
                     <nav className="hidden md:flex items-center gap-2.5 lg:gap-3.5 xl:gap-5 flex-nowrap shrink-0">
-                        <a href="#unidades" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">Unidades</a>
-                        <a href="#comodidades" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">Comodidades</a>
-                        <a href="#localizacao" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">Localização</a>
-                        <a href="#vagas" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">Disponíveis</a>
-                        <a href="#comparativo" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">Custo-Benefício</a>
+                        <a href="#unidades" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">{t.nav.units}</a>
+                        <a href="#comodidades" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">{t.nav.amenities}</a>
+                        <a href="#localizacao" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">{t.nav.location}</a>
+                        <a href="#vagas" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">{t.nav.vacancies}</a>
+                        <a href="#comparativo" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">{t.nav.comparison}</a>
                         <a
                             href="#regras"
                             onClick={onOpenRules ? (e) => { e.preventDefault(); onOpenRules(); } : undefined}
                             className="text-[10px] xl:text-[11px] font-bold text-amber-400 hover:text-amber-300 uppercase tracking-wider whitespace-nowrap transition-colors"
                         >
-                            Regras
+                            {t.nav.rules}
                         </a>
-                        <a href="#contato" className="text-[10px] xl:text-[11px] font-bold text-rose-500 hover:text-rose-400 uppercase tracking-wider whitespace-nowrap transition-colors">Agendar Visita</a>
+                        <a href="#contato" className="text-[10px] xl:text-[11px] font-bold text-rose-500 hover:text-rose-400 uppercase tracking-wider whitespace-nowrap transition-colors">{t.nav.scheduleVisit}</a>
                     </nav>
 
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                        {/* Seletor de Idiomas (Português, Inglês, Espanhol) */}
+                        <LanguageSelector
+                            currentLang={currentLang}
+                            onLanguageChange={setCurrentLang}
+                        />
+
                         <a
                             href="https://wa.me/5521981900803?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20as%20vagas%20na%20MoronaVila"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-[10px] font-black uppercase tracking-widest transition-all"
                         >
-                            <MessageCircle size={14} /> WhatsApp
+                            <MessageCircle size={14} /> {t.nav.whatsapp}
                         </a>
 
                         {isLoggedIn && currentUser ? (
@@ -857,8 +879,8 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             >
                                 <User size={15} className="shrink-0" />
                                 <div className="flex flex-col items-start leading-tight text-left">
-                                    <span className="text-[7.5px] font-bold uppercase tracking-wider text-rose-200">Acesso de</span>
-                                    <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-white">Residente</span>
+                                    <span className="text-[7.5px] font-bold uppercase tracking-wider text-rose-200">{t.nav.accessPrefix}</span>
+                                    <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-white">{t.nav.residentAccess}</span>
                                 </div>
                                 <ChevronRight size={13} className="shrink-0 text-white/70 -ml-0.5" />
                             </button>
@@ -869,8 +891,8 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             >
                                 <User size={15} className="text-rose-400 group-hover:text-white shrink-0" />
                                 <div className="flex flex-col items-start leading-tight text-left">
-                                    <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-rose-100">Acesso de</span>
-                                    <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-white">Residentes</span>
+                                    <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-rose-100">{t.nav.accessPrefix}</span>
+                                    <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-white">{t.nav.residentAccess}</span>
                                 </div>
                                 <ChevronRight size={13} className="text-slate-400 group-hover:text-white shrink-0 -ml-0.5" />
                             </button>
@@ -892,16 +914,16 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         {/* Badges de Destaque */}
                         <div className="flex flex-wrap items-center gap-2.5">
                             <span className="px-4 py-1.5 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 backdrop-blur-md">
-                                <MapPin size={13} /> Rua Torres Homem, 886 • Vila Isabel
+                                <MapPin size={13} /> {t.hero.addressBadge}
                             </span>
                             <span className="px-3 py-1.5 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-white/10">
-                                Silêncio Garantido
+                                {t.hero.silenceBadge}
                             </span>
                             <span className="px-3 py-1.5 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-white/10">
-                                Casa Organizada
+                                {t.hero.organizedBadge}
                             </span>
                             <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-emerald-500/30">
-                                Sem Fiador
+                                {t.hero.noGuarantorBadge}
                             </span>
                         </div>
 
@@ -921,33 +943,33 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                 href="#unidades"
                                 className="inline-flex items-center gap-3 bg-rose-600 hover:bg-rose-700 text-white px-8 py-5 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all shadow-2xl shadow-rose-900/50 hover:scale-105 active:scale-95"
                             >
-                                Ver Unidades a partir de {formatBRL(fromPrice)} <ArrowRight size={18} />
+                                {t.hero.viewUnitsCta} {formatBRL(fromPrice)} <ArrowRight size={18} />
                             </a>
                             <a
                                 href="#localizacao"
                                 className="inline-flex items-center gap-3 bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white px-8 py-5 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all border border-slate-700 hover:border-slate-500 backdrop-blur-md"
                             >
-                                <MapPin size={18} className="text-rose-500" /> Mapa da Região
+                                <MapPin size={18} className="text-rose-500" /> {t.hero.mapCta}
                             </a>
                         </div>
 
                         {/* Quick Stats Grid */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-white/10">
                             <div>
-                                <div className="text-2xl font-black text-white">20 min</div>
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Até o Centro</div>
+                                <div className="text-2xl font-black text-white">{t.hero.stats.downtownTime}</div>
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.hero.stats.downtownLabel}</div>
                             </div>
                             <div>
-                                <div className="text-2xl font-black text-rose-400">11 min</div>
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">A pé do HUPE / UERJ</div>
+                                <div className="text-2xl font-black text-rose-400">{t.hero.stats.uerjTime}</div>
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.hero.stats.uerjLabel}</div>
                             </div>
                             <div>
-                                <div className="text-2xl font-black text-amber-400">16 min</div>
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">A pé do Metrô Maracanã</div>
+                                <div className="text-2xl font-black text-amber-400">{t.hero.stats.metroTime}</div>
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.hero.stats.metroLabel}</div>
                             </div>
                             <div>
-                                <div className="text-2xl font-black text-emerald-400">Zero</div>
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Fiador ou Burocracia</div>
+                                <div className="text-2xl font-black text-emerald-400">{t.hero.stats.zeroBureaucracy}</div>
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t.hero.stats.zeroBureaucracyLabel}</div>
                             </div>
                         </div>
                     </div>
@@ -959,53 +981,54 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="mb-16 max-w-3xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-black uppercase tracking-[0.2em] mb-4">
-                            <Home size={14} /> Nossas Unidades
+                            <Home size={14} /> {t.unitsSection.tag}
                         </div>
                         <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase italic mb-4">
-                            Moradia independente a partir de <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">{formatBRL(fromPrice)}</span>
+                            {t.unitsSection.titlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">{formatBRL(fromPrice)}</span>
                         </h2>
                         <p className="text-slate-400 text-base md:text-lg leading-relaxed">
-                            Uma residência para profissionais: quem trabalha fora e quer voltar para uma casa tranquila. Todas as unidades são mobiliadas, sem fiador e com contrato pensado para quem quer ficar.
+                            {t.unitsSection.subtitle}
                         </p>
                     </div>
 
                     {promoActive && (
                         <div className="mb-10 max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3 text-center bg-gradient-to-r from-rose-600/20 to-amber-500/20 border border-rose-500/40 rounded-3xl px-6 py-4">
-                            <span className="px-3 py-1 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shrink-0">Promoção de lançamento</span>
+                            <span className="px-3 py-1 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shrink-0">{t.unitsSection.promoBadge}</span>
                             <span className="text-sm text-slate-200 font-bold">
-                                Feche até {PROMO.deadline} e pague <span className="text-white font-black">R$ {PROMO.discount} a menos por mês durante {PROMO.months} meses</span>, em qualquer unidade.
+                                {t.unitsSection.promoText}
                             </span>
                         </div>
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {PRODUCTS.map(product => {
+                        {PRODUCTS.map((product, idx) => {
                             const Icon = product.icon;
+                            const localized = t.products[idx] || t.products[0];
                             return (
                                 <div key={product.name} className="bg-slate-900/60 border border-slate-800 rounded-[2rem] p-7 flex flex-col hover:border-rose-500/40 transition-all">
                                     <div className="p-3 bg-rose-500/10 text-rose-400 rounded-2xl w-fit mb-5">
                                         <Icon size={24} />
                                     </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{product.audience}</span>
-                                    <h3 className="text-xl font-black text-white uppercase italic tracking-tight mt-1 mb-3">{product.name}</h3>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{localized.audience}</span>
+                                    <h3 className="text-xl font-black text-white uppercase italic tracking-tight mt-1 mb-3">{localized.name}</h3>
                                     <div className="mb-4">
                                         {promoActive && (
                                             <span className="block text-slate-500 text-sm font-bold line-through">{formatBRL(product.price)}</span>
                                         )}
                                         <span className="text-3xl font-black text-rose-500">{formatBRL(promoActive ? product.price - PROMO.discount : product.price)}</span>
-                                        <span className="text-slate-400 text-[11px] font-bold ml-1">/mês{product.couplePrice ? '' : ' • até 2 pessoas'}</span>
+                                        <span className="text-slate-400 text-[11px] font-bold ml-1">{t.unitsSection.perMonth}{product.couplePrice ? '' : ` • ${t.unitsSection.upToTwoPeople}`}</span>
                                         {product.couplePrice && (
                                             <span className="block text-slate-400 text-[11px] font-bold mt-1">
-                                                Casal: {formatBRL(promoActive ? product.couplePrice - PROMO.discount : product.couplePrice)}/mês
+                                                {t.unitsSection.coupleText}: {formatBRL(promoActive ? product.couplePrice - PROMO.discount : product.couplePrice)}{t.unitsSection.perMonth}
                                             </span>
                                         )}
                                         {promoActive && (
-                                            <span className="block text-amber-400 text-[10px] font-black uppercase tracking-widest mt-2">Por {PROMO.months} meses • contratos até {PROMO.deadline}</span>
+                                            <span className="block text-amber-400 text-[10px] font-black uppercase tracking-widest mt-2">{t.unitsSection.forPromoMonths}</span>
                                         )}
                                     </div>
-                                    <p className="text-slate-300 text-sm leading-relaxed mb-5 italic">"{product.promise}"</p>
+                                    <p className="text-slate-300 text-sm leading-relaxed mb-5 italic">"{localized.promise}"</p>
                                     <ul className="space-y-2 mt-auto">
-                                        {product.features.map(feature => (
+                                        {localized.features.map(feature => (
                                             <li key={feature} className="flex items-start gap-2 text-xs text-slate-300">
                                                 <Check size={14} className="text-emerald-400 shrink-0 mt-0.5" /> {feature}
                                             </li>
@@ -1021,7 +1044,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             href="#vagas"
                             className="inline-flex items-center gap-3 bg-rose-600 hover:bg-rose-700 text-white px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl shadow-rose-900/40"
                         >
-                            Ver Unidades Disponíveis <ArrowRight size={16} />
+                            {t.unitsSection.viewAvailableCta} <ArrowRight size={16} />
                         </a>
                         <a
                             href="https://wa.me/5521981900803?text=Ol%C3%A1%21%20Quero%20reservar%20uma%20unidade%20renovada%20da%20MoronaVila%20com%20pre%C3%A7o%20de%20lan%C3%A7amento."
@@ -1029,7 +1052,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-3 bg-slate-900/80 hover:bg-slate-800 text-slate-200 px-8 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all border border-slate-700"
                         >
-                            <MessageCircle size={16} className="text-emerald-400" /> Reservar Unidade em Renovação
+                            <MessageCircle size={16} className="text-emerald-400" /> {t.unitsSection.reserveRenovatedCta}
                         </a>
                     </div>
                 </div>
@@ -1058,13 +1081,13 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="mb-16 max-w-3xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-black uppercase tracking-[0.2em] mb-4">
-                            <Home size={14} /> Disponíveis Agora
+                            <Home size={14} /> {t.vacanciesSection.tag}
                         </div>
                         <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase italic mb-4">
-                            Escolha sua <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">Unidade</span>
+                            {t.vacanciesSection.titlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">{t.vacanciesSection.titleHighlight}</span>
                         </h2>
                         <p className="text-slate-400 text-base md:text-lg leading-relaxed">
-                            Unidades mobiliadas, silenciosas e prontas para morar, com Wi-Fi, IPTU e limpeza das áreas comuns inclusos e acesso livre às áreas comuns. Mude-se rápido: sem fiador, com caução simples.
+                            {t.vacanciesSection.subtitle}
                         </p>
                     </div>
 
@@ -1077,15 +1100,15 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             return (
                                 <div className="p-12 text-center bg-slate-900/40 rounded-[2.5rem] border border-slate-800 max-w-xl mx-auto">
                                     <Home size={40} className="text-rose-500 mx-auto mb-4" />
-                                    <h3 className="text-xl font-black text-white uppercase mb-2">Consulte Próximas Vagas</h3>
-                                    <p className="text-slate-400 text-sm mb-6">Estamos com alta procura para o período. Fale conosco no WhatsApp para entrar na lista de espera prioritária.</p>
+                                    <h3 className="text-xl font-black text-white uppercase mb-2">{t.vacanciesSection.noVacanciesTitle}</h3>
+                                    <p className="text-slate-400 text-sm mb-6">{t.vacanciesSection.noVacanciesText}</p>
                                     <a
                                         href="https://wa.me/5521981900803?text=Gostaria%20de%20saber%20sobre%20as%20pr%C3%B3ximas%20vagas%20dispon%C3%ADveis%20na%20MoronaVila"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-widest transition-all"
                                     >
-                                        <MessageCircle size={16} /> Entrar na Lista de Espera
+                                        <MessageCircle size={16} /> {t.vacanciesSection.waitingListCta}
                                     </a>
                                 </div>
                             );
@@ -1106,12 +1129,12 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
 
                                                 <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-rose-400">
-                                                    {room.capacity > 1 ? `${room.type} (${room.capacity} vagas)` : (room.type || 'Quarto Individual')}{(room as any).suite ? ' • Suíte' : ''}
+                                                    {room.capacity > 1 ? `${room.type} (${room.capacity} ${t.vacanciesSection.shared})` : (room.type || t.vacanciesSection.individual)}{(room as any).suite ? ` • ${t.vacanciesSection.suiteBadge}` : ''}
                                                 </div>
 
                                                 <div className="absolute top-4 right-4 bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
                                                     <span className="text-white font-black text-lg">{formatBRL(promoActive ? room.rent_value - PROMO.discount : room.rent_value)}</span>
-                                                    <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest ml-1">/mês</span>
+                                                    <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest ml-1">{t.vacanciesSection.perMonth}</span>
                                                 </div>
                                             </div>
 
@@ -1128,7 +1151,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                                         onClick={() => setSelectedRoom(room)}
                                                         className="w-full py-4 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-rose-900/30 flex items-center justify-center gap-2"
                                                     >
-                                                        Ver Detalhes & Fotos <ArrowRight size={14} />
+                                                        {t.vacanciesSection.viewDetailsCta} <ArrowRight size={14} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -1145,12 +1168,12 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
             <section id="comparativo" className="py-28 bg-slate-900/30 border-y border-white/5 relative">
                 <div className="max-w-5xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <span className="text-rose-500 text-xs font-black uppercase tracking-[0.25em]">Transparência Financeira</span>
+                        <span className="text-rose-500 text-xs font-black uppercase tracking-[0.25em]">{t.comparisonSection.tag}</span>
                         <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tight mt-2 mb-4">
-                            Morar Sozinho vs. Viver na Moronavila
+                            {t.comparisonSection.title}
                         </h2>
                         <p className="text-slate-400 text-base max-w-2xl mx-auto">
-                            Veja como a MoronaVila elimina custos ocultos, burocracias e o estresse de montar uma casa do zero.
+                            {t.comparisonSection.subtitle}
                         </p>
                     </div>
 
@@ -1162,23 +1185,23 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     <XCircle size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black text-white uppercase">Aluguel Tradicional</h3>
-                                    <span className="text-xs text-slate-500">Apê / Kitnet Convencional</span>
+                                    <h3 className="text-xl font-black text-white uppercase">{t.comparisonSection.traditional.title}</h3>
+                                    <span className="text-xs text-slate-500">{t.comparisonSection.traditional.type}</span>
                                 </div>
                             </div>
 
                             <div className="space-y-3 text-sm text-slate-400 border-t border-slate-800 pt-6">
-                                <div className="flex justify-between py-1"><span>Aluguel + IPTU</span><span className="text-slate-300 font-bold">R$ 1.200 - 1.800</span></div>
-                                <div className="flex justify-between py-1"><span>Condomínio</span><span className="text-slate-300 font-bold">R$ 400 - 800</span></div>
-                                <div className="flex justify-between py-1"><span>Energia Elétrica</span><span className="text-slate-300 font-bold">R$ 150 - 300</span></div>
-                                <div className="flex justify-between py-1"><span>Água e Gás</span><span className="text-slate-300 font-bold">R$ 100 - 180</span></div>
-                                <div className="flex justify-between py-1"><span>Internet Fibra</span><span className="text-slate-300 font-bold">R$ 120 - 180</span></div>
-                                <div className="flex justify-between py-1"><span>Compra de Móveis & Eletros</span><span className="text-red-400 font-bold">R$ 5.000 a 10.000+</span></div>
-                                <div className="flex justify-between py-1"><span>Exigência de Fiador</span><span className="text-red-400 font-bold">Obrigatório / Difícil</span></div>
+                                <div className="flex justify-between py-1"><span>{t.comparisonSection.traditional.rentIptu}</span><span className="text-slate-300 font-bold">R$ 1.200 - 1.800</span></div>
+                                <div className="flex justify-between py-1"><span>{t.comparisonSection.traditional.condo}</span><span className="text-slate-300 font-bold">R$ 400 - 800</span></div>
+                                <div className="flex justify-between py-1"><span>{t.comparisonSection.traditional.electricity}</span><span className="text-slate-300 font-bold">R$ 150 - 300</span></div>
+                                <div className="flex justify-between py-1"><span>{t.comparisonSection.traditional.waterGas}</span><span className="text-slate-300 font-bold">R$ 100 - 180</span></div>
+                                <div className="flex justify-between py-1"><span>{t.comparisonSection.traditional.internet}</span><span className="text-slate-300 font-bold">R$ 120 - 180</span></div>
+                                <div className="flex justify-between py-1"><span>{t.comparisonSection.traditional.furniture}</span><span className="text-red-400 font-bold">R$ 5.000 a 10.000+</span></div>
+                                <div className="flex justify-between py-1"><span>{t.comparisonSection.traditional.guarantor}</span><span className="text-red-400 font-bold">Obrigatório / Difícil</span></div>
                             </div>
 
                             <div className="pt-4 border-t border-slate-800 text-xs text-slate-500 italic">
-                                *Contratos longos de 30 meses, multas rescisórias pesadas e despesas variáveis imprevisíveis.
+                                {t.comparisonSection.traditional.note}
                             </div>
                         </div>
 
@@ -1191,55 +1214,55 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     <CheckCircle2 size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black text-white uppercase">Na MoronaVila</h3>
-                                    <span className="text-xs text-rose-400 font-bold">Aluguel fixo, sem surpresas</span>
+                                    <h3 className="text-xl font-black text-white uppercase">{t.comparisonSection.moronavila.title}</h3>
+                                    <span className="text-xs text-rose-400 font-bold">{t.comparisonSection.moronavila.subtitle}</span>
                                 </div>
                             </div>
 
                             <div className="space-y-3 text-sm text-slate-300 border-t border-rose-500/20 pt-6">
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Unidade Mobiliada</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> {t.comparisonSection.moronavila.furnishedUnit}</span>
                                     <span className="text-white font-black">A partir de {formatBRL(fromPrice)}</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Condomínio & IPTU</span>
-                                    <span className="text-white font-black">Não tem</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> {t.comparisonSection.moronavila.noCondoIptu}</span>
+                                    <span className="text-white font-black">{t.comparisonSection.moronavila.noFee}</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Luz & Água</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> {t.comparisonSection.moronavila.electricityWater}</span>
                                     <span className="text-white font-black">Só o que você usa*</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Wi-Fi Alta Velocidade</span>
-                                    <span className="text-white font-black">Incluso</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> {t.comparisonSection.moronavila.wifi}</span>
+                                    <span className="text-white font-black">{t.comparisonSection.moronavila.included}</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Cozinha Compartilhada Equipada & Gás</span>
-                                    <span className="text-white font-black">Incluso</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> {t.comparisonSection.moronavila.kitchen}</span>
+                                    <span className="text-white font-black">{t.comparisonSection.moronavila.included}</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Limpeza de Áreas Comuns</span>
-                                    <span className="text-white font-black">Incluso</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> {t.comparisonSection.moronavila.cleaning}</span>
+                                    <span className="text-white font-black">{t.comparisonSection.moronavila.included}</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Interfone Individual na Unidade</span>
-                                    <span className="text-white font-black">Incluso</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> {t.comparisonSection.moronavila.intercom}</span>
+                                    <span className="text-white font-black">{t.comparisonSection.moronavila.included}</span>
                                 </div>
                                 <div className="flex items-center justify-between py-1">
-                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> Sem Fiador / Caução Simples</span>
-                                    <span className="text-emerald-400 font-black">100% Flexível</span>
+                                    <span className="flex items-center gap-2"><Check size={16} className="text-emerald-400" /> {t.comparisonSection.moronavila.guarantor}</span>
+                                    <span className="text-emerald-400 font-black">{t.comparisonSection.moronavila.flexible}</span>
                                 </div>
                             </div>
 
                             <div className="text-[11px] text-slate-400 italic leading-relaxed">
-                                *A partir de janeiro de 2027, luz e água por medidor individual, sem rateio. Nos studios e no apartamento, que têm cozinha própria, o gás é do residente.
+                                {t.comparisonSection.moronavila.meterNote}
                             </div>
 
                             <a
                                 href="#vagas"
                                 className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-rose-900/40"
                             >
-                                Escolher Minha Vaga <ArrowRight size={16} />
+                                {t.comparisonSection.moronavila.chooseRoomCta} <ArrowRight size={16} />
                             </a>
                         </div>
                     </div>
@@ -1252,18 +1275,18 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                     <div className="inline-flex items-center justify-center p-5 rounded-[2rem] bg-gradient-to-br from-amber-500/20 to-amber-700/10 text-amber-500 shadow-xl border border-amber-500/20 mb-8">
                         <Shield size={36} />
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase italic mb-4">Silêncio garantido. Casa organizada.</h2>
+                    <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase italic mb-4">{t.rulesSection.title}</h2>
                     <p className="text-slate-300 text-base md:text-lg leading-relaxed mb-8 max-w-2xl mx-auto">
-                        Aqui a convivência é feita de confiança, consideração e respeito. Você recebe quem ama, e sabe que seu vizinho também só recebe gente conhecida.
+                        {t.rulesSection.subtitle}
                     </p>
                     <div className="text-left p-8 md:p-12 bg-slate-900/40 backdrop-blur-sm shadow-xl rounded-[2.5rem] border border-slate-800 space-y-4">
-                        {HOUSE_RULES.map(rule => (
+                        {t.rulesSection.rulesList.map(rule => (
                             <div key={rule} className="flex items-start gap-3 text-sm md:text-base text-slate-200">
                                 <CheckCircle2 size={18} className="text-amber-400 shrink-0 mt-0.5" /> {rule}
                             </div>
                         ))}
                         <div className="pt-4 mt-4 border-t border-slate-800 text-xs md:text-sm text-slate-400 leading-relaxed">
-                            Casa monitorada por câmeras 24h. Regras claras, iguais para todos: infrações comprovadas geram multa automática no próximo vencimento.
+                            {t.rulesSection.cctvNote}
                         </div>
                     </div>
                     <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -1271,7 +1294,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             onClick={onOpenRules ? onOpenRules : () => { window.location.hash = '#regras'; }}
                             className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-black uppercase tracking-widest transition-all hover:scale-105 shadow-lg shadow-amber-950/20 cursor-pointer"
                         >
-                            <FileText size={15} /> Regras e Cadastro de Residentes
+                            <FileText size={15} /> {t.rulesSection.rulesAndRegisterCta}
                         </button>
                         <a
                             href="https://forms.gle/nQnbXWZgQesmoUmm6"
@@ -1279,7 +1302,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-black uppercase tracking-widest transition-all hover:scale-105"
                         >
-                            <ExternalLink size={15} /> Formulário Google Forms
+                            <ExternalLink size={15} /> {t.rulesSection.googleFormsCta}
                         </a>
                     </div>
                 </div>
@@ -1289,14 +1312,14 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
             <section className="py-24 bg-slate-900/20 border-t border-white/5">
                 <div className="max-w-4xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <span className="text-rose-500 text-xs font-black uppercase tracking-[0.25em]">Dúvidas Frequentes</span>
+                        <span className="text-rose-500 text-xs font-black uppercase tracking-[0.25em]">{t.faqSection.tag}</span>
                         <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tight mt-2 mb-4">
-                            Perguntas & Respostas
+                            {t.faqSection.title}
                         </h2>
                     </div>
 
                     <div className="space-y-4">
-                        {FAQS.map((faq, idx) => {
+                        {t.faqSection.items.map((faq, idx) => {
                             const isOpen = faqOpen === idx;
                             return (
                                 <div
@@ -1334,9 +1357,9 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         <div className="inline-flex items-center justify-center p-4 rounded-2xl bg-rose-500/10 text-rose-500 mb-6">
                             <MessageCircle size={32} />
                         </div>
-                        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase italic mb-4">Pronto para Conhecer?</h2>
+                        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase italic mb-4">{t.contactSection.title}</h2>
                         <p className="text-lg text-slate-300 font-medium max-w-xl mx-auto">
-                            Tire suas dúvidas imediatamente com nosso Agente Virtual ou fale com nosso atendimento no WhatsApp para agendar uma visita.
+                            {t.contactSection.subtitle}
                         </p>
                     </div>
 
@@ -1345,41 +1368,41 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             <form onSubmit={handleLeadSubmit} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Como prefere ser chamado?</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">{t.contactSection.formNameLabel}</label>
                                         <input
                                             required
                                             type="text"
                                             value={leadForm.name}
                                             onChange={e => setLeadForm({ ...leadForm, name: e.target.value })}
-                                            placeholder="Seu nome"
+                                            placeholder={t.contactSection.formNamePlaceholder}
                                             className="w-full bg-slate-950/50 border border-slate-800 rounded-full px-6 py-4 text-white focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 outline-none transition-all"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Telefone (WhatsApp)</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">{t.contactSection.formPhoneLabel}</label>
                                         <input
                                             required
                                             type="tel"
                                             value={leadForm.phone}
                                             onChange={e => setLeadForm({ ...leadForm, phone: e.target.value })}
-                                            placeholder="(21) 99999-9999"
+                                            placeholder={t.contactSection.formPhonePlaceholder}
                                             className="w-full bg-slate-950/50 border border-slate-800 rounded-full px-6 py-4 text-white focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 outline-none transition-all"
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Seu melhor E-mail</label>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">{t.contactSection.formEmailLabel}</label>
                                     <input
                                         required
                                         type="email"
                                         value={leadForm.email}
                                         onChange={e => setLeadForm({ ...leadForm, email: e.target.value })}
-                                        placeholder="seu@email.com"
+                                        placeholder={t.contactSection.formEmailPlaceholder}
                                         className="w-full bg-slate-950/50 border border-slate-800 rounded-full px-6 py-4 text-white focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 outline-none transition-all"
                                     />
                                 </div>
                                 <button type="submit" className="w-full flex items-center justify-center gap-3 bg-rose-600 hover:bg-rose-700 text-white px-8 py-5 rounded-full font-black text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-rose-900/40 hover:scale-105 active:scale-95 mt-8">
-                                    Iniciar Atendimento <Send size={18} />
+                                    {t.contactSection.startChatCta} <Send size={18} />
                                 </button>
                             </form>
                         ) : (
@@ -1414,7 +1437,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-lg hover:scale-105 active:scale-95"
                                     >
-                                        <MessageCircle size={16} /> Falar com Consultor no WhatsApp
+                                        <MessageCircle size={16} /> {t.contactSection.whatsappConsultantCta}
                                     </a>
                                 </div>
                                 <form onSubmit={handleSendMessage} className="p-4 bg-slate-950/60 border-t border-white/5 flex gap-3">
@@ -1422,7 +1445,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                         type="text"
                                         value={currentMessage}
                                         onChange={e => setCurrentMessage(e.target.value)}
-                                        placeholder="Digite sua dúvida aqui..."
+                                        placeholder={t.contactSection.chatPlaceholder}
                                         className="flex-1 bg-slate-950/50 border border-slate-800 rounded-full px-6 py-3 text-white focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 outline-none transition-all text-sm"
                                     />
                                     <button
@@ -1459,20 +1482,20 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             <span className="font-black text-white text-xl uppercase italic tracking-tighter">MORONA<span className="text-rose-600">VILA</span></span>
                         </div>
                         <p className="text-slate-500 text-xs leading-relaxed max-w-sm">
-                            Residência para profissionais em Vila Isabel, Rio de Janeiro. Unidades independentes, mobiliadas e sem fiador.
+                            {t.footer.desc}
                         </p>
                     </div>
 
                     <div className="text-left md:text-center space-y-2 text-xs text-slate-400">
-                        <div className="font-bold text-slate-200">Endereço</div>
-                        <div>Rua Torres Homem, 886 - Vila Isabel</div>
-                        <div>Rio de Janeiro - RJ • CEP 20551-075</div>
+                        <div className="font-bold text-slate-200">{t.footer.addressTitle}</div>
+                        <div>{t.footer.addressLine1}</div>
+                        <div>{t.footer.addressLine2}</div>
                         <div className="pt-2 flex flex-col items-center gap-1">
                             <button
                                 onClick={onOpenRules ? onOpenRules : () => { window.location.hash = '#regras'; }}
                                 className="text-amber-400 hover:text-amber-300 font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                             >
-                                <FileText size={12} /> Regras e cadastro de residentes
+                                <FileText size={12} /> {t.footer.rulesLink}
                             </button>
                             <a
                                 href="https://forms.gle/nQnbXWZgQesmoUmm6"
@@ -1480,7 +1503,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                 rel="noopener noreferrer"
                                 className="text-slate-400 hover:text-slate-200 text-[11px] inline-flex items-center gap-1 transition-colors"
                             >
-                                <ExternalLink size={10} /> Link Google Forms
+                                <ExternalLink size={10} /> {t.footer.formsLink}
                             </a>
                         </div>
                     </div>
@@ -1491,10 +1514,10 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                             className="px-6 py-3 rounded-full bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-black uppercase tracking-widest border border-rose-500/30 transition-all flex items-center gap-2"
                         >
                             <User size={14} />
-                            <span>{isLoggedIn ? 'Acessar Meu Dashboard' : 'Login de Residentes'}</span>
+                            <span>{isLoggedIn ? t.footer.dashboardBtn : t.footer.loginBtn}</span>
                         </button>
                         <p className="text-slate-600 font-bold text-[10px] uppercase tracking-widest">
-                            © {new Date().getFullYear()} MoronaVila. Todos os direitos reservados.
+                            {t.footer.rights}
                         </p>
                     </div>
                 </div>

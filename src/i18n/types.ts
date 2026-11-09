@@ -193,3 +193,4 @@ export interface TranslationData {
         rights: string;
     };
 }
+

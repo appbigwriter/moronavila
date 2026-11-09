@@ -11,6 +11,72 @@ import {
 import { Resident, UserRole } from '../types';
 import { createResident, uploadResidentDocument } from '../lib/database';
 import { supabase } from '../lib/supabase';
+import { Language } from '../i18n/types';
+import { TRANSLATIONS } from '../i18n/translations';
+import { LanguageSelector } from '../components/LanguageSelector';
+
+const RULE_TITLES: Record<Language, string[]> = {
+    pt: [
+        'Visitas & Segurança',
+        'Proibição de Fumo e Álcool',
+        'Passar e Lavar Roupas & Lavanderia',
+        'Vencimento do Aluguel & Chave PIX',
+        'Saída do Imóvel & Aviso Prévio de 30 Dias',
+        'Silêncio & Televisão e Som',
+        'Recebimento de Entregas & Interfone',
+        'Organização da Cozinha & Armários Individuais',
+        'Limpeza Imediata da Cozinha & Multa',
+        'Privacidade de Quartos e Banheiros & Multa',
+        'Regras de Uso dos Eletrodomésticos de Uso Compartilhado',
+        'Uso do Lounge, Churrasqueira e Área Externa da Casa'
+    ],
+    en: [
+        'Visitors & Security',
+        'No Smoking & Alcohol Prohibition',
+        'Ironing, Washing Clothes & Laundry',
+        'Rent Due Date & PIX Payment Key',
+        'Move-Out Notice & 30-Day Prior Notice',
+        'Quiet Hours & TV/Music Volume',
+        'Delivery Reception & Intercom',
+        'Kitchen Organization & Individual Cabinets',
+        'Immediate Kitchen Cleaning & Fines',
+        'Privacy of Rooms & Bathrooms & Fines',
+        'Shared Appliances Usage Rules',
+        'Lounge, BBQ & Outdoor Area Usage'
+    ],
+    es: [
+        'Visitas y Seguridad',
+        'Prohibición de Fumar y Alcohol',
+        'Planchado, Lavado de Ropa y Lavandería',
+        'Vencimiento del Alquiler y Clave PIX',
+        'Salida del Inmueble y Preaviso de 30 Días',
+        'Silencio y Volumen de TV/Música',
+        'Recepción de Envíos e Intercomunicador',
+        'Organización de Cocina y Armarios Individuales',
+        'Limpieza Inmediata de la Cocina y Multas',
+        'Privacidad de Habitaciones y Baños y Multas',
+        'Reglas de Uso de Electrodomésticos Compartidos',
+        'Uso del Salón, Parrilla y Área Exterior'
+    ]
+};
+
+const DECLARATION_TEXT: Record<Language, { title: string; body: string; backToHome: string }> = {
+    pt: {
+        title: 'DECLARAÇÃO FORMAL DE ACEITE INTEGRAL DAS REGRAS *',
+        body: 'Declaro que li, compreendi e dei aceite integral em todas as 12 Regras de Conduta do Residencial Moronavila e que assumo a responsabilidade pelos meus atos e das pessoas que forem autorizadas por mim a visitar a propriedade, e que responderei financeiramente danos a propriedade ou moveis, eletrodomesticos, equipamentos e utensillhos que estou recebendo na minha unidade e nas partes compatilhadas.',
+        backToHome: 'Voltar ao Início'
+    },
+    en: {
+        title: 'FORMAL DECLARATION OF FULL RULES ACCEPTANCE *',
+        body: 'I declare that I have read, understood, and fully accepted all 12 House Rules of Residencial Moronavila, and that I assume full responsibility for my actions and those of any person authorized by me to visit the property, and that I will be financially responsible for any damage to property, furniture, appliances, equipment, and utensils received in my unit and in shared areas.',
+        backToHome: 'Back to Home'
+    },
+    es: {
+        title: 'DECLARACIÓN FORMAL DE ACEPTACIÓN INTEGRAL DE LAS REGLAS *',
+        body: 'Declaro que he leído, comprendido y aceptado en su totalidad las 12 Reglas de Convivencia del Residencial Moronavila, y que asumo total responsabilidad por mis actos y por las personas autorizadas por mí a visitar la propiedad, respondiendo financieramente por cualquier daño a la propiedad, muebles, electrodomésticos, equipos y utensilios en mi unidad y en las áreas compartidas.',
+        backToHome: 'Volver al Inicio'
+    }
+};
 
 interface RulesAcceptanceViewProps {
     onBack: () => void;
@@ -145,6 +211,26 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
     const googleFormsUrl = 'https://forms.gle/nQnbXWZgQesmoUmm6';
     const pixKey = '(21) 983245000';
     const pixBeneficiary = 'Sergio Oswaldo de Castro';
+
+    const [currentLang, setCurrentLang] = useState<Language>(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const langParam = urlParams.get('lang') as Language;
+        if (langParam && (langParam === 'pt' || langParam === 'en' || langParam === 'es')) {
+            return langParam;
+        }
+        const saved = localStorage.getItem('moronavila_lang') as Language;
+        return (saved === 'pt' || saved === 'en' || saved === 'es') ? saved : 'pt';
+    });
+
+    const handleLanguageChange = (lang: Language) => {
+        setCurrentLang(lang);
+        localStorage.setItem('moronavila_lang', lang);
+        const url = new URL(window.location.href);
+        url.searchParams.set('lang', lang);
+        window.history.replaceState({}, '', url.toString());
+    };
+
+    const t = TRANSLATIONS[currentLang];
 
     const [copiedPix, setCopiedPix] = useState(false);
     const [copiedFormUrl, setCopiedFormUrl] = useState(false);
@@ -563,6 +649,8 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <LanguageSelector currentLang={currentLang} onLanguageChange={handleLanguageChange} />
+
                         <button
                             onClick={() => {
                                 setVisitorSuccess(false);
@@ -748,8 +836,10 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {RULES_DATA.map((rule) => {
+                        {RULES_DATA.map((rule, idx) => {
                             const isAccepted = !!acceptedRules[rule.id];
+                            const ruleTitle = RULE_TITLES[currentLang]?.[idx] || rule.title;
+                            const ruleDesc = currentLang === 'pt' ? rule.description : (t.rulesSection.rulesList[idx] || rule.description);
 
                             return (
                                 <div
@@ -768,7 +858,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                 </div>
                                                 <div>
                                                     <h3 className="font-black text-sm text-white uppercase tracking-tight">
-                                                        {rule.title}
+                                                        {ruleTitle}
                                                     </h3>
                                                     {rule.fine && (
                                                         <span className="inline-block mt-0.5 text-[11px] font-black text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded-md border border-rose-800/60">
@@ -789,7 +879,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         </div>
 
                                         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                                            {rule.description}
+                                            {ruleDesc}
                                         </p>
 
                                         {/* LINK VISÍVEL E PROEMINENTE NA REGRA 1 PARA CADASTRO DE VISITAS */}
@@ -1593,9 +1683,9 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         />
                                         <label htmlFor="checkAcceptAll" className="text-xs sm:text-sm text-slate-200 leading-relaxed cursor-pointer font-medium">
                                             <strong className="text-white block mb-1">
-                                                DECLARAÇÃO FORMAL DE ACEITE INTEGRAL DAS REGRAS *
+                                                {DECLARATION_TEXT[currentLang].title}
                                             </strong>
-                                            Declaro que li, compreendi e dei aceite integral em todas as 12 Regras de Conduta do Residencial Moronavila e que assumo a responsabilidade pelos meus atos e das pessoas que forem autorizadas por mim a visitar a propriedade, e que responderei financeiramente danos a propriedade ou moveis, eletrodomesticos, equipamentos e utensillhos que estou recebendo na minha unidade e nas partes compatilhadas.
+                                            {DECLARATION_TEXT[currentLang].body}
                                         </label>
                                     </div>
 

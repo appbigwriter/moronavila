@@ -92,3 +92,4 @@ export function LanguageSelector({ currentLang, onLanguageChange, compact = fals
         </div>
     );
 }
+
