@@ -78,7 +78,14 @@ const DECLARATION_TEXT: Record<Language, { title: string; body: string; backToHo
     }
 };
 
-const RULES_VIEW_I18N: Record<Language, {
+interface FineCardItem {
+    title: string;
+    value: string;
+    note: string;
+    color: string;
+}
+
+interface RulesViewTranslations {
     backToHome: string;
     rulesAndRegTitle: string;
     registerVisitBtn: string;
@@ -112,10 +119,120 @@ const RULES_VIEW_I18N: Record<Language, {
     rulesAcceptedLabel: string;
     allRulesAcceptedBadge: string;
     rulesAcceptedSuffix: string;
+    finesTableTitle: string;
+    finesTableSubtitle: string;
+    finesPolicyText: string;
+    fineCards: FineCardItem[];
+    googleFormsCardTag: string;
+    googleFormsCardTitle: string;
+    googleFormsCardDesc: string;
+    googleFormsOpenBtn: string;
+    googleFormsCopyBtn: string;
+    googleFormsCopiedBtn: string;
     formTag: string;
     formTitle: string;
     formSubtitle: string;
-}> = {
+    labelFullName: string;
+    placeholderFullName: string;
+    labelEmail: string;
+    placeholderEmail: string;
+    labelPhone: string;
+    placeholderPhone: string;
+    labelCpf: string;
+    placeholderCpf: string;
+    labelRg: string;
+    placeholderRg: string;
+    labelBirthDate: string;
+    labelOriginAddress: string;
+    placeholderOriginAddress: string;
+    labelFamilyAddress: string;
+    placeholderFamilyAddress: string;
+    labelDesiredRoom: string;
+    roomOptions: {
+        single: string;
+        suite: string;
+        studio: string;
+        apartment: string;
+    };
+    labelEntryDate: string;
+    labelOccupation: string;
+    placeholderOccupation: string;
+    labelCompany: string;
+    placeholderCompany: string;
+    labelUniversity: string;
+    placeholderUniversity: string;
+    labelCourse: string;
+    placeholderCourse: string;
+    labelEmergencyName: string;
+    placeholderEmergencyName: string;
+    labelEmergencyPhone: string;
+    placeholderEmergencyPhone: string;
+    labelInstagram: string;
+    placeholderInstagram: string;
+    labelFacebook: string;
+    placeholderFacebook: string;
+    docsSectionTitle: string;
+    docsSectionDesc: string;
+    docsSectionBadge: string;
+    docFrontLabel: string;
+    docFrontHint: string;
+    docFrontClick: string;
+    docFrontTypeHint: string;
+    docChangeImage: string;
+    docFrontUploaded: string;
+    docBackLabel: string;
+    docBackHint: string;
+    docBackClick: string;
+    docBackTypeHint: string;
+    docBackUploaded: string;
+    passwordSectionTitle: string;
+    passwordSectionDesc: string;
+    passwordSectionBadge: string;
+    passwordCreateLabel: string;
+    passwordMinDigits: string;
+    passwordPlaceholder: string;
+    passwordConfirmLabel: string;
+    passwordConfirmPlaceholder: string;
+    passwordMatch: string;
+    passwordMismatch: string;
+    warningPendingRulesPrefix: string;
+    warningPendingRulesSuffix: string;
+    viewPendingRulesBtn: string;
+    declarationReminder: string;
+    preferGoogleFormsLink: string;
+    submitProcessing: string;
+    submitConfirm: string;
+    successTitle: string;
+    successDesc: string;
+    dashboardCreatedTitle: string;
+    dashboardCreatedDesc: string;
+    nextStepsTitle: string;
+    nextStep1: string;
+    nextStep2: string;
+    nextStep3: string;
+    enterDashboardNowBtn: string;
+    confirmWhatsAppBtn: string;
+    visitorModalTitle: string;
+    visitorModalSubtitle: string;
+    visitorSafetyNotice: string;
+    visitorResidentNameLabel: string;
+    visitorResidentUnitLabel: string;
+    visitorNameLabel: string;
+    visitorNamePlaceholder: string;
+    visitorDocLabel: string;
+    visitorDocPlaceholder: string;
+    visitorPhoneLabel: string;
+    visitorPhonePlaceholder: string;
+    visitorRelationshipLabel: string;
+    visitorFrequencyLabel: string;
+    visitorOvernightLabel: string;
+    visitorOvernightSub: string;
+    visitorTermsDeclaration: string;
+    visitorCancelBtn: string;
+    visitorSubmitBtn: string;
+}
+
+const RULES_VIEW_I18N: Record<Language, RulesViewTranslations> = {
     pt: {
         backToHome: 'Voltar ao Início',
         rulesAndRegTitle: 'Regulamento & Cadastro',
@@ -150,9 +267,166 @@ const RULES_VIEW_I18N: Record<Language, {
         rulesAcceptedLabel: 'Aceites Realizados:',
         allRulesAcceptedBadge: '✓ Todas Aceitas',
         rulesAcceptedSuffix: 'Aceitas',
+        finesTableTitle: 'Tabela e Aplicação de Multas por Infração',
+        finesTableSubtitle: 'Segurança e monitoramento eletrônico 24 horas por dia em todas as áreas comuns',
+        finesPolicyText: '"Os valores de multas aplicadas por infrações ao regulamento da casa serão anexados à fatura do mês subsequente e pagos diretamente via internet."',
+        fineCards: [
+            {
+                title: 'Fumo & Bebidas Alcoólicas',
+                value: 'R$ 20,00',
+                note: 'por infração registrada',
+                color: 'text-rose-400'
+            },
+            {
+                title: 'Silêncio / Som ou TV Alto',
+                value: 'R$ 20,00',
+                note: 'por infração em qualquer horário',
+                color: 'text-purple-400'
+            },
+            {
+                title: 'Roupa no quarto / Peso lavanderia',
+                value: 'R$ 20,00',
+                note: 'por infração registrada',
+                color: 'text-amber-400'
+            },
+            {
+                title: 'Deixar cozinha / louça suja',
+                value: 'R$ 20,00',
+                note: 'por infração sumária',
+                color: 'text-rose-400'
+            },
+            {
+                title: 'Louça/Pertence fora do armário',
+                value: 'R$ 10,00',
+                note: 'por infração (item recolhido)',
+                color: 'text-cyan-400'
+            },
+            {
+                title: 'Entrada em quarto/banheiro alheio',
+                value: 'R$ 50,00',
+                note: 'por infração registrada',
+                color: 'text-red-500'
+            },
+            {
+                title: 'Lounge, Churrasqueira & Externa',
+                value: 'R$ 20,00',
+                note: 'por infração / danos / sujeira',
+                color: 'text-rose-400'
+            },
+            {
+                title: 'Eletrodomésticos Compartilhados',
+                value: 'Cobrança Total',
+                note: 'mau uso integral / rateio se técnico',
+                color: 'text-amber-300'
+            }
+        ],
+        googleFormsCardTag: 'Formulário Externo Oficial',
+        googleFormsCardTitle: 'Formulário no Google Forms',
+        googleFormsCardDesc: 'Você também pode preencher e assinar este termo diretamente pelo link oficial do Google Forms.',
+        googleFormsOpenBtn: 'Abrir no Google Forms',
+        googleFormsCopyBtn: 'Copiar Link',
+        googleFormsCopiedBtn: 'Link Copiado!',
         formTag: 'Pré-Cadastro & Aceite Digital',
         formTitle: 'Formulário de Cadastro de Residente',
-        formSubtitle: 'Preencha suas informações para formalizar seu aceite e dar entrada na casa'
+        formSubtitle: 'Preencha suas informações para formalizar seu aceite e dar entrada na casa',
+        labelFullName: 'Nome Completo *',
+        placeholderFullName: 'Seu nome completo',
+        labelEmail: 'E-mail *',
+        placeholderEmail: 'seuemail@exemplo.com',
+        labelPhone: 'WhatsApp / Telefone *',
+        placeholderPhone: '(21) 99999-9999',
+        labelCpf: 'CPF *',
+        placeholderCpf: '000.000.000-00',
+        labelRg: 'RG / Órgão Emissor *',
+        placeholderRg: '00.000.000-0 DETRAN',
+        labelBirthDate: 'Data de Nascimento *',
+        labelOriginAddress: 'Endereço Anterior / Cidade de Origem *',
+        placeholderOriginAddress: 'Rua, Número, Bairro, Cidade - UF',
+        labelFamilyAddress: 'Endereço da Família / Responsáveis *',
+        placeholderFamilyAddress: 'Cidade e Bairro onde moram pais/familiares',
+        labelDesiredRoom: 'Acomodação Pretendida *',
+        roomOptions: {
+            single: 'Quarto Individual (R$ 960/mês)',
+            suite: 'Suíte Independente',
+            studio: 'Studio MoronaVila',
+            apartment: 'Apartamento Completo MoronaVila'
+        },
+        labelEntryDate: 'Data Prevista de Entrada *',
+        labelOccupation: 'Profissão / Ocupação Atual *',
+        placeholderOccupation: 'Ex: Engenheiro, Médico, Advogado, Autônomo',
+        labelCompany: 'Empresa / Empregador *',
+        placeholderCompany: "Nome da empresa ou 'Autônomo' / 'Concursado'",
+        labelUniversity: 'Faculdade / Universidade',
+        placeholderUniversity: 'Ex: UERJ, UFRJ, Estácio (se aplicável)',
+        labelCourse: 'Curso / Área de Formação',
+        placeholderCourse: 'Ex: Medicina, Direito, Computação',
+        labelEmergencyName: 'Contato de Emergência (Nome) *',
+        placeholderEmergencyName: 'Nome do familiar ou responsável',
+        labelEmergencyPhone: 'Telefone de Emergência *',
+        placeholderEmergencyPhone: '(21) 98888-8888',
+        labelInstagram: 'Instagram (URL ou @) *',
+        placeholderInstagram: 'seuperfil ou link',
+        labelFacebook: 'Facebook (URL ou Nome) *',
+        placeholderFacebook: 'facebook.com/seuperfil ou nome',
+        docsSectionTitle: 'Imagens do Documento de Identidade (RG ou CNH) * Obrigatório',
+        docsSectionDesc: 'É obrigatório anexar fotos legíveis da frente (com foto) e do verso do seu documento de identificação',
+        docsSectionBadge: 'Obrigatório anexar ambos os lados',
+        docFrontLabel: 'Frente do Documento',
+        docFrontHint: '(com foto)',
+        docFrontClick: 'Clique para enviar a Frente',
+        docFrontTypeHint: 'RG com foto ou CNH',
+        docChangeImage: 'Trocar Imagem',
+        docFrontUploaded: 'Frente carregada',
+        docBackLabel: 'Verso do Documento',
+        docBackHint: '(ou CNH completa)',
+        docBackClick: 'Clique para enviar o Verso',
+        docBackTypeHint: 'Verso do RG ou comprovante',
+        docBackUploaded: 'Verso carregado',
+        passwordSectionTitle: 'Senha de Acesso ao seu Dashboard * Obrigatório',
+        passwordSectionDesc: 'Defina uma senha pessoal. Com seu e-mail e esta senha, você entrará diretamente no seu Dashboard de Morador para gerenciar aluguel, lavanderia, visitantes e reparos.',
+        passwordSectionBadge: 'Mínimo 6 caracteres',
+        passwordCreateLabel: 'Criar Senha de Acesso *',
+        passwordMinDigits: 'mínimo 6 dígitos',
+        passwordPlaceholder: 'Digite sua senha de acesso',
+        passwordConfirmLabel: 'Confirmar Senha *',
+        passwordConfirmPlaceholder: 'Repita sua senha de acesso',
+        passwordMatch: '✓ Coincidem',
+        passwordMismatch: '✗ Não coincidem',
+        warningPendingRulesPrefix: 'Atenção: É obrigatório dar o aceite em cada uma das 12 regras acima (',
+        warningPendingRulesSuffix: 'aceitas).',
+        viewPendingRulesBtn: 'Ver regras pendentes ↑',
+        declarationReminder: 'Marque a caixa de declaração acima para confirmar o aceite geral e liberar o envio do cadastro.',
+        preferGoogleFormsLink: 'Prefiro preencher pelo Google Forms',
+        submitProcessing: 'Processando Aceite...',
+        submitConfirm: 'Confirmar Aceite e Cadastro',
+        successTitle: 'Aceite & Cadastro Registrados com Sucesso!',
+        successDesc: 'Seus dados foram recebidos e seu aceite integral às 12 Regras de Conduta do Residencial Moronavila foi confirmado com sucesso.',
+        dashboardCreatedTitle: 'Acesso ao seu Dashboard Criado',
+        dashboardCreatedDesc: 'Sua senha de acesso foi cadastrada com sucesso. Use este e-mail e senha para entrar no seu Dashboard exclusivo do Morador.',
+        nextStepsTitle: 'Próximos Passos:',
+        nextStep1: '1. Realizar o pagamento do depósito caução via PIX para Sergio Oswaldo de Castro (chave: 21 983245000).',
+        nextStep2: '2. Enviar o comprovante de pagamento para a administração no WhatsApp.',
+        nextStep3: '3. Você também pode preencher no Google Forms para sua cópia de segurança.',
+        enterDashboardNowBtn: 'Entrar no Meu Dashboard Agora',
+        confirmWhatsAppBtn: 'Confirmar no WhatsApp',
+        visitorModalTitle: 'Cadastro de Visita Autorizada',
+        visitorModalSubtitle: 'Regra 1: Familiares ou convidados cadastrados (máx. 2 dias/semana)',
+        visitorSafetyNotice: 'Não é permitido receber crianças ou animais de estimação. O visitante entra obrigatoriamente pelo interfone recebido pelo morador e não fica na casa sem ele.',
+        visitorResidentNameLabel: 'Nome do Morador *',
+        visitorResidentUnitLabel: 'Unidade / Quarto *',
+        visitorNameLabel: 'Nome Completo do Visitante *',
+        visitorNamePlaceholder: 'Nome completo de quem vai visitar',
+        visitorDocLabel: 'CPF ou RG do Visitante *',
+        visitorDocPlaceholder: '000.000.000-00',
+        visitorPhoneLabel: 'WhatsApp do Visitante *',
+        visitorPhonePlaceholder: '(21) 99999-9999',
+        visitorRelationshipLabel: 'Parentesco ou Relação',
+        visitorFrequencyLabel: 'Frequência (Máx. 2 dias/sem)',
+        visitorOvernightLabel: 'Haverá pernoite na visita?',
+        visitorOvernightSub: 'Permitido no máximo até 2 noites por semana',
+        visitorTermsDeclaration: 'Declaro que o visitante está ciente e cumprirá todas as regras da propriedade (silêncio, proibição de álcool e fumo, sem pets e sem crianças), que será recebido por mim via interfone e que não permanecerá no imóvel sem minha presença.',
+        visitorCancelBtn: 'Cancelar',
+        visitorSubmitBtn: 'Salvar & Autorizar Visita'
     },
     en: {
         backToHome: 'Back to Home',
@@ -188,9 +462,166 @@ const RULES_VIEW_I18N: Record<Language, {
         rulesAcceptedLabel: 'Accepted Items:',
         allRulesAcceptedBadge: '✓ All Accepted',
         rulesAcceptedSuffix: 'Accepted',
+        finesTableTitle: 'Violation Fines & Penalty Schedule',
+        finesTableSubtitle: '24/7 security and electronic monitoring in all common areas',
+        finesPolicyText: '"Fines applied for house rules violations will be attached to the following month invoice and paid directly online."',
+        fineCards: [
+            {
+                title: 'Smoking & Alcoholic Beverages',
+                value: 'R$ 20.00',
+                note: 'per recorded violation',
+                color: 'text-rose-400'
+            },
+            {
+                title: 'Silence / Loud TV or Sound',
+                value: 'R$ 20.00',
+                note: 'per violation at any hour',
+                color: 'text-purple-400'
+            },
+            {
+                title: 'Clothes in Room / Laundry Limit',
+                value: 'R$ 20.00',
+                note: 'per recorded violation',
+                color: 'text-amber-400'
+            },
+            {
+                title: 'Leaving Kitchen / Dishes Dirty',
+                value: 'R$ 20.00',
+                note: 'per immediate violation',
+                color: 'text-rose-400'
+            },
+            {
+                title: 'Dishes/Items Outside Locker',
+                value: 'R$ 10.00',
+                note: 'per violation (item collected)',
+                color: 'text-cyan-400'
+            },
+            {
+                title: 'Entering Another Room/Bathroom',
+                value: 'R$ 50.00',
+                note: 'per recorded violation',
+                color: 'text-red-500'
+            },
+            {
+                title: 'Lounge, BBQ & Outdoor Area',
+                value: 'R$ 20.00',
+                note: 'per violation / damage / mess',
+                color: 'text-rose-400'
+            },
+            {
+                title: 'Shared Appliances Misuse',
+                value: 'Full Cost',
+                note: 'full misuse / shared if technical',
+                color: 'text-amber-300'
+            }
+        ],
+        googleFormsCardTag: 'Official External Form',
+        googleFormsCardTitle: 'Google Forms Registration',
+        googleFormsCardDesc: 'You can also fill out and sign this agreement directly via the official Google Forms link.',
+        googleFormsOpenBtn: 'Open in Google Forms',
+        googleFormsCopyBtn: 'Copy Link',
+        googleFormsCopiedBtn: 'Link Copied!',
         formTag: 'Pre-Registration & Digital Acceptance',
         formTitle: 'Resident Registration Form',
-        formSubtitle: 'Fill in your details to formalize your acceptance and complete your move-in'
+        formSubtitle: 'Fill in your details to formalize your acceptance and complete your move-in',
+        labelFullName: 'Full Name *',
+        placeholderFullName: 'Your full name',
+        labelEmail: 'Email Address *',
+        placeholderEmail: 'yourname@example.com',
+        labelPhone: 'WhatsApp / Phone *',
+        placeholderPhone: '+1 (555) 000-0000',
+        labelCpf: 'Tax ID / Passport / CPF *',
+        placeholderCpf: 'ID or Passport Number',
+        labelRg: 'ID / Issuing Agency *',
+        placeholderRg: 'ID number & authority',
+        labelBirthDate: 'Date of Birth *',
+        labelOriginAddress: 'Previous Address / Hometown *',
+        placeholderOriginAddress: 'Street, Number, Neighborhood, City - State/Country',
+        labelFamilyAddress: 'Family / Guardians Address *',
+        placeholderFamilyAddress: 'City and neighborhood where parents/family reside',
+        labelDesiredRoom: 'Desired Accommodation *',
+        roomOptions: {
+            single: 'Single Room (R$ 960/mo)',
+            suite: 'Private Suite',
+            studio: 'MoronaVila Studio',
+            apartment: 'Full MoronaVila Apartment'
+        },
+        labelEntryDate: 'Expected Move-in Date *',
+        labelOccupation: 'Current Profession / Occupation *',
+        placeholderOccupation: 'E.g., Engineer, Physician, Lawyer, Freelancer',
+        labelCompany: 'Company / Employer *',
+        placeholderCompany: "Company name or 'Self-employed' / 'Civil Servant'",
+        labelUniversity: 'College / University',
+        placeholderUniversity: 'E.g., UERJ, UFRJ, NYU (if applicable)',
+        labelCourse: 'Course / Field of Study',
+        placeholderCourse: 'E.g., Medicine, Law, Computer Science',
+        labelEmergencyName: 'Emergency Contact (Name) *',
+        placeholderEmergencyName: 'Name of relative or guardian',
+        labelEmergencyPhone: 'Emergency Contact Phone *',
+        placeholderEmergencyPhone: '+1 (555) 000-0000',
+        labelInstagram: 'Instagram (URL or @) *',
+        placeholderInstagram: 'yourprofile or URL',
+        labelFacebook: 'Facebook (URL or Name) *',
+        placeholderFacebook: 'facebook.com/yourprofile or name',
+        docsSectionTitle: 'Identity Document Photos (ID or Driver License) * Required',
+        docsSectionDesc: 'Legible photos of both the front (with photo) and back of your identification document are required',
+        docsSectionBadge: 'Both sides required',
+        docFrontLabel: 'Front of Document',
+        docFrontHint: '(with photo)',
+        docFrontClick: 'Click to upload Front',
+        docFrontTypeHint: 'ID with photo or Driver License',
+        docChangeImage: 'Change Image',
+        docFrontUploaded: 'Front uploaded',
+        docBackLabel: 'Back of Document',
+        docBackHint: '(or full document)',
+        docBackClick: 'Click to upload Back',
+        docBackTypeHint: 'Back of ID or proof',
+        docBackUploaded: 'Back uploaded',
+        passwordSectionTitle: 'Dashboard Access Password * Required',
+        passwordSectionDesc: 'Set a personal password. With your email and this password, you will access your Resident Dashboard directly to manage rent, laundry, visitors, and repairs.',
+        passwordSectionBadge: 'Minimum 6 characters',
+        passwordCreateLabel: 'Create Access Password *',
+        passwordMinDigits: 'minimum 6 characters',
+        passwordPlaceholder: 'Enter your access password',
+        passwordConfirmLabel: 'Confirm Password *',
+        passwordConfirmPlaceholder: 'Repeat your access password',
+        passwordMatch: '✓ Match',
+        passwordMismatch: '✗ Do not match',
+        warningPendingRulesPrefix: 'Attention: It is mandatory to accept each of the 12 rules above (',
+        warningPendingRulesSuffix: 'accepted).',
+        viewPendingRulesBtn: 'View pending rules ↑',
+        declarationReminder: 'Check the declaration box above to confirm overall acceptance and enable registration submission.',
+        preferGoogleFormsLink: 'I prefer to fill out Google Forms',
+        submitProcessing: 'Processing Acceptance...',
+        submitConfirm: 'Confirm Acceptance & Register',
+        successTitle: 'Acceptance & Registration Completed Successfully!',
+        successDesc: 'Your details have been received and your full acceptance of the 12 Moronavila Residential Conduct Rules has been confirmed.',
+        dashboardCreatedTitle: 'Dashboard Access Created',
+        dashboardCreatedDesc: 'Your access password was registered successfully. Use this email and password to log in to your exclusive Resident Dashboard.',
+        nextStepsTitle: 'Next Steps:',
+        nextStep1: '1. Make the security deposit payment via PIX to Sergio Oswaldo de Castro (key: 21 983245000).',
+        nextStep2: '2. Send payment receipt to the management team via WhatsApp.',
+        nextStep3: '3. You can also fill out Google Forms for your backup copy.',
+        enterDashboardNowBtn: 'Enter My Dashboard Now',
+        confirmWhatsAppBtn: 'Confirm on WhatsApp',
+        visitorModalTitle: 'Authorized Visitor Registration',
+        visitorModalSubtitle: 'Rule 1: Registered relatives or guests (max 2 days/week)',
+        visitorSafetyNotice: 'Children and pets are not permitted. Visitors must enter through the intercom with the resident and may not stay unaccompanied.',
+        visitorResidentNameLabel: 'Resident Name *',
+        visitorResidentUnitLabel: 'Unit / Room *',
+        visitorNameLabel: 'Visitor Full Name *',
+        visitorNamePlaceholder: 'Full name of the person visiting',
+        visitorDocLabel: 'Visitor ID or Passport *',
+        visitorDocPlaceholder: '000.000.000-00',
+        visitorPhoneLabel: 'Visitor WhatsApp / Phone *',
+        visitorPhonePlaceholder: '+1 (555) 000-0000',
+        visitorRelationshipLabel: 'Relationship',
+        visitorFrequencyLabel: 'Frequency (Max 2 days/week)',
+        visitorOvernightLabel: 'Will the visitor stay overnight?',
+        visitorOvernightSub: 'Allowed up to a maximum of 2 nights per week',
+        visitorTermsDeclaration: 'I declare that the visitor is aware of and will comply with all property rules (silence, no alcohol or smoking, no pets, no children), will be received by me via intercom, and will not remain in the house without my presence.',
+        visitorCancelBtn: 'Cancel',
+        visitorSubmitBtn: 'Save & Authorize Visitor'
     },
     es: {
         backToHome: 'Volver al Inicio',
@@ -209,7 +640,7 @@ const RULES_VIEW_I18N: Record<Language, {
         monthPeriodRef: 'Ref. 1º al último día del mes',
         paidInAdvance: 'Pago por adelantado hasta el 5º día hábil',
         exclusivePromoBadge: 'Promoción Exclusiva',
-        promoDiscountNote: 'Descuento de R$ 100,00/mes por 6 meses',
+        promoDiscountNote: 'Desconto de R$ 100,00/mes por 6 meses',
         promoDetailsText: 'Hasta el 10/11 se otorgará un descuento de 100 reales en el alquiler mensual para nuevos residentes durante 6 meses.',
         entryConditionsTitle: 'Condiciones de Ingreso',
         depositPlusMonth: 'Depósito + Mes Corriente',
@@ -226,9 +657,166 @@ const RULES_VIEW_I18N: Record<Language, {
         rulesAcceptedLabel: 'Aceptaciones Realizadas:',
         allRulesAcceptedBadge: '✓ Todas Aceptadas',
         rulesAcceptedSuffix: 'Aceptadas',
+        finesTableTitle: 'Tabla y Aplicación de Multas por Infracción',
+        finesTableSubtitle: 'Seguridad y monitoreo electrónico 24 horas al día en todas las áreas comunes',
+        finesPolicyText: '"Los valores de las multas aplicadas por infracciones al reglamento de la casa serán agregados a la factura del mes siguiente y abonados directamente por internet."',
+        fineCards: [
+            {
+                title: 'Fumar y Bebidas Alcohólicas',
+                value: 'R$ 20,00',
+                note: 'por infracción registrada',
+                color: 'text-rose-400'
+            },
+            {
+                title: 'Silencio / Sonido o TV Alto',
+                value: 'R$ 20,00',
+                note: 'por infracción en cualquier horario',
+                color: 'text-purple-400'
+            },
+            {
+                title: 'Ropa en habitación / Peso lavandería',
+                value: 'R$ 20,00',
+                note: 'por infracción registrada',
+                color: 'text-amber-400'
+            },
+            {
+                title: 'Dejar cocina / vajilla sucia',
+                value: 'R$ 20,00',
+                note: 'por infracción sumaria',
+                color: 'text-rose-400'
+            },
+            {
+                title: 'Vajilla/Pertenencias fuera del armario',
+                value: 'R$ 10,00',
+                note: 'por infracción (ítem retirado)',
+                color: 'text-cyan-400'
+            },
+            {
+                title: 'Ingreso a habitación/baño ajeno',
+                value: 'R$ 50,00',
+                note: 'por infracción registrada',
+                color: 'text-red-500'
+            },
+            {
+                title: 'Lounge, Parrilla y Área Exterior',
+                value: 'R$ 20,00',
+                note: 'por infracción / daños / suciedad',
+                color: 'text-rose-400'
+            },
+            {
+                title: 'Electrodomésticos Compartidos',
+                value: 'Cobro Total',
+                note: 'mal uso integral / prorrateo si es técnico',
+                color: 'text-amber-300'
+            }
+        ],
+        googleFormsCardTag: 'Formulario Externo Oficial',
+        googleFormsCardTitle: 'Formulario en Google Forms',
+        googleFormsCardDesc: 'También puede completar y firmar este acuerdo directamente a través del enlace oficial de Google Forms.',
+        googleFormsOpenBtn: 'Abrir en Google Forms',
+        googleFormsCopyBtn: 'Copiar Enlace',
+        googleFormsCopiedBtn: '¡Enlace Copiado!',
         formTag: 'Pre-Registro y Aceptación Digital',
         formTitle: 'Formulario de Registro de Residente',
-        formSubtitle: 'Complete sus datos para formalizar su aceptación e ingresar a la casa'
+        formSubtitle: 'Complete sus datos para formalizar su aceptación e ingresar a la casa',
+        labelFullName: 'Nombre Completo *',
+        placeholderFullName: 'Su nombre completo',
+        labelEmail: 'Correo Electrónico *',
+        placeholderEmail: 'sucorreo@ejemplo.com',
+        labelPhone: 'WhatsApp / Teléfono *',
+        placeholderPhone: '+34 600 000 000',
+        labelCpf: 'DNI / Pasaporte / CPF *',
+        placeholderCpf: 'Número de documento o pasaporte',
+        labelRg: 'Documento de Identidad / Emisor *',
+        placeholderRg: 'Número de documento y emisor',
+        labelBirthDate: 'Fecha de Nacimiento *',
+        labelOriginAddress: 'Dirección Anterior / Ciudad de Origen *',
+        placeholderOriginAddress: 'Calle, Número, Barrio, Ciudad, País',
+        labelFamilyAddress: 'Dirección de Familiares / Responsables *',
+        placeholderFamilyAddress: 'Ciudad y barrio donde viven los familiares',
+        labelDesiredRoom: 'Alojamiento Deseado *',
+        roomOptions: {
+            single: 'Habitación Individual (R$ 960/mes)',
+            suite: 'Suite Independiente',
+            studio: 'Estudio MoronaVila',
+            apartment: 'Apartamento Completo MoronaVila'
+        },
+        labelEntryDate: 'Fecha Prevista de Ingreso *',
+        labelOccupation: 'Profesión / Ocupación Actual *',
+        placeholderOccupation: 'Ej: Ingeniero, Médico, Abogado, Independiente',
+        labelCompany: 'Empresa / Empleador *',
+        placeholderCompany: "Nombre de la empresa o 'Independiente'",
+        labelUniversity: 'Facultad / Universidad',
+        placeholderUniversity: 'Ej: UERJ, UFRJ, Universidad (si aplica)',
+        labelCourse: 'Carrera / Área de Estudio',
+        placeholderCourse: 'Ej: Medicina, Derecho, Computación',
+        labelEmergencyName: 'Contacto de Emergencia (Nombre) *',
+        placeholderEmergencyName: 'Nombre del familiar o responsable',
+        labelEmergencyPhone: 'Teléfono de Emergencia *',
+        placeholderEmergencyPhone: '+34 600 000 000',
+        labelInstagram: 'Instagram (URL o @) *',
+        placeholderInstagram: 'tuperfil o enlace',
+        labelFacebook: 'Facebook (URL o Nombre) *',
+        placeholderFacebook: 'facebook.com/tuperfil o nombre',
+        docsSectionTitle: 'Imágenes del Documento de Identidad (DNI o Licencia) * Obligatorio',
+        docsSectionDesc: 'Es obligatorio adjuntar fotos legibles del frente (con foto) y del reverso de su documento de identificación',
+        docsSectionBadge: 'Obligatorio adjuntar ambos lados',
+        docFrontLabel: 'Frente del Documento',
+        docFrontHint: '(con foto)',
+        docFrontClick: 'Haga clic para subir el Frente',
+        docFrontTypeHint: 'DNI con foto o Licencia',
+        docChangeImage: 'Cambiar Imagen',
+        docFrontUploaded: 'Frente subido',
+        docBackLabel: 'Reverso del Documento',
+        docBackHint: '(o documento completo)',
+        docBackClick: 'Haga clic para subir el Reverso',
+        docBackTypeHint: 'Reverso del documento o comprobante',
+        docBackUploaded: 'Reverso subido',
+        passwordSectionTitle: 'Contraseña de Acceso al Dashboard * Obligatoria',
+        passwordSectionDesc: 'Establezca una contraseña personal. Con su correo y esta contraseña, accederá directamente a su Dashboard de Residente para gestionar alquiler, lavandería, visitas y mantenimiento.',
+        passwordSectionBadge: 'Mínimo 6 caracteres',
+        passwordCreateLabel: 'Crear Contraseña de Acceso *',
+        passwordMinDigits: 'mínimo 6 dígitos',
+        passwordPlaceholder: 'Ingrese su contraseña de acceso',
+        passwordConfirmLabel: 'Confirmar Contraseña *',
+        passwordConfirmPlaceholder: 'Repita su contraseña de acceso',
+        passwordMatch: '✓ Coinciden',
+        passwordMismatch: '✗ No coinciden',
+        warningPendingRulesPrefix: 'Atención: Es obligatorio aceptar cada una de las 12 reglas anteriores (',
+        warningPendingRulesSuffix: 'aceptadas).',
+        viewPendingRulesBtn: 'Ver reglas pendientes ↑',
+        declarationReminder: 'Marque la casilla de declaración anterior para confirmar la aceptación general y habilitar el envío del registro.',
+        preferGoogleFormsLink: 'Prefiero completar en Google Forms',
+        submitProcessing: 'Procesando Aceptación...',
+        submitConfirm: 'Confirmar Aceptación y Registro',
+        successTitle: '¡Aceptación y Registro Realizados con Éxito!',
+        successDesc: 'Sus datos fueron recibidos y su aceptación integral de las 12 Reglas de Convivencia de Residencial Moronavila fue confirmada con éxito.',
+        dashboardCreatedTitle: 'Acceso a su Dashboard Creado',
+        dashboardCreatedDesc: 'Su contraseña de acceso fue registrada con éxito. Use este correo y contraseña para ingresar a su Dashboard exclusivo de Residente.',
+        nextStepsTitle: 'Próximos Pasos:',
+        nextStep1: '1. Realizar el pago del depósito de garantía vía PIX a Sergio Oswaldo de Castro (clave: 21 983245000).',
+        nextStep2: '2. Enviar el comprobante de pago a la administración por WhatsApp.',
+        nextStep3: '3. También puede completar el formulario de Google para su copia de seguridad.',
+        enterDashboardNowBtn: 'Entrar a Mi Dashboard Ahora',
+        confirmWhatsAppBtn: 'Confirmar en WhatsApp',
+        visitorModalTitle: 'Registro de Visita Autorizada',
+        visitorModalSubtitle: 'Regla 1: Familiares o invitados registrados (máx. 2 días/semana)',
+        visitorSafetyNotice: 'No se permite el ingreso de niños ni mascotas. El visitante entra obligatoriamente por el intercomunicador recibido por el residente y no permanece en la casa sin él.',
+        visitorResidentNameLabel: 'Nombre del Residente *',
+        visitorResidentUnitLabel: 'Unidad / Habitación *',
+        visitorNameLabel: 'Nombre Completo del Visitante *',
+        visitorNamePlaceholder: 'Nombre completo de quien va a visitar',
+        visitorDocLabel: 'DNI o Pasaporte del Visitante *',
+        visitorDocPlaceholder: '000.000.000-00',
+        visitorPhoneLabel: 'WhatsApp del Visitante *',
+        visitorPhonePlaceholder: '+34 600 000 000',
+        visitorRelationshipLabel: 'Parentesco o Relación',
+        visitorFrequencyLabel: 'Frecuencia (Máx. 2 días/sem)',
+        visitorOvernightLabel: '¿Habrá pernocte en la visita?',
+        visitorOvernightSub: 'Permitido como máximo hasta 2 noches por semana',
+        visitorTermsDeclaration: 'Declaro que el visitante está al tanto y cumplirá todas las reglas de la propiedad (silencio, prohibición de alcohol y tabaco, sin mascotas y sin niños), que será recibido por mí vía intercomunicador y que no permanecerá en la vivienda sin mi presencia.',
+        visitorCancelBtn: 'Cancelar',
+        visitorSubmitBtn: 'Guardar y Autorizar Visita'
     }
 };
 
@@ -1109,90 +1697,28 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                         </div>
                         <div>
                             <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-tight">
-                                Tabela e Aplicação de Multas por Infração
+                                {rvt.finesTableTitle}
                             </h3>
                             <p className="text-xs text-rose-300 font-semibold">
-                                Segurança e monitoramento eletrônico 24 horas por dia em todas as áreas comuns
+                                {rvt.finesTableSubtitle}
                             </p>
                         </div>
                     </div>
 
                     <p className="text-sm text-slate-200 leading-relaxed font-medium">
-                        "Os valores de multas aplicadas por infrações ao regulamento da casa serão anexados à fatura do mês subsequente e pagos diretamente via internet."
+                        {rvt.finesPolicyText}
                     </p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-                        {/* Multa Fumo e Álcool */}
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
-                                Fumo & Bebidas Alcoólicas
-                            </span>
-                            <span className="text-xl font-black text-rose-400">R$ 20,00</span>
-                            <span className="text-[11px] text-slate-400 block">por infração registrada</span>
-                        </div>
-
-                        {/* Multa Silêncio & TV/Som */}
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
-                                Silêncio / Som ou TV Alto
-                            </span>
-                            <span className="text-xl font-black text-purple-400">R$ 20,00</span>
-                            <span className="text-[11px] text-slate-400 block">por infração em qualquer horário</span>
-                        </div>
-
-                        {/* Multa Roupa no quarto / Lavanderia */}
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
-                                Roupa no quarto / Peso lavanderia
-                            </span>
-                            <span className="text-xl font-black text-amber-400">R$ 20,00</span>
-                            <span className="text-[11px] text-slate-400 block">por infração registrada</span>
-                        </div>
-
-                        {/* Multa Cozinha Suja */}
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
-                                Deixar cozinha / louça suja
-                            </span>
-                            <span className="text-xl font-black text-rose-400">R$ 20,00</span>
-                            <span className="text-[11px] text-slate-400 block">por infração sumária</span>
-                        </div>
-
-                        {/* Multa Armários Individuais */}
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
-                                Louça/Pertence fora do armário
-                            </span>
-                            <span className="text-xl font-black text-cyan-400">R$ 10,00</span>
-                            <span className="text-[11px] text-slate-400 block">por infração (item recolhido)</span>
-                        </div>
-
-                        {/* Multa Quarto Alheio */}
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
-                                Entrada em quarto/banheiro alheio
-                            </span>
-                            <span className="text-xl font-black text-red-500">R$ 50,00</span>
-                            <span className="text-[11px] text-slate-400 block">por infração registrada</span>
-                        </div>
-
-                        {/* Multa Lounge, Churrasqueira & Área Externa */}
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
-                                Lounge, Churrasqueira & Externa
-                            </span>
-                            <span className="text-xl font-black text-rose-400">R$ 20,00</span>
-                            <span className="text-[11px] text-slate-400 block">por infração / danos / sujeira</span>
-                        </div>
-
-                        {/* Reposição / Mau Uso de Eletrodomésticos */}
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-amber-500/30 space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400 block">
-                                Eletrodomésticos Compartilhados
-                            </span>
-                            <span className="text-xl font-black text-amber-300">Cobrança Total</span>
-                            <span className="text-[11px] text-slate-400 block">mau uso integral / rateio se técnico</span>
-                        </div>
+                        {rvt.fineCards.map((card, idx) => (
+                            <div key={idx} className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">
+                                    {card.title}
+                                </span>
+                                <span className={`text-xl font-black ${card.color}`}>{card.value}</span>
+                                <span className="text-[11px] text-slate-400 block">{card.note}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
@@ -1203,13 +1729,13 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="space-y-2 text-center md:text-left">
                             <span className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">
-                                Formulário Externo Oficial
+                                {rvt.googleFormsCardTag}
                             </span>
                             <h3 className="text-2xl font-black text-white uppercase tracking-tight">
-                                Formulário no Google Forms
+                                {rvt.googleFormsCardTitle}
                             </h3>
                             <p className="text-xs text-slate-300 max-w-xl">
-                                Você também pode preencher e assinar este termo diretamente pelo link oficial do Google Forms.
+                                {rvt.googleFormsCardDesc}
                             </p>
                             <div className="font-mono text-xs text-amber-300/80 pt-1 break-all">
                                 {googleFormsUrl}
@@ -1224,7 +1750,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-amber-950/40 hover:scale-105"
                             >
                                 <ExternalLink size={16} />
-                                <span>Abrir no Google Forms</span>
+                                <span>{rvt.googleFormsOpenBtn}</span>
                             </a>
 
                             <button
@@ -1233,7 +1759,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                 title="Copiar link do formulário"
                             >
                                 {copiedFormUrl ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
-                                <span>{copiedFormUrl ? 'Link Copiado!' : 'Copiar Link'}</span>
+                                <span>{copiedFormUrl ? rvt.googleFormsCopiedBtn : rvt.googleFormsCopyBtn}</span>
                             </button>
                         </div>
                     </div>
@@ -1268,30 +1794,30 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                             </div>
                             <div className="space-y-2">
                                 <h3 className="text-2xl font-black text-white uppercase tracking-tight">
-                                    Aceite & Cadastro Registrados com Sucesso!
+                                    {rvt.successTitle}
                                 </h3>
                                 <p className="text-sm text-slate-300 max-w-lg mx-auto">
-                                    Seus dados foram recebidos e seu aceite integral às 12 Regras de Conduta do Residencial Moronavila foi confirmado com sucesso.
+                                    {rvt.successDesc}
                                 </p>
                             </div>
 
                             <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 max-w-md mx-auto text-left space-y-2">
                                 <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
-                                    <Lock size={15} /> Acesso ao seu Dashboard Criado
+                                    <Lock size={15} /> {rvt.dashboardCreatedTitle}
                                 </div>
                                 <div className="text-xs text-slate-200">
                                     <span className="text-slate-400">E-mail:</span> <strong>{formData.email.trim().toLowerCase()}</strong>
                                 </div>
                                 <div className="text-xs text-slate-400 leading-relaxed">
-                                    Sua senha de acesso foi cadastrada com sucesso. Use este e-mail e senha para entrar no seu Dashboard exclusivo do Morador.
+                                    {rvt.dashboardCreatedDesc}
                                 </div>
                             </div>
 
                             <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 max-w-md mx-auto text-left text-xs text-slate-300 space-y-2">
-                                <div className="font-bold text-amber-400 uppercase tracking-wider">Próximos Passos:</div>
-                                <div>1. Realizar o pagamento do depósito caução via PIX para <strong className="text-white">Sergio Oswaldo de Castro</strong> (chave: 21 983245000).</div>
-                                <div>2. Enviar o comprovante de pagamento para a administração no WhatsApp.</div>
-                                <div>3. Você também pode preencher no Google Forms para sua cópia de segurança.</div>
+                                <div className="font-bold text-amber-400 uppercase tracking-wider">{rvt.nextStepsTitle}</div>
+                                <div>{rvt.nextStep1}</div>
+                                <div>{rvt.nextStep2}</div>
+                                <div>{rvt.nextStep3}</div>
                             </div>
 
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -1303,14 +1829,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     }}
                                     className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-rose-950/50 flex items-center justify-center gap-2 cursor-pointer"
                                 >
-                                    <span>Entrar no Meu Dashboard Agora</span>
+                                    <span>{rvt.enterDashboardNowBtn}</span>
                                     <ArrowRight size={16} />
                                 </button>
                                 <button
                                     onClick={handleWhatsAppConfirm}
                                     className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
                                 >
-                                    Confirmar no WhatsApp
+                                    {rvt.confirmWhatsAppBtn}
                                 </button>
                                 <a
                                     href={googleFormsUrl}
@@ -1336,14 +1862,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Nome Completo */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Nome Completo *
+                                            {rvt.labelFullName}
                                         </label>
                                         <input
                                             type="text"
                                             required
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            placeholder="Seu nome completo"
+                                            placeholder={rvt.placeholderFullName}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1351,14 +1877,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* E-mail */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            E-mail *
+                                            {rvt.labelEmail}
                                         </label>
                                         <input
                                             type="email"
                                             required
                                             value={formData.email}
                                             onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                            placeholder="seuemail@exemplo.com"
+                                            placeholder={rvt.placeholderEmail}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1366,14 +1892,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* WhatsApp */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            WhatsApp / Telefone *
+                                            {rvt.labelPhone}
                                         </label>
                                         <input
                                             type="tel"
                                             required
                                             value={formData.phone}
                                             onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                            placeholder="(21) 99999-9999"
+                                            placeholder={rvt.placeholderPhone}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1381,14 +1907,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* CPF */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            CPF *
+                                            {rvt.labelCpf}
                                         </label>
                                         <input
                                             type="text"
                                             required
                                             value={formData.cpf}
                                             onChange={e => setFormData({ ...formData, cpf: e.target.value })}
-                                            placeholder="000.000.000-00"
+                                            placeholder={rvt.placeholderCpf}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1396,14 +1922,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* RG */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            RG / Órgão Emissor *
+                                            {rvt.labelRg}
                                         </label>
                                         <input
                                             type="text"
                                             required
                                             value={formData.rg}
                                             onChange={e => setFormData({ ...formData, rg: e.target.value })}
-                                            placeholder="00.000.000-0 DETRAN"
+                                            placeholder={rvt.placeholderRg}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1411,7 +1937,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Data de Nascimento */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Data de Nascimento *
+                                            {rvt.labelBirthDate}
                                         </label>
                                         <input
                                             type="date"
@@ -1425,14 +1951,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Endereço de Origem */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Endereço Anterior / Cidade de Origem *
+                                            {rvt.labelOriginAddress}
                                         </label>
                                         <input
                                             type="text"
                                             required
                                             value={formData.origin_address}
                                             onChange={e => setFormData({ ...formData, origin_address: e.target.value })}
-                                            placeholder="Rua, Número, Bairro, Cidade - UF"
+                                            placeholder={rvt.placeholderOriginAddress}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1440,14 +1966,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Endereço da Família */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Endereço da Família / Responsáveis *
+                                            {rvt.labelFamilyAddress}
                                         </label>
                                         <input
                                             type="text"
                                             required
                                             value={formData.family_address}
                                             onChange={e => setFormData({ ...formData, family_address: e.target.value })}
-                                            placeholder="Cidade e Bairro onde moram pais/familiares"
+                                            placeholder={rvt.placeholderFamilyAddress}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1455,7 +1981,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Tipo de Acomodação Pretendida */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Acomodação Pretendida *
+                                            {rvt.labelDesiredRoom}
                                         </label>
                                         <select
                                             required
@@ -1463,17 +1989,17 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             onChange={e => setFormData({ ...formData, desired_room_type: e.target.value })}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white cursor-pointer"
                                         >
-                                            <option value="Quarto Individual">Quarto Individual (R$ 960/mês)</option>
-                                            <option value="Suíte Independente">Suíte Independente</option>
-                                            <option value="Studio MoronaVila">Studio MoronaVila</option>
-                                            <option value="Apartamento MoronaVila">Apartamento Completo MoronaVila</option>
+                                            <option value="Quarto Individual">{rvt.roomOptions.single}</option>
+                                            <option value="Suíte Independente">{rvt.roomOptions.suite}</option>
+                                            <option value="Studio MoronaVila">{rvt.roomOptions.studio}</option>
+                                            <option value="Apartamento MoronaVila">{rvt.roomOptions.apartment}</option>
                                         </select>
                                     </div>
 
                                     {/* Data Prevista de Entrada */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Data Prevista de Entrada *
+                                            {rvt.labelEntryDate}
                                         </label>
                                         <input
                                             type="date"
@@ -1487,14 +2013,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Profissão / Ocupação */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Profissão / Ocupação Atual *
+                                            {rvt.labelOccupation}
                                         </label>
                                         <input
                                             type="text"
                                             required
                                             value={formData.occupation}
                                             onChange={e => setFormData({ ...formData, occupation: e.target.value })}
-                                            placeholder="Ex: Engenheiro, Médico, Advogado, Autônomo"
+                                            placeholder={rvt.placeholderOccupation}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1502,14 +2028,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Empresa / Local de Trabalho */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Empresa / Empregador *
+                                            {rvt.labelCompany}
                                         </label>
                                         <input
                                             type="text"
                                             required
                                             value={formData.company}
                                             onChange={e => setFormData({ ...formData, company: e.target.value })}
-                                            placeholder="Nome da empresa ou 'Autônomo' / 'Concursado'"
+                                            placeholder={rvt.placeholderCompany}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1517,13 +2043,13 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Faculdade / Universidade */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Faculdade / Universidade
+                                            {rvt.labelUniversity}
                                         </label>
                                         <input
                                             type="text"
                                             value={formData.university}
                                             onChange={e => setFormData({ ...formData, university: e.target.value })}
-                                            placeholder="Ex: UERJ, UFRJ, Estácio (se aplicável)"
+                                            placeholder={rvt.placeholderUniversity}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1531,13 +2057,13 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Curso / Formação */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Curso / Área de Formação
+                                            {rvt.labelCourse}
                                         </label>
                                         <input
                                             type="text"
                                             value={formData.course}
                                             onChange={e => setFormData({ ...formData, course: e.target.value })}
-                                            placeholder="Ex: Medicina, Direito, Computação"
+                                            placeholder={rvt.placeholderCourse}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1545,14 +2071,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Contato de Emergência */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Contato de Emergência (Nome) *
+                                            {rvt.labelEmergencyName}
                                         </label>
                                         <input
                                             type="text"
                                             required
                                             value={formData.emergency_contact_name}
                                             onChange={e => setFormData({ ...formData, emergency_contact_name: e.target.value })}
-                                            placeholder="Nome do familiar ou responsável"
+                                            placeholder={rvt.placeholderEmergencyName}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1560,14 +2086,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Telefone de Emergência */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Telefone de Emergência *
+                                            {rvt.labelEmergencyPhone}
                                         </label>
                                         <input
                                             type="tel"
                                             required
                                             value={formData.emergency_contact_phone}
                                             onChange={e => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
-                                            placeholder="(21) 98888-8888"
+                                            placeholder={rvt.placeholderEmergencyPhone}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1576,7 +2102,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                                             <Instagram size={14} className="text-rose-400" />
-                                            <span>Instagram (URL ou @) *</span>
+                                            <span>{rvt.labelInstagram}</span>
                                         </label>
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">@</span>
@@ -1585,7 +2111,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                 required
                                                 value={formData.instagram}
                                                 onChange={e => setFormData({ ...formData, instagram: e.target.value })}
-                                                placeholder="seuperfil ou link"
+                                                placeholder={rvt.placeholderInstagram}
                                                 className="w-full pl-9 pr-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                             />
                                         </div>
@@ -1595,14 +2121,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                                             <Facebook size={14} className="text-blue-400" />
-                                            <span>Facebook (URL ou Nome) *</span>
+                                            <span>{rvt.labelFacebook}</span>
                                         </label>
                                         <input
                                             type="text"
                                             required
                                             value={formData.facebook}
                                             onChange={e => setFormData({ ...formData, facebook: e.target.value })}
-                                            placeholder="facebook.com/seuperfil ou nome"
+                                            placeholder={rvt.placeholderFacebook}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1613,14 +2139,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             <div>
                                                 <h4 className="text-xs font-black text-rose-400 uppercase tracking-[0.2em] flex items-center gap-2">
                                                     <ImageIcon size={16} />
-                                                    <span>Imagens do Documento de Identidade (RG ou CNH) * Obrigatório</span>
+                                                    <span>{rvt.docsSectionTitle}</span>
                                                 </h4>
                                                 <p className="text-[11px] text-slate-400 mt-0.5">
-                                                    É obrigatório anexar fotos legíveis da frente (com foto) e do verso do seu documento de identificação
+                                                    {rvt.docsSectionDesc}
                                                 </p>
                                             </div>
                                             <span className="text-[10px] uppercase font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 rounded-lg self-start sm:self-auto">
-                                                Obrigatório anexar ambos os lados
+                                                {rvt.docsSectionBadge}
                                             </span>
                                         </div>
 
@@ -1630,8 +2156,8 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                                                         <span className="text-rose-400">*</span>
-                                                        <span>Frente do Documento</span>
-                                                        <span className="text-[10px] text-slate-500 font-normal">(com foto)</span>
+                                                        <span>{rvt.docFrontLabel}</span>
+                                                        <span className="text-[10px] text-slate-500 font-normal">{rvt.docFrontHint}</span>
                                                     </span>
                                                     {docFrontPreview && (
                                                         <button
@@ -1654,7 +2180,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                         />
                                                         <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                                             <label className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold cursor-pointer transition-colors">
-                                                                Trocar Imagem
+                                                                {rvt.docChangeImage}
                                                                 <input
                                                                     type="file"
                                                                     accept="image/*,.pdf"
@@ -1665,7 +2191,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                         </div>
                                                         <div className="p-2 bg-slate-900/90 text-[10px] text-emerald-400 font-bold flex items-center gap-1.5">
                                                             <Check size={12} />
-                                                            <span>Frente carregada ({docFrontFile?.name})</span>
+                                                            <span>{rvt.docFrontUploaded} ({docFrontFile?.name})</span>
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -1674,10 +2200,10 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                             <Upload size={18} />
                                                         </div>
                                                         <span className="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">
-                                                            Clique para enviar a Frente
+                                                            {rvt.docFrontClick}
                                                         </span>
                                                         <span className="text-[10px] text-slate-500 mt-1">
-                                                            RG com foto ou CNH
+                                                            {rvt.docFrontTypeHint}
                                                         </span>
                                                         <input
                                                             type="file"
@@ -1694,8 +2220,8 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                                                         <span className="text-rose-400">*</span>
-                                                        <span>Verso do Documento</span>
-                                                        <span className="text-[10px] text-slate-500 font-normal">(ou CNH completa)</span>
+                                                        <span>{rvt.docBackLabel}</span>
+                                                        <span className="text-[10px] text-slate-500 font-normal">{rvt.docBackHint}</span>
                                                     </span>
                                                     {docBackPreview && (
                                                         <button
@@ -1718,7 +2244,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                         />
                                                         <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                                             <label className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold cursor-pointer transition-colors">
-                                                                Trocar Imagem
+                                                                {rvt.docChangeImage}
                                                                 <input
                                                                     type="file"
                                                                     accept="image/*,.pdf"
@@ -1729,7 +2255,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                         </div>
                                                         <div className="p-2 bg-slate-900/90 text-[10px] text-emerald-400 font-bold flex items-center gap-1.5">
                                                             <Check size={12} />
-                                                            <span>Verso carregado ({docBackFile?.name})</span>
+                                                            <span>{rvt.docBackUploaded} ({docBackFile?.name})</span>
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -1738,10 +2264,10 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                             <Upload size={18} />
                                                         </div>
                                                         <span className="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">
-                                                            Clique para enviar o Verso
+                                                            {rvt.docBackClick}
                                                         </span>
                                                         <span className="text-[10px] text-slate-500 mt-1">
-                                                            Verso do RG ou comprovante
+                                                            {rvt.docBackTypeHint}
                                                         </span>
                                                         <input
                                                             type="file"
@@ -1761,14 +2287,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             <div>
                                                 <h4 className="text-xs font-black text-amber-400 uppercase tracking-[0.2em] flex items-center gap-2">
                                                     <Lock size={16} />
-                                                    <span>Senha de Acesso ao seu Dashboard * Obrigatório</span>
+                                                    <span>{rvt.passwordSectionTitle}</span>
                                                 </h4>
                                                 <p className="text-[11px] text-slate-400 mt-0.5">
-                                                    Defina uma senha pessoal. Com seu e-mail e esta senha, você entrará diretamente no seu Dashboard de Morador para gerenciar aluguel, lavanderia, visitantes e reparos.
+                                                    {rvt.passwordSectionDesc}
                                                 </p>
                                             </div>
                                             <span className="text-[10px] uppercase font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg self-start sm:self-auto">
-                                                Mínimo 6 caracteres
+                                                {rvt.passwordSectionBadge}
                                             </span>
                                         </div>
 
@@ -1776,8 +2302,8 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             {/* Senha */}
                                             <div className="space-y-2">
                                                 <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
-                                                    <span>Criar Senha de Acesso *</span>
-                                                    <span className="text-[10px] text-slate-500 font-normal">mínimo 6 dígitos</span>
+                                                    <span>{rvt.passwordCreateLabel}</span>
+                                                    <span className="text-[10px] text-slate-500 font-normal">{rvt.passwordMinDigits}</span>
                                                 </label>
                                                 <div className="relative">
                                                     <input
@@ -1786,7 +2312,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                         minLength={6}
                                                         value={password}
                                                         onChange={e => setPassword(e.target.value)}
-                                                        placeholder="Digite sua senha de acesso"
+                                                        placeholder={rvt.passwordPlaceholder}
                                                         className="w-full px-4 py-3 pr-12 rounded-2xl bg-slate-950 border border-slate-800 focus:border-amber-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                                     />
                                                     <button
@@ -1803,10 +2329,10 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             {/* Confirmar Senha */}
                                             <div className="space-y-2">
                                                 <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
-                                                    <span>Confirmar Senha *</span>
+                                                    <span>{rvt.passwordConfirmLabel}</span>
                                                     {password && confirmPassword && (
                                                         <span className={`text-[10px] font-bold ${password === confirmPassword ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                                            {password === confirmPassword ? '✓ Coincidem' : '✗ Não coincidem'}
+                                                            {password === confirmPassword ? rvt.passwordMatch : rvt.passwordMismatch}
                                                         </span>
                                                     )}
                                                 </label>
@@ -1817,7 +2343,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                         minLength={6}
                                                         value={confirmPassword}
                                                         onChange={e => setConfirmPassword(e.target.value)}
-                                                        placeholder="Repita sua senha de acesso"
+                                                        placeholder={rvt.passwordConfirmPlaceholder}
                                                         className={`w-full px-4 py-3 rounded-2xl bg-slate-950 border focus:outline-none text-sm text-white placeholder-slate-600 ${confirmPassword && password !== confirmPassword ? 'border-rose-500' : 'border-slate-800 focus:border-amber-500'}`}
                                                     />
                                                 </div>
@@ -1848,7 +2374,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         <div className="text-[11px] text-amber-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pl-8 pt-1">
                                             <div className="flex items-center gap-1.5">
                                                 <AlertCircle size={14} className="shrink-0" />
-                                                <span>Atenção: É obrigatório dar o aceite em cada uma das 12 regras acima ({acceptedCount} de {RULES_DATA.length} aceitas).</span>
+                                                <span>{rvt.warningPendingRulesPrefix}{acceptedCount} / {RULES_DATA.length} {rvt.warningPendingRulesSuffix}</span>
                                             </div>
                                             <button
                                                 type="button"
@@ -1858,7 +2384,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                                 }}
                                                 className="text-amber-300 underline font-bold cursor-pointer hover:text-amber-200 text-left"
                                             >
-                                                Ver regras pendentes ↑
+                                                {rvt.viewPendingRulesBtn}
                                             </button>
                                         </div>
                                     )}
@@ -1866,7 +2392,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {allRulesAccepted && !acceptedAll && (
                                         <div className="text-[11px] text-rose-400 flex items-center gap-1.5 pl-8">
                                             <AlertCircle size={14} className="shrink-0" />
-                                            <span>Marque a caixa de declaração acima para confirmar o aceite geral e liberar o envio do cadastro.</span>
+                                            <span>{rvt.declarationReminder}</span>
                                         </div>
                                     )}
                                 </div>
@@ -1878,7 +2404,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         rel="noopener noreferrer"
                                         className="text-xs text-amber-400 hover:text-amber-300 font-bold inline-flex items-center gap-1.5 transition-colors"
                                     >
-                                        <ExternalLink size={14} /> Prefiro preencher pelo Google Forms
+                                        <ExternalLink size={14} /> {rvt.preferGoogleFormsLink}
                                     </a>
 
                                     <button
@@ -1890,10 +2416,10 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             }`}
                                     >
                                         {isSubmitting ? (
-                                            <span>Processando Aceite...</span>
+                                            <span>{rvt.submitProcessing}</span>
                                         ) : (
                                             <>
-                                                <span>Confirmar Aceite e Cadastro</span>
+                                                <span>{rvt.submitConfirm}</span>
                                                 <Send size={16} />
                                             </>
                                         )}
@@ -1916,10 +2442,10 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-black text-white uppercase tracking-tight">
-                                            Cadastro de Visita Autorizada
+                                            {rvt.visitorModalTitle}
                                         </h3>
                                         <p className="text-xs text-slate-400">
-                                            Regra 1: Familiares ou convidados cadastrados (máx. 2 dias/semana)
+                                            {rvt.visitorModalSubtitle}
                                         </p>
                                     </div>
                                 </div>
@@ -2003,7 +2529,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start gap-2.5">
                                         <Info size={16} className="shrink-0 mt-0.5" />
                                         <span>
-                                            <strong>Lembrete de Segurança:</strong> Não é permitido receber crianças ou animais de estimação. O visitante entra obrigatoriamente pelo interfone recebido pelo morador e não fica na casa sem ele.
+                                            <strong>Lembrete de Segurança:</strong> {rvt.visitorSafetyNotice}
                                         </span>
                                     </div>
 
@@ -2011,7 +2537,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         {/* Morador Responsável */}
                                         <div className="space-y-1.5">
                                             <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                                                Nome do Morador *
+                                                {rvt.visitorResidentNameLabel}
                                             </label>
                                             <input
                                                 type="text"
@@ -2026,7 +2552,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         {/* Unidade / Quarto */}
                                         <div className="space-y-1.5">
                                             <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                                                Unidade / Quarto *
+                                                {rvt.visitorResidentUnitLabel}
                                             </label>
                                             <input
                                                 type="text"
@@ -2041,14 +2567,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         {/* Nome do Visitante */}
                                         <div className="space-y-1.5 sm:col-span-2">
                                             <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                                                Nome Completo do Visitante *
+                                                {rvt.visitorNameLabel}
                                             </label>
                                             <input
                                                 type="text"
                                                 required
                                                 value={visitorForm.visitorName}
                                                 onChange={e => setVisitorForm({ ...visitorForm, visitorName: e.target.value })}
-                                                placeholder="Nome completo de quem vai visitar"
+                                                placeholder={rvt.visitorNamePlaceholder}
                                                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none"
                                             />
                                         </div>
@@ -2056,14 +2582,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         {/* Documento do Visitante */}
                                         <div className="space-y-1.5">
                                             <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                                                CPF ou RG do Visitante *
+                                                {rvt.visitorDocLabel}
                                             </label>
                                             <input
                                                 type="text"
                                                 required
                                                 value={visitorForm.visitorDoc}
                                                 onChange={e => setVisitorForm({ ...visitorForm, visitorDoc: e.target.value })}
-                                                placeholder="000.000.000-00"
+                                                placeholder={rvt.visitorDocPlaceholder}
                                                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none"
                                             />
                                         </div>
@@ -2071,14 +2597,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         {/* Telefone do Visitante */}
                                         <div className="space-y-1.5">
                                             <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                                                WhatsApp do Visitante *
+                                                {rvt.visitorPhoneLabel}
                                             </label>
                                             <input
                                                 type="tel"
                                                 required
                                                 value={visitorForm.visitorPhone}
                                                 onChange={e => setVisitorForm({ ...visitorForm, visitorPhone: e.target.value })}
-                                                placeholder="(21) 99999-9999"
+                                                placeholder={rvt.visitorPhonePlaceholder}
                                                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none"
                                             />
                                         </div>
@@ -2086,7 +2612,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         {/* Grau de Parentesco / Relação */}
                                         <div className="space-y-1.5">
                                             <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                                                Parentesco ou Relação
+                                                {rvt.visitorRelationshipLabel}
                                             </label>
                                             <select
                                                 value={visitorForm.relationship}
@@ -2103,7 +2629,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         {/* Frequência */}
                                         <div className="space-y-1.5">
                                             <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                                                Frequência (Máx. 2 dias/sem)
+                                                {rvt.visitorFrequencyLabel}
                                             </label>
                                             <select
                                                 value={visitorForm.daysPerWeek}
@@ -2121,10 +2647,10 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
                                         <div>
                                             <span className="text-xs font-bold text-white block">
-                                                Haverá pernoite na visita?
+                                                {rvt.visitorOvernightLabel}
                                             </span>
                                             <span className="text-[11px] text-slate-400">
-                                                Permitido no máximo até 2 noites por semana
+                                                {rvt.visitorOvernightSub}
                                             </span>
                                         </div>
                                         <label className="relative inline-flex items-center cursor-pointer">
@@ -2149,7 +2675,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             className="w-4 h-4 rounded mt-0.5 accent-indigo-600 cursor-pointer"
                                         />
                                         <label htmlFor="checkVisitorTerms" className="text-[11px] text-slate-300 leading-relaxed cursor-pointer">
-                                            Declaro que o visitante está ciente e cumprirá todas as regras da propriedade (silêncio, proibição de álcool e fumo, sem pets e sem crianças), que será recebido por mim via interfone e que não permanecerá no imóvel sem minha presença.
+                                            {rvt.visitorTermsDeclaration}
                                         </label>
                                     </div>
 
@@ -2159,13 +2685,13 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             onClick={() => setIsVisitorModalOpen(false)}
                                             className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-bold transition-all cursor-pointer"
                                         >
-                                            Cancelar
+                                            {rvt.visitorCancelBtn}
                                         </button>
                                         <button
                                             type="submit"
                                             className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-950/40 cursor-pointer"
                                         >
-                                            Salvar & Autorizar Visita
+                                            {rvt.visitorSubmitBtn}
                                         </button>
                                     </div>
                                 </form>
