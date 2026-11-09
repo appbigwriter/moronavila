@@ -58,7 +58,124 @@ const SOFTPHONE_DOOR_LABEL = process.env.VITE_SOFTPHONE_DOOR_LABEL || 'Abrir por
 const SOFTPHONE_DOOR_DTMF = process.env.VITE_SOFTPHONE_DOOR_DTMF || '9';
 const SOFTPHONE_DOOR_RELAY_URL = process.env.SOFTPHONE_DOOR_RELAY_URL || '';
 
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+
+// --- ENDPOINT DE UPLOAD DE DOCUMENTOS DE RESIDENTES (SUPABASE STORAGE) ---
+app.post('/api/upload-document', async (req, res) => {
+    try {
+        const { fileBase64, fileName, contentType = 'image/jpeg', folder = 'documents' } = req.body || {};
+        if (!fileBase64 || !fileName) {
+            return res.status(400).json({ success: false, error: 'Arquivo (base64) e nome do arquivo são obrigatórios.' });
+        }
+
+        const cleanBase64 = fileBase64.replace(/^data:[^;]+;base64,/, '');
+        const buffer = Buffer.from(cleanBase64, 'base64');
+
+        const cleanName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const timestamp = Date.now();
+        const filePath = `${folder}/${timestamp}_${cleanName}`;
+
+        const { data, error } = await supabase.storage
+            .from('resident-documents')
+            .upload(filePath, buffer, {
+                contentType,
+                upsert: true
+            });
+
+        if (error) {
+            console.error('Erro ao fazer upload no bucket resident-documents:', error);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        const { data: publicUrlData } = supabase.storage
+            .from('resident-documents')
+            .getPublicUrl(filePath);
+
+        const publicUrl = publicUrlData?.publicUrl || `${supabaseUrl}/storage/v1/object/public/resident-documents/${filePath}`;
+
+        return res.json({
+            success: true,
+            url: publicUrl,
+            path: filePath
+        });
+    } catch (err: any) {
+        console.error('Erro interno /api/upload-document:', err);
+        return res.status(500).json({ success: false, error: err.message || 'Erro ao processar upload.' });
+    }
+});
+
+// --- ENDPOINT DE CADASTRO OFICIAL DE RESIDENTE / CANDIDATO ---
+app.post('/api/register-candidate', async (req, res) => {
+    try {
+        const {
+            name, email, phone, cpf, rg, birth_date,
+            origin_address, family_address,
+            emergency_contact_name, emergency_contact_phone,
+            occupation, company, university, course,
+            instagram, facebook, desired_room_type,
+            document_front_url, document_back_url,
+            entry_date
+        } = req.body || {};
+
+        if (!name || !email || !phone || !cpf || !rg || !birth_date || !origin_address || !family_address || !emergency_contact_name || !emergency_contact_phone || !occupation || !company || !instagram || !facebook || !desired_room_type || !document_front_url || !document_back_url) {
+            return res.status(400).json({
+                success: false,
+                error: 'Todos os campos cadastrais e documentos frente e verso são de preenchimento obrigatório.'
+            });
+        }
+
+        const metaDoc = JSON.stringify({
+            facebook: facebook.trim(),
+            desired_room_type: desired_room_type.trim(),
+            doc_front: document_front_url.trim(),
+            doc_back: document_back_url.trim(),
+            registered_at: new Date().toISOString()
+        });
+
+        const residentPayload: Record<string, any> = {
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            phone: phone.trim(),
+            cpf: cpf.trim(),
+            rg: rg.trim(),
+            birth_date: birth_date.trim(),
+            origin_address: origin_address.trim(),
+            family_address: family_address.trim(),
+            emergency_contact_name: emergency_contact_name.trim(),
+            emergency_contact_phone: emergency_contact_phone.trim(),
+            occupation: occupation.trim(),
+            company: company.trim(),
+            university: (university || '').trim(),
+            course: (course || '').trim(),
+            instagram: instagram.trim(),
+            document_number: metaDoc,
+            entry_date: entry_date || new Date().toISOString().split('T')[0],
+            status: 'Candidato',
+            role: 'Morador',
+            habilitado: false,
+            internet_active: false,
+            rent_value: 900,
+            cleaning_fee: 60
+        };
+
+        const { data, error } = await supabase
+            .from('residents')
+            .insert(residentPayload)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Erro ao cadastrar candidato no Supabase:', error);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+
+        return res.json({ success: true, resident: data });
+    } catch (err: any) {
+        console.error('Erro interno /api/register-candidate:', err);
+        return res.status(500).json({ success: false, error: err.message || 'Erro ao registrar candidato.' });
+    }
+});
 
 // --- HEALTH CHECK (EASYPANEL / CONTROL TOWER CONTRACT) ---
 app.get('/health', (req, res) => {

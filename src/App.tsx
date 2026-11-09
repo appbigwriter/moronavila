@@ -30,6 +30,7 @@ import { LaundryView } from './views/LaundryView';
 import { PropertyDescView } from './views/PropertyDescView';
 import { LandingPage } from './views/LandingPage';
 import { RulesAcceptanceView } from './views/RulesAcceptanceView';
+import { ResidentProfileView } from './views/ResidentProfileView';
 
 const SoftphoneDock = lazy(() =>
   import('./modules/softphone/SoftphoneDock').then((module) => ({
@@ -46,6 +47,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [initialModal, setInitialModal] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<Resident | null>(null);
+  const [selectedProfileResident, setSelectedProfileResident] = useState<Resident | null>(null);
 
   // Data state
   const [residents, setResidents] = useState<Resident[]>([]);
@@ -272,7 +274,10 @@ function App() {
     <Layout
       currentUser={currentUser}
       activeTab={activeTab}
-      setActiveTab={setActiveTab}
+      setActiveTab={(tab) => {
+        setSelectedProfileResident(null);
+        setActiveTab(tab);
+      }}
       onLogout={() => {
         setSession(null);
         setCurrentUser(null);
@@ -320,11 +325,28 @@ function App() {
           )}
 
           {activeTab === 'residents' && isAdmin && (
-            <ResidentsView
-              residents={residents} isAdmin={isAdmin}
-              currentUser={currentUser} onRefresh={refreshData}
-              initialModal={initialModal as any}
-            />
+            selectedProfileResident ? (
+              <ResidentProfileView
+                resident={selectedProfileResident}
+                onBack={() => setSelectedProfileResident(null)}
+                onRefresh={() => {
+                  refreshData();
+                  const updated = residents.find(r => r.id === selectedProfileResident.id);
+                  if (updated) setSelectedProfileResident(updated);
+                }}
+                isAdmin={isAdmin}
+                rooms={rooms}
+              />
+            ) : (
+              <ResidentsView
+                residents={residents}
+                isAdmin={isAdmin}
+                currentUser={currentUser}
+                onRefresh={refreshData}
+                initialModal={initialModal as any}
+                onOpenResidentProfile={(res) => setSelectedProfileResident(res)}
+              />
+            )
           )}
 
           {activeTab === 'payments' && (

@@ -195,6 +195,8 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
         emergency_contact_phone: currentUser?.emergency_contact_phone || '',
         occupation: currentUser?.occupation || '',
         company: currentUser?.company || '',
+        university: (currentUser as any)?.university || '',
+        course: (currentUser as any)?.course || '',
         instagram: currentUser?.instagram || '',
         facebook: (currentUser as any)?.facebook || '',
         desired_room_type: 'Quarto Individual',
@@ -335,75 +337,164 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
         setSubmitError('');
 
         if (!acceptedAll) {
-            setSubmitError('É necessário aceitar todas as 12 regras de conduta para concluir o cadastro.');
+            setSubmitError('É obrigatório declarar ciência e aceitar todas as 12 Regras de Conduta Residencial para concluir seu cadastro.');
             return;
         }
 
-        if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim()) {
-            setSubmitError('Por favor, preencha os campos obrigatórios (Nome, E-mail e WhatsApp).');
+        // Validação obrigatória de TODOS os campos cadastrais
+        if (!formData.name.trim()) {
+            setSubmitError('Por favor, informe seu Nome Completo.');
+            return;
+        }
+        if (!formData.email.trim()) {
+            setSubmitError('Por favor, informe seu E-mail de contato.');
+            return;
+        }
+        if (!formData.phone.trim()) {
+            setSubmitError('Por favor, informe seu WhatsApp / Telefone principal.');
+            return;
+        }
+        if (!formData.cpf.trim()) {
+            setSubmitError('Por favor, informe seu CPF.');
+            return;
+        }
+        if (!formData.rg.trim()) {
+            setSubmitError('Por favor, informe seu RG com Órgão Emissor.');
+            return;
+        }
+        if (!formData.birth_date.trim()) {
+            setSubmitError('Por favor, informe sua Data de Nascimento.');
+            return;
+        }
+        if (!formData.origin_address.trim()) {
+            setSubmitError('Por favor, informe seu Endereço Anterior / Cidade de Origem.');
+            return;
+        }
+        if (!formData.family_address.trim()) {
+            setSubmitError('Por favor, informe o Endereço de seus Familiares / Pais.');
+            return;
+        }
+        if (!formData.emergency_contact_name.trim()) {
+            setSubmitError('Por favor, informe o Nome do seu Contato de Emergência.');
+            return;
+        }
+        if (!formData.emergency_contact_phone.trim()) {
+            setSubmitError('Por favor, informe o WhatsApp / Telefone do Contato de Emergência.');
+            return;
+        }
+        if (!formData.occupation.trim()) {
+            setSubmitError('Por favor, informe sua Profissão / Ocupação Atual.');
+            return;
+        }
+        if (!formData.company.trim()) {
+            setSubmitError('Por favor, informe sua Empresa / Local de Trabalho (ou informe Autônomo).');
+            return;
+        }
+        if (!formData.instagram.trim()) {
+            setSubmitError('Por favor, informe seu Instagram (@usuario ou link do perfil).');
+            return;
+        }
+        if (!formData.facebook.trim()) {
+            setSubmitError('Por favor, informe seu Facebook (link do perfil ou nome no Facebook).');
+            return;
+        }
+        if (!formData.desired_room_type.trim()) {
+            setSubmitError('Por favor, selecione a Acomodação Pretendida.');
+            return;
+        }
+        if (!formData.entry_date.trim()) {
+            setSubmitError('Por favor, informe a Data Prevista de Entrada / Mudança.');
+            return;
+        }
+        if (!docFrontFile && !docFrontPreview) {
+            setSubmitError('É obrigatório anexar a foto da Frente do seu Documento de Identidade (RG ou CNH com foto).');
+            return;
+        }
+        if (!docBackFile && !docBackPreview) {
+            setSubmitError('É obrigatório anexar a foto do Verso do seu Documento de Identidade (ou CNH completa).');
             return;
         }
 
         setIsSubmitting(true);
 
         try {
-            let docFrontUrl = '';
-            let docBackUrl = '';
+            let docFrontUrl = docFrontPreview || '';
+            let docBackUrl = docBackPreview || '';
 
-            // Tenta upload das fotos do documento se fornecidas
+            // Realiza upload das fotos dos documentos para o bucket resident-documents
             if (docFrontFile) {
                 try {
                     docFrontUrl = await uploadResidentDocument(docFrontFile, 'doc_frente');
-                } catch (e) {
+                } catch (e: any) {
                     console.warn('Upload doc frente:', e);
-                    docFrontUrl = docFrontPreview || '';
                 }
             }
 
             if (docBackFile) {
                 try {
                     docBackUrl = await uploadResidentDocument(docBackFile, 'doc_verso');
-                } catch (e) {
+                } catch (e: any) {
                     console.warn('Upload doc verso:', e);
-                    docBackUrl = docBackPreview || '';
                 }
             }
 
             await createResident({
-                name: formData.name,
-                email: formData.email,
-                phone: formData.phone,
-                cpf: formData.cpf,
-                rg: formData.rg,
-                birth_date: formData.birth_date,
-                origin_address: formData.origin_address,
-                family_address: formData.family_address,
-                emergency_contact_name: formData.emergency_contact_name,
-                emergency_contact_phone: formData.emergency_contact_phone,
-                occupation: formData.occupation,
-                company: formData.company,
-                instagram: formData.instagram,
-                facebook: formData.facebook,
+                name: formData.name.trim(),
+                email: formData.email.trim().toLowerCase(),
+                phone: formData.phone.trim(),
+                cpf: formData.cpf.trim(),
+                rg: formData.rg.trim(),
+                birth_date: formData.birth_date.trim(),
+                origin_address: formData.origin_address.trim(),
+                family_address: formData.family_address.trim(),
+                emergency_contact_name: formData.emergency_contact_name.trim(),
+                emergency_contact_phone: formData.emergency_contact_phone.trim(),
+                occupation: formData.occupation.trim(),
+                company: formData.company.trim(),
+                university: (formData.university || '').trim(),
+                course: (formData.course || '').trim(),
+                instagram: formData.instagram.trim(),
+                facebook: formData.facebook.trim(),
+                desired_room_type: formData.desired_room_type.trim(),
                 document_front_url: docFrontUrl,
                 document_back_url: docBackUrl,
+                document_urls: [docFrontUrl, docBackUrl].filter(Boolean),
                 entry_date: formData.entry_date || new Date().toISOString().split('T')[0],
                 status: 'Candidato',
                 role: UserRole.RESIDENT,
                 habilitado: false,
-                internet_active: false
+                internet_active: false,
+                rent_value: 900,
+                cleaning_fee: 60
             });
 
             setSubmitSuccess(true);
         } catch (err: any) {
-            console.warn('Erro ao salvar no Supabase, mantendo confirmação amigável:', err);
-            setSubmitSuccess(true);
+            console.error('Erro ao cadastrar candidato no Supabase:', err);
+            setSubmitError(err.message || 'Erro ao gravar cadastro no banco de dados. Por favor, verifique os dados ou fale com a administração pelo WhatsApp.');
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleWhatsAppConfirm = () => {
-        const text = `Olá, Sérgio! Acabei de preencher o formulário e aceitar todas as Regras de Conduta Residencial VouPruRio.%0A%0A*Nome:* ${formData.name}%0A*WhatsApp:* ${formData.phone}%0A*E-mail:* ${formData.email}%0A*Instagram:* ${formData.instagram || 'Não informado'}%0A*Facebook:* ${formData.facebook || 'Não informado'}%0A*Doc. Frente:* ${docFrontFile ? 'Anexado no site' : 'A enviar'}%0A*Doc. Verso:* ${docBackFile ? 'Anexado no site' : 'A enviar'}%0A*Entrada Prevista:* ${formData.entry_date || 'A combinar'}%0A%0AConfirmo o aceite integral das regras e das condições financeiras.`;
+        const text = `*NOVO CADASTRO & ACEITE DE REGRAS - VOUPRURIO*%0A%0A` +
+            `*Nome:* ${formData.name}%0A` +
+            `*E-mail:* ${formData.email}%0A` +
+            `*WhatsApp:* ${formData.phone}%0A` +
+            `*CPF:* ${formData.cpf}%0A` +
+            `*RG:* ${formData.rg}%0A` +
+            `*Data de Nascimento:* ${formData.birth_date}%0A` +
+            `*Acomodação Desejada:* ${formData.desired_room_type}%0A` +
+            `*Data Prevista Entrada:* ${formData.entry_date}%0A` +
+            `*Profissão / Empresa:* ${formData.occupation} / ${formData.company}%0A` +
+            `*Instagram:* ${formData.instagram}%0A` +
+            `*Facebook:* ${formData.facebook}%0A` +
+            `*Origem:* ${formData.origin_address}%0A` +
+            `*Família:* ${formData.family_address}%0A` +
+            `*Contato de Emergência:* ${formData.emergency_contact_name} (${formData.emergency_contact_phone})%0A` +
+            `*Documentos Anexados:* ${docFrontFile ? 'Frente enviada' : 'Sim'} e ${docBackFile ? 'Verso enviado' : 'Sim'}%0A%0A` +
+            `_Declaro que li e aceito integralmente todas as 12 Regras de Conduta Residencial VouPruRio e as condições financeiras (Depósito Caução + Mês Corrente)._`;
         window.open(`https://wa.me/5521983245000?text=${text}`, '_blank');
     };
 
@@ -955,10 +1046,11 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* CPF */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            CPF
+                                            CPF *
                                         </label>
                                         <input
                                             type="text"
+                                            required
                                             value={formData.cpf}
                                             onChange={e => setFormData({ ...formData, cpf: e.target.value })}
                                             placeholder="000.000.000-00"
@@ -969,10 +1061,11 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* RG */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            RG / Órgão Emissor
+                                            RG / Órgão Emissor *
                                         </label>
                                         <input
                                             type="text"
+                                            required
                                             value={formData.rg}
                                             onChange={e => setFormData({ ...formData, rg: e.target.value })}
                                             placeholder="00.000.000-0 DETRAN"
@@ -983,10 +1076,11 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Data de Nascimento */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Data de Nascimento
+                                            Data de Nascimento *
                                         </label>
                                         <input
                                             type="date"
+                                            required
                                             value={formData.birth_date}
                                             onChange={e => setFormData({ ...formData, birth_date: e.target.value })}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white"
@@ -994,12 +1088,13 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     </div>
 
                                     {/* Endereço de Origem */}
-                                    <div className="space-y-2 sm:col-span-2">
+                                    <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Endereço Anterior / Cidade de Origem
+                                            Endereço Anterior / Cidade de Origem *
                                         </label>
                                         <input
                                             type="text"
+                                            required
                                             value={formData.origin_address}
                                             onChange={e => setFormData({ ...formData, origin_address: e.target.value })}
                                             placeholder="Rua, Número, Bairro, Cidade - UF"
@@ -1007,29 +1102,107 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         />
                                     </div>
 
+                                    {/* Endereço da Família */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                                            Endereço da Família / Responsáveis *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={formData.family_address}
+                                            onChange={e => setFormData({ ...formData, family_address: e.target.value })}
+                                            placeholder="Cidade e Bairro onde moram pais/familiares"
+                                            className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
+                                        />
+                                    </div>
+
+                                    {/* Tipo de Acomodação Pretendida */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                                            Acomodação Pretendida *
+                                        </label>
+                                        <select
+                                            required
+                                            value={formData.desired_room_type}
+                                            onChange={e => setFormData({ ...formData, desired_room_type: e.target.value })}
+                                            className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white cursor-pointer"
+                                        >
+                                            <option value="Quarto Individual">Quarto Individual (R$ 960/mês)</option>
+                                            <option value="Suíte Independente">Suíte Independente</option>
+                                            <option value="Studio MoronaVila">Studio MoronaVila</option>
+                                            <option value="Apartamento MoronaVila">Apartamento Completo MoronaVila</option>
+                                        </select>
+                                    </div>
+
                                     {/* Data Prevista de Entrada */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Data Prevista de Entrada
+                                            Data Prevista de Entrada *
                                         </label>
                                         <input
                                             type="date"
+                                            required
                                             value={formData.entry_date}
                                             onChange={e => setFormData({ ...formData, entry_date: e.target.value })}
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white"
                                         />
                                     </div>
 
-                                    {/* Profissão / Empresa */}
+                                    {/* Profissão / Ocupação */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Profissão / Ocupação
+                                            Profissão / Ocupação Atual *
                                         </label>
                                         <input
                                             type="text"
+                                            required
                                             value={formData.occupation}
                                             onChange={e => setFormData({ ...formData, occupation: e.target.value })}
-                                            placeholder="Ex: Engenheiro de Software"
+                                            placeholder="Ex: Engenheiro, Médico, Advogado, Autônomo"
+                                            className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
+                                        />
+                                    </div>
+
+                                    {/* Empresa / Local de Trabalho */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                                            Empresa / Empregador *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={formData.company}
+                                            onChange={e => setFormData({ ...formData, company: e.target.value })}
+                                            placeholder="Nome da empresa ou 'Autônomo' / 'Concursado'"
+                                            className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
+                                        />
+                                    </div>
+
+                                    {/* Faculdade / Universidade */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                                            Faculdade / Universidade
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.university}
+                                            onChange={e => setFormData({ ...formData, university: e.target.value })}
+                                            placeholder="Ex: UERJ, UFRJ, Estácio (se aplicável)"
+                                            className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
+                                        />
+                                    </div>
+
+                                    {/* Curso / Formação */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                                            Curso / Área de Formação
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.course}
+                                            onChange={e => setFormData({ ...formData, course: e.target.value })}
+                                            placeholder="Ex: Medicina, Direito, Computação"
                                             className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:border-rose-500 focus:outline-none text-sm text-white placeholder-slate-600"
                                         />
                                     </div>
@@ -1037,10 +1210,11 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Contato de Emergência */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Contato de Emergência (Nome)
+                                            Contato de Emergência (Nome) *
                                         </label>
                                         <input
                                             type="text"
+                                            required
                                             value={formData.emergency_contact_name}
                                             onChange={e => setFormData({ ...formData, emergency_contact_name: e.target.value })}
                                             placeholder="Nome do familiar ou responsável"
@@ -1051,10 +1225,11 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     {/* Telefone de Emergência */}
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                                            Telefone de Emergência
+                                            Telefone de Emergência *
                                         </label>
                                         <input
                                             type="tel"
+                                            required
                                             value={formData.emergency_contact_phone}
                                             onChange={e => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
                                             placeholder="(21) 98888-8888"
@@ -1066,12 +1241,13 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                                             <Instagram size={14} className="text-rose-400" />
-                                            <span>Instagram (URL ou @)</span>
+                                            <span>Instagram (URL ou @) *</span>
                                         </label>
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">@</span>
                                             <input
                                                 type="text"
+                                                required
                                                 value={formData.instagram}
                                                 onChange={e => setFormData({ ...formData, instagram: e.target.value })}
                                                 placeholder="seuperfil ou link"
@@ -1084,10 +1260,11 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                                             <Facebook size={14} className="text-blue-400" />
-                                            <span>Facebook (URL ou Nome)</span>
+                                            <span>Facebook (URL ou Nome) *</span>
                                         </label>
                                         <input
                                             type="text"
+                                            required
                                             value={formData.facebook}
                                             onChange={e => setFormData({ ...formData, facebook: e.target.value })}
                                             placeholder="facebook.com/seuperfil ou nome"
@@ -1101,22 +1278,23 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             <div>
                                                 <h4 className="text-xs font-black text-rose-400 uppercase tracking-[0.2em] flex items-center gap-2">
                                                     <ImageIcon size={16} />
-                                                    <span>Imagens do Documento de Identidade (RG ou CNH)</span>
+                                                    <span>Imagens do Documento de Identidade (RG ou CNH) * Obrigatório</span>
                                                 </h4>
                                                 <p className="text-[11px] text-slate-400 mt-0.5">
-                                                    Anexe fotos legíveis da frente (com foto) e do verso do seu documento de identificação
+                                                    É obrigatório anexar fotos legíveis da frente (com foto) e do verso do seu documento de identificação
                                                 </p>
                                             </div>
-                                            <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-800 px-2.5 py-1 rounded-lg self-start sm:self-auto">
-                                                JPG, PNG ou PDF (Máx. 10MB)
+                                            <span className="text-[10px] uppercase font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 rounded-lg self-start sm:self-auto">
+                                                Obrigatório anexar ambos os lados
                                             </span>
                                         </div>
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                                             {/* Documento Frente */}
-                                            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3">
+                                            <div className={`p-4 rounded-2xl bg-slate-950 border space-y-3 ${!docFrontFile && !docFrontPreview ? 'border-rose-500/30' : 'border-emerald-500/40'}`}>
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                                        <span className="text-rose-400">*</span>
                                                         <span>Frente do Documento</span>
                                                         <span className="text-[10px] text-slate-500 font-normal">(com foto)</span>
                                                     </span>
@@ -1177,9 +1355,10 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             </div>
 
                                             {/* Documento Verso */}
-                                            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3">
+                                            <div className={`p-4 rounded-2xl bg-slate-950 border space-y-3 ${!docBackFile && !docBackPreview ? 'border-rose-500/30' : 'border-emerald-500/40'}`}>
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                                        <span className="text-rose-400">*</span>
                                                         <span>Verso do Documento</span>
                                                         <span className="text-[10px] text-slate-500 font-normal">(ou CNH completa)</span>
                                                     </span>

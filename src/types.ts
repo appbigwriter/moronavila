@@ -55,6 +55,7 @@ export interface Resident {
   document_front_url?: string;
   document_back_url?: string;
   document_urls?: string[];
+  desired_room_type?: string;
   mac_address?: string;
   mac_address_pc?: string;
   room_id?: string;

@@ -3,7 +3,7 @@ import {
     Edit2, Plus, Search, Shield, Trash2, User as UserIcon, Wifi, X,
     Users, Ban, CheckCircle2, XCircle, Phone, Mail, Calendar, MapPin, Briefcase, 
     GraduationCap, Instagram, Info, ChevronRight, Wrench, ImageIcon, 
-    Lock, ExternalLink, ArrowRight
+    Lock, ExternalLink, ArrowRight, FileText
 } from 'lucide-react';
 import { Resident, UserRole } from '../types';
 import { deleteResident, fetchCurrentResident, signUpAdmin, signUpResident, updateResident } from '../lib/database';
@@ -14,6 +14,7 @@ interface ResidentsViewProps {
     currentUser: Resident;
     onRefresh: () => void;
     initialModal?: 'add-resident' | null;
+    onOpenResidentProfile?: (resident: Resident) => void;
 }
 
 type SoftphoneFilter =
@@ -34,7 +35,7 @@ function getSoftphoneBadge(resident: Resident) {
     return { label: 'Pronto', className: 'bg-emerald-100 text-emerald-700' };
 }
 
-export function ResidentsView({ residents, isAdmin, currentUser, onRefresh, initialModal }: ResidentsViewProps) {
+export function ResidentsView({ residents, isAdmin, currentUser, onRefresh, initialModal, onOpenResidentProfile }: ResidentsViewProps) {
     const [activeTab, setActiveTab] = useState<'residents' | 'candidates'>('residents');
     const [searchTerm, setSearchTerm] = useState('');
     const [softphoneFilter, setSoftphoneFilter] = useState<SoftphoneFilter>('all');
@@ -314,7 +315,26 @@ export function ResidentsView({ residents, isAdmin, currentUser, onRefresh, init
                                 const badge = getSoftphoneBadge(resident);
                                 return (
                                     <tr key={resident.id} className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-6 py-4"><div className="flex items-center gap-3"><div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold uppercase ${activeTab === 'residents' ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'}`}>{resident.name.charAt(0)}</div><div><div className="flex items-center gap-2 font-bold text-slate-900">{resident.name}{resident.role === UserRole.ADMIN && <Shield size={14} className="text-indigo-600" />}</div><div className="text-xs text-slate-500">{activeTab === 'residents' ? `Entrada: ${resident.entry_date}` : `Inscricao: ${resident.entry_date}`}</div></div></div></td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold uppercase ${activeTab === 'residents' ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'}`}>
+                                                    {resident.name.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <button
+                                                        onClick={() => onOpenResidentProfile ? onOpenResidentProfile(resident) : setEditingResident(resident)}
+                                                        className="flex items-center gap-2 font-bold text-slate-900 hover:text-rose-600 transition-colors text-left cursor-pointer"
+                                                        title="Ver Ficha Completa do Morador"
+                                                    >
+                                                        <span>{resident.name}</span>
+                                                        {resident.role === UserRole.ADMIN && <Shield size={14} className="text-indigo-600" />}
+                                                    </button>
+                                                    <div className="text-xs text-slate-500">
+                                                        {activeTab === 'residents' ? `Entrada: ${resident.entry_date}` : `Inscrição: ${resident.entry_date}`}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4"><div className="text-sm font-medium text-slate-900">{resident.phone}</div><div className="text-xs text-slate-500">{resident.email}</div></td>
                                         <td className="px-6 py-4">
                                             {activeTab === 'residents' ? (
@@ -336,25 +356,34 @@ export function ResidentsView({ residents, isAdmin, currentUser, onRefresh, init
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex justify-end gap-2">
+                                                {/* Botão Ver Ficha Completa & Documentos */}
+                                                <button
+                                                    onClick={() => onOpenResidentProfile ? onOpenResidentProfile(resident) : setEditingResident(resident)}
+                                                    className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                                    title="Ver Ficha Completa & Documentos Anexados"
+                                                >
+                                                    <FileText size={18} />
+                                                </button>
+
                                                 {activeTab === 'candidates' && isAdmin && (
                                                     <>
                                                         <button
                                                             onClick={() => setEditingResident(resident)}
-                                                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                            title="Ver Detalhes / Editar"
+                                                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                                                            title="Editar Dados"
                                                         >
                                                             <Info size={18} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleApproveCandidate(resident)}
-                                                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
                                                             title="Aprovar Morador"
                                                         >
                                                             <CheckCircle2 size={18} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleRejectCandidate(resident)}
-                                                            className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                                            className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                                                             title="Recusar"
                                                         >
                                                             <XCircle size={18} />
@@ -365,7 +394,7 @@ export function ResidentsView({ residents, isAdmin, currentUser, onRefresh, init
                                                     <>
                                                         <button
                                                             onClick={() => setEditingResident(resident)}
-                                                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
                                                             title="Editar"
                                                         >
                                                             <Edit2 size={18} />
@@ -373,7 +402,7 @@ export function ResidentsView({ residents, isAdmin, currentUser, onRefresh, init
                                                         {isAdmin && resident.id !== currentUser.id && (
                                                             <button
                                                                 onClick={() => handleDelete(resident)}
-                                                                className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                                                className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                                                                 title="Excluir"
                                                             >
                                                                 <Trash2 size={18} />

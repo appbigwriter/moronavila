@@ -22,17 +22,82 @@ function toSnake(obj: Record<string, any>): Record<string, any> {
 }
 
 // ── RESIDENTS ──────────────────────────────────────────────────────────────────
+export function normalizeResident(r: any): Resident {
+    if (!r) return r;
+    const item = { ...r };
+    if (item.document_number && typeof item.document_number === 'string' && item.document_number.startsWith('{')) {
+        try {
+            const meta = JSON.parse(item.document_number);
+            item.facebook = item.facebook || meta.facebook || '';
+            item.desired_room_type = item.desired_room_type || meta.desired_room_type || '';
+            item.document_front_url = item.document_front_url || meta.doc_front || '';
+            item.document_back_url = item.document_back_url || meta.doc_back || '';
+            item.document_urls = item.document_urls || [meta.doc_front, meta.doc_back].filter(Boolean);
+        } catch (e) {
+            // mantém original
+        }
+    }
+    return item as Resident;
+}
+
 export async function fetchResidents(): Promise<Resident[]> {
     const { data, error } = await supabase.from('residents').select('*').order('name');
     if (error) throw error;
-    return (data || []) as Resident[];
+    return (data || []).map(normalizeResident);
 }
 
 export async function createResident(resident: Partial<Resident>): Promise<Resident> {
-    const payload = toSnake(resident);
-    const { data, error } = await supabase.from('residents').insert(payload).select().single();
+    // 1. Tenta enviar pela rota da API de cadastro (com service_role no backend)
+    try {
+        const response = await fetch('/api/register-candidate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(resident)
+        });
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.resident) {
+                return normalizeResident(result.resident);
+            }
+        }
+    } catch (apiErr) {
+        console.warn('API /api/register-candidate indisponivel, usando fallback Supabase direto:', apiErr);
+    }
+
+    // 2. Fallback direto no Supabase com payload seguro
+    const raw = toSnake(resident);
+    const metaDoc = JSON.stringify({
+        facebook: resident.facebook || '',
+        desired_room_type: (resident as any).desired_room_type || '',
+        doc_front: resident.document_front_url || '',
+        doc_back: resident.document_back_url || '',
+        registered_at: new Date().toISOString()
+    });
+
+    const allowedDbColumns = [
+        'name', 'phone', 'photo_url', 'instagram', 'role', 'status',
+        'entry_date', 'birth_date', 'cpf', 'document_number', 'rg',
+        'origin_address', 'work_address', 'room_id', 'mac_address',
+        'mac_address_pc', 'internet_active', 'internet_renewal_date', 'auth_id', 'email', 'habilitado',
+        'motivo_bloqueio', 'rent_value', 'cleaning_fee', 'extras_value', 'bed_identifier',
+        'softphone_extension', 'softphone_enabled', 'softphone_display_name',
+        'family_address', 'emergency_contact_name', 'emergency_contact_phone',
+        'occupation', 'company', 'university', 'course'
+    ];
+
+    const safePayload: Record<string, any> = {};
+    allowedDbColumns.forEach(col => {
+        if (col in raw) {
+            safePayload[col] = raw[col];
+        }
+    });
+
+    // Armazena metadados dos documentos e facebook no document_number
+    safePayload.document_number = metaDoc;
+
+    const { data, error } = await supabase.from('residents').insert(safePayload).select().single();
     if (error) throw error;
-    return data as Resident;
+    return normalizeResident(data);
 }
 
 export async function fetchCandidates(): Promise<Resident[]> {
@@ -41,7 +106,7 @@ export async function fetchCandidates(): Promise<Resident[]> {
         .eq('status', 'Candidato')
         .order('created_at', { ascending: false });
     if (error) throw error;
-    return (data || []) as Resident[];
+    return (data || []).map(normalizeResident);
 }
 
 export async function updateResident(id: string, updates: Partial<Resident>): Promise<Resident> {
@@ -575,11 +640,58 @@ export async function uploadResidentDocument(file: File, documentType = 'identit
     const fileExt = file.name.split('.').pop() || 'jpg';
     const safeId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const fileName = `${documentType}-${safeId}.${fileExt}`;
-    const filePath = `documents/${fileName}`;
-    const { error: uploadError } = await supabase.storage.from('room-media').upload(filePath, file);
-    if (uploadError) throw uploadError;
-    const { data } = supabase.storage.from('room-media').getPublicUrl(filePath);
-    return data.publicUrl;
+
+    // 1. Tentar upload seguro via API backend (com service_role no bucket resident-documents)
+    try {
+        const base64Data = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+
+        const res = await fetch('/api/upload-document', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fileBase64: base64Data,
+                fileName,
+                contentType: file.type || 'image/jpeg',
+                folder: 'documents'
+            })
+        });
+
+        if (res.ok) {
+            const json = await res.json();
+            if (json.success && json.url) {
+                return json.url;
+            }
+        }
+    } catch (e) {
+        console.warn('Upload via /api/upload-document indisponível, tentando storage direto:', e);
+    }
+
+    // 2. Tentar direto no bucket resident-documents do Supabase
+    try {
+        const filePath = `documents/${fileName}`;
+        const { error: uploadError } = await supabase.storage.from('resident-documents').upload(filePath, file, {
+            contentType: file.type,
+            upsert: true
+        });
+        if (!uploadError) {
+            const { data } = supabase.storage.from('resident-documents').getPublicUrl(filePath);
+            if (data?.publicUrl) return data.publicUrl;
+        }
+    } catch (e) {
+        console.warn('Erro ao enviar direto para resident-documents:', e);
+    }
+
+    // 3. Fallback: Converter para Data URL base64 permanente
+    return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+    });
 }
 
 // ── LAUNDRY SCHEDULES ──────────────────────────────────────────────────────────
