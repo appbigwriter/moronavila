@@ -262,23 +262,30 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
         setTimeout(() => setCopiedFormUrl(false), 3000);
     };
 
+    const acceptedCount = RULES_DATA.filter(r => !!acceptedRules[r.id]).length;
+    const allRulesAccepted = acceptedCount === RULES_DATA.length;
+
     const handleToggleRule = (id: number) => {
         setAcceptedRules(prev => {
             const updated = { ...prev, [id]: !prev[id] };
             const allChecked = RULES_DATA.every(r => updated[r.id]);
-            setAcceptedAll(allChecked);
+            if (!allChecked) {
+                setAcceptedAll(false);
+            }
             return updated;
         });
     };
 
-    const handleToggleAll = () => {
-        const nextState = !acceptedAll;
-        setAcceptedAll(nextState);
-        const newMap: Record<number, boolean> = {};
-        RULES_DATA.forEach(r => {
-            newMap[r.id] = nextState;
-        });
-        setAcceptedRules(newMap);
+    const handleToggleAcceptAll = () => {
+        if (!allRulesAccepted && !acceptedAll) {
+            setSubmitError(`É obrigatório aceitar individualmente cada uma das 12 regras antes de assinar a declaração final. Você aceitou ${acceptedCount} de 12 regras.`);
+            const rulesSection = document.getElementById('secao-regras');
+            if (rulesSection) {
+                rulesSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            return;
+        }
+        setAcceptedAll(!acceptedAll);
     };
 
     const handleVisitorSubmit = (e: React.FormEvent) => {
@@ -342,8 +349,16 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
         e.preventDefault();
         setSubmitError('');
 
+        if (!allRulesAccepted) {
+            const missing = RULES_DATA.filter(r => !acceptedRules[r.id]);
+            setSubmitError(`É obrigatório aceitar individualmente cada uma das 12 regras. Faltam ${missing.length} regra(s) para aceitar.`);
+            const rulesSection = document.getElementById('secao-regras');
+            if (rulesSection) rulesSection.scrollIntoView({ behavior: 'smooth' });
+            return;
+        }
+
         if (!acceptedAll) {
-            setSubmitError('É obrigatório declarar ciência e aceitar todas as 12 Regras de Conduta Residencial para concluir seu cadastro.');
+            setSubmitError('É obrigatório marcar e assinar a Declaração Formal de Aceite Integral das Regras.');
             return;
         }
 
@@ -519,7 +534,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
             `*Família:* ${formData.family_address}%0A` +
             `*Contato de Emergência:* ${formData.emergency_contact_name} (${formData.emergency_contact_phone})%0A` +
             `*Documentos Anexados:* ${docFrontFile ? 'Frente enviada' : 'Sim'} e ${docBackFile ? 'Verso enviado' : 'Sim'}%0A%0A` +
-            `_Declaro que li e aceito integralmente todas as 12 Regras de Conduta Residencial MoronaVila e as condições financeiras (Depósito Caução + Mês Corrente)._`;
+            `_Declaro que li, compreendi e dei aceite integral em todas as 12 Regras de Conduta do Residencial Moronavila e que assumo a responsabilidade pelos meus atos e das pessoas que forem autorizadas por mim a visitar a propriedade, e que responderei financeiramente danos a propriedade ou moveis, eletrodomesticos, equipamentos e utensillhos que estou recebendo na minha unidade e nas partes compatilhadas._`;
         window.open(`https://wa.me/5521983245000?text=${text}`, '_blank');
     };
 
@@ -703,24 +718,32 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                 </div>
 
                 {/* AS 12 REGRAS DE CONDUTA RESIDENCIAL */}
-                <div className="space-y-6">
+                <div id="secao-regras" className="space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <span className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">
-                                Termos Obrigatórios
+                                Aceite Obrigatório de Cada Item
                             </span>
                             <h2 className="text-2xl sm:text-3xl font-black uppercase text-white tracking-tight mt-1">
                                 As 12 Regras de Conduta Residencial
                             </h2>
+                            <p className="text-xs text-slate-400 mt-1">
+                                É obrigatório ler e dar o aceite individual em cada uma das 12 regras abaixo para poder concluir seu cadastro.
+                            </p>
                         </div>
-                        <div className="flex items-center gap-3 self-start sm:self-auto">
-                            <button
-                                onClick={handleToggleAll}
-                                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-300 transition-all cursor-pointer"
-                            >
-                                <CheckCircle2 size={16} className={acceptedAll ? 'text-emerald-400' : 'text-slate-500'} />
-                                <span>{acceptedAll ? 'Desmarcar Todas' : 'Marcar Todas como Lidas'}</span>
-                            </button>
+                        <div className="flex flex-col sm:items-end gap-1.5 self-start sm:self-auto">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-black uppercase text-slate-300">Aceites Realizados:</span>
+                                <span className={`text-xs font-black px-2.5 py-1 rounded-lg ${allRulesAccepted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`}>
+                                    {acceptedCount} de {RULES_DATA.length} {allRulesAccepted ? '✓ Todas Aceitas' : 'Aceitas'}
+                                </span>
+                            </div>
+                            <div className="w-full sm:w-48 h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                                <div
+                                    className={`h-full transition-all duration-300 ${allRulesAccepted ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-500 to-rose-500'}`}
+                                    style={{ width: `${(acceptedCount / RULES_DATA.length) * 100}%` }}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -756,9 +779,9 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             </div>
 
                                             <div
-                                                className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-colors shrink-0 ${isAccepted
-                                                    ? 'bg-emerald-600 border-emerald-500 text-white'
-                                                    : 'border-slate-700 bg-slate-800/60 text-transparent'
+                                                className={`w-7 h-7 rounded-xl border flex items-center justify-center transition-colors shrink-0 ${isAccepted
+                                                    ? 'bg-emerald-600 border-emerald-500 text-white shadow-md shadow-emerald-950/40'
+                                                    : 'border-rose-500/30 bg-rose-500/10 text-rose-400'
                                                     }`}
                                             >
                                                 <Check size={14} className="stroke-[3]" />
@@ -800,15 +823,32 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                         )}
                                     </div>
 
-                                    <div className="pt-4 mt-4 border-t border-slate-800/60 flex flex-wrap gap-1.5 items-center">
-                                        {rule.tags.map(tag => (
-                                            <span
-                                                key={tag}
-                                                className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-400 border border-slate-700/50"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
+                                    <div className="pt-4 mt-4 border-t border-slate-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div className="flex flex-wrap gap-1.5 items-center">
+                                            {rule.tags.map(tag => (
+                                                <span
+                                                    key={tag}
+                                                    className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-400 border border-slate-700/50"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleToggleRule(rule.id);
+                                            }}
+                                            className={`px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shrink-0 cursor-pointer ${isAccepted
+                                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30'
+                                                : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:border-rose-500'
+                                                }`}
+                                        >
+                                            <Check size={14} className={isAccepted ? 'text-emerald-400 stroke-[3]' : 'text-rose-400'} />
+                                            <span>{isAccepted ? 'Regra Aceita ✓' : 'Aceitar Regra *'}</span>
+                                        </button>
                                     </div>
                                 </div>
                             );
@@ -986,7 +1026,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     Aceite & Cadastro Registrados com Sucesso!
                                 </h3>
                                 <p className="text-sm text-slate-300 max-w-lg mx-auto">
-                                    Seus dados foram recebidos e seu aceite às 12 Regras de Conduta Residencial MoronaVila foi confirmado.
+                                    Seus dados foram recebidos e seu aceite integral às 12 Regras de Conduta do Residencial Moronavila foi confirmado com sucesso.
                                 </p>
                             </div>
 
@@ -1542,27 +1582,46 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                 </div>
 
                                 {/* ACEITE DECLARATÓRIO DAS REGRAS */}
-                                <div className="p-6 rounded-3xl bg-slate-950/80 border border-slate-800 space-y-4">
+                                <div className={`p-6 rounded-3xl border transition-all duration-300 space-y-4 ${allRulesAccepted ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-950/60 border-amber-500/30'}`}>
                                     <div className="flex items-start gap-3">
                                         <input
                                             type="checkbox"
                                             id="checkAcceptAll"
                                             checked={acceptedAll}
-                                            onChange={handleToggleAll}
+                                            onChange={handleToggleAcceptAll}
                                             className="w-5 h-5 rounded mt-0.5 accent-rose-600 cursor-pointer"
                                         />
                                         <label htmlFor="checkAcceptAll" className="text-xs sm:text-sm text-slate-200 leading-relaxed cursor-pointer font-medium">
                                             <strong className="text-white block mb-1">
-                                                DECLARAÇÃO FORMAL DE ACEITE INTEGRAL DAS REGRAS
+                                                DECLARAÇÃO FORMAL DE ACEITE INTEGRAL DAS REGRAS *
                                             </strong>
-                                            Declaro que li, compreendi e aceito integralmente todas as <strong className="text-amber-400">12 Regras de Conduta Residencial MoronaVila</strong>, incluindo as multas aplicáveis por infração (fumo/álcool: R$ 20,00; silêncio/TV alta: R$ 20,00; lavar/passar roupa fora do padrão: R$ 20,00; cozinha suja: R$ 20,00; louça fora do armário: R$ 10,00; quartos alheios: R$ 50,00; lounge/churrasqueira/área externa: R$ 20,00; e cobrança total por mau uso de eletrodomésticos compartilhados), as condições de pagamento do aluguel (R$ 960,00 ou R$ 860,00 promocional até 10/11), pagamento antecipado até o 5º dia útil via PIX para Sergio Oswaldo de Castro, cobrança de multas no mês subsequente, necessidade de aviso prévio de 30 dias para saída e quitação do último mês através do depósito caução.
+                                            Declaro que li, compreendi e dei aceite integral em todas as 12 Regras de Conduta do Residencial Moronavila e que assumo a responsabilidade pelos meus atos e das pessoas que forem autorizadas por mim a visitar a propriedade, e que responderei financeiramente danos a propriedade ou moveis, eletrodomesticos, equipamentos e utensillhos que estou recebendo na minha unidade e nas partes compatilhadas.
                                         </label>
                                     </div>
 
-                                    {!acceptedAll && (
-                                        <div className="text-[11px] text-amber-400 flex items-center gap-1.5 pl-8">
-                                            <AlertCircle size={14} />
-                                            <span>Você precisa marcar a caixa de aceite para habilitar a submissão.</span>
+                                    {!allRulesAccepted && (
+                                        <div className="text-[11px] text-amber-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pl-8 pt-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <AlertCircle size={14} className="shrink-0" />
+                                                <span>Atenção: É obrigatório dar o aceite em cada uma das 12 regras acima ({acceptedCount} de {RULES_DATA.length} aceitas).</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const rulesElem = document.getElementById('secao-regras');
+                                                    if (rulesElem) rulesElem.scrollIntoView({ behavior: 'smooth' });
+                                                }}
+                                                className="text-amber-300 underline font-bold cursor-pointer hover:text-amber-200 text-left"
+                                            >
+                                                Ver regras pendentes ↑
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {allRulesAccepted && !acceptedAll && (
+                                        <div className="text-[11px] text-rose-400 flex items-center gap-1.5 pl-8">
+                                            <AlertCircle size={14} className="shrink-0" />
+                                            <span>Marque a caixa de declaração acima para confirmar o aceite geral e liberar o envio do cadastro.</span>
                                         </div>
                                     )}
                                 </div>
@@ -1579,8 +1638,8 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
 
                                     <button
                                         type="submit"
-                                        disabled={isSubmitting || !acceptedAll}
-                                        className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-2 ${acceptedAll && !isSubmitting
+                                        disabled={isSubmitting || !allRulesAccepted || !acceptedAll}
+                                        className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-2 ${allRulesAccepted && acceptedAll && !isSubmitting
                                             ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/50 hover:scale-105 active:scale-95 cursor-pointer'
                                             : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                                             }`}
