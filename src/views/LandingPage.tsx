@@ -1061,10 +1061,13 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
             {/* SEÇÃO 1: COMODIDADES & ÁREAS COMUNS (COM FOTOS REAIS) */}
             <section id="comodidades" className="py-28 relative">
                 <div className="max-w-7xl mx-auto px-6">
-                    <AmenitiesShowcase onSelectRoom={() => {
-                        const el = document.getElementById('vagas');
-                        el?.scrollIntoView({ behavior: 'smooth' });
-                    }} />
+                    <AmenitiesShowcase
+                        currentLang={currentLang}
+                        onSelectRoom={() => {
+                            const el = document.getElementById('vagas');
+                            el?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                    />
                 </div>
             </section>
 
@@ -1072,7 +1075,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
             <section id="localizacao" className="py-28 bg-slate-900/30 border-y border-white/5 relative overflow-hidden">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl h-full max-h-96 bg-rose-600/5 rounded-full blur-[140px] pointer-events-none" />
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
-                    <InteractiveMap />
+                    <InteractiveMap currentLang={currentLang} />
                 </div>
             </section>
 

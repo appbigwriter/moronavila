@@ -4,6 +4,7 @@ import {
     HeartPulse, Music, Compass, ExternalLink, Clock, Bike,
     Car, Footprints, Layers, Sparkles, Building2
 } from 'lucide-react';
+import { Language } from '../i18n/types';
 
 export interface Place {
     id: string;
@@ -162,7 +163,109 @@ const CATEGORIES = [
     { key: 'transit', label: 'Mobilidade & Metrô', icon: Navigation }
 ];
 
-export function InteractiveMap() {
+const MAP_I18N: Record<Language, {
+    tag: string;
+    titlePrefix: string;
+    titleHighlight: string;
+    subtitlePrefix: string;
+    subtitleHighlight: string;
+    subtitleSuffix: string;
+    radarMode: string;
+    mapMode: string;
+    radarBtn: string;
+    mapBtn: string;
+    routeBtn: string;
+    walkLabel: string;
+    bikeLabel: string;
+    carLabel: string;
+    otherHighlights: string;
+    categories: Record<string, string>;
+}> = {
+    pt: {
+        tag: 'Vila Isabel • Rio de Janeiro',
+        titlePrefix: 'Viva perto de tudo que ',
+        titleHighlight: 'facilita sua vida',
+        subtitlePrefix: 'Localização privilegiada na ',
+        subtitleHighlight: 'Rua Torres Homem, 886',
+        subtitleSuffix: '. Faça praticamente tudo a pé, com mercados, shopping, restaurantes e universidades ao seu redor.',
+        radarMode: 'Radar Interativo de Distâncias',
+        mapMode: 'Visão de Mapa Real',
+        radarBtn: 'Radar',
+        mapBtn: 'Satélite / Mapa',
+        routeBtn: 'Ver Rota no Google Maps',
+        walkLabel: 'A pé',
+        bikeLabel: 'Bike',
+        carLabel: 'Carro/App',
+        otherHighlights: 'Outros Destaques Próximos',
+        categories: {
+            all: 'Todos os Locais',
+            food: 'Gastronomia & Food Trucks',
+            shopping: 'Compras & Mercados',
+            culture: 'Cultura & Lazer',
+            education: 'Educação & Saúde',
+            transit: 'Mobilidade & Metrô'
+        }
+    },
+    en: {
+        tag: 'Vila Isabel • Rio de Janeiro',
+        titlePrefix: 'Live close to everything that ',
+        titleHighlight: 'makes your life easier',
+        subtitlePrefix: 'Prime location at ',
+        subtitleHighlight: 'Rua Torres Homem, 886',
+        subtitleSuffix: '. Do almost everything on foot, with supermarkets, shopping mall, dining, and universities all around.',
+        radarMode: 'Interactive Proximity Radar',
+        mapMode: 'Real Map View',
+        radarBtn: 'Radar',
+        mapBtn: 'Satellite / Map',
+        routeBtn: 'View Route on Google Maps',
+        walkLabel: 'Walking',
+        bikeLabel: 'Bike',
+        carLabel: 'Car/Uber',
+        otherHighlights: 'Other Nearby Highlights',
+        categories: {
+            all: 'All Locations',
+            food: 'Dining & Food Trucks',
+            shopping: 'Shopping & Supermarkets',
+            culture: 'Culture & Leisure',
+            education: 'Education & Healthcare',
+            transit: 'Mobility & Metro'
+        }
+    },
+    es: {
+        tag: 'Vila Isabel • Río de Janeiro',
+        titlePrefix: 'Viva cerca de todo lo que ',
+        titleHighlight: 'facilita su vida',
+        subtitlePrefix: 'Ubicación privilegiada en ',
+        subtitleHighlight: 'Rua Torres Homem, 886',
+        subtitleSuffix: '. Haga prácticamente todo a pie, con supermercados, shopping, restaurantes y universidades a su alrededor.',
+        radarMode: 'Radar Interactivo de Distancias',
+        mapMode: 'Vista de Mapa Real',
+        radarBtn: 'Radar',
+        mapBtn: 'Satélite / Mapa',
+        routeBtn: 'Ver Ruta en Google Maps',
+        walkLabel: 'A pie',
+        bikeLabel: 'Bici',
+        carLabel: 'Auto/App',
+        otherHighlights: 'Otros Lugares Destacados Cercanos',
+        categories: {
+            all: 'Todos los Lugares',
+            food: 'Gastronomía y Food Trucks',
+            shopping: 'Compras y Supermercados',
+            culture: 'Cultura y Ocio',
+            education: 'Educación y Salud',
+            transit: 'Movilidad y Metro'
+        }
+    }
+};
+
+export function InteractiveMap({ currentLang }: { currentLang?: Language } = {}) {
+    const activeLang: Language = currentLang || (
+        typeof window !== 'undefined'
+            ? ((localStorage.getItem('moronavila_lang') as Language) || 'pt')
+            : 'pt'
+    );
+    const t = MAP_I18N[activeLang] || MAP_I18N.pt;
+
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [activePlace, setActivePlace] = useState<Place>(PLACES_DATA[0]);
     const [viewMode, setViewMode] = useState<'radar' | 'map'>('radar');
@@ -202,13 +305,13 @@ export function InteractiveMap() {
             {/* Header da Seção */}
             <div className="text-center max-w-3xl mx-auto mb-12">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-black uppercase tracking-[0.2em] mb-4">
-                    <MapPin size={14} /> Vila Isabel • Rio de Janeiro
+                    <MapPin size={14} /> {t.tag}
                 </div>
                 <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tight mb-4">
-                    Viva perto de tudo que <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">facilita sua vida</span>
+                    {t.titlePrefix}<span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">{t.titleHighlight}</span>
                 </h2>
                 <p className="text-slate-400 text-base md:text-lg leading-relaxed">
-                    Localização privilegiada na <strong className="text-slate-200">Rua Torres Homem, 886</strong>. Faça praticamente tudo a pé, com mercados, shopping, restaurantes e universidades ao seu redor.
+                    {t.subtitlePrefix}<strong className="text-slate-200">{t.subtitleHighlight}</strong>{t.subtitleSuffix}
                 </p>
             </div>
 
@@ -217,6 +320,7 @@ export function InteractiveMap() {
                 {CATEGORIES.map(cat => {
                     const Icon = cat.icon;
                     const isSelected = selectedCategory === cat.key;
+                    const label = t.categories[cat.key] || cat.label;
                     return (
                         <button
                             key={cat.key}
@@ -228,7 +332,7 @@ export function InteractiveMap() {
                             }`}
                         >
                             <Icon size={15} className={`shrink-0 ${isSelected ? 'text-white' : 'text-rose-400'}`} />
-                            <span className="truncate">{cat.label}</span>
+                            <span className="truncate">{label}</span>
                         </button>
                     );
                 })}
@@ -243,7 +347,7 @@ export function InteractiveMap() {
                         <div className="flex items-center gap-3">
                             <div className="w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
                             <span className="text-[11px] font-black uppercase tracking-widest text-slate-300">
-                                {viewMode === 'radar' ? 'Radar Interativo de Distâncias' : 'Visão de Mapa Real'}
+                                {viewMode === 'radar' ? t.radarMode : t.mapMode}
                             </span>
                         </div>
                         <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-2xl border border-slate-800">
@@ -253,7 +357,7 @@ export function InteractiveMap() {
                                     viewMode === 'radar' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-white'
                                 }`}
                             >
-                                Radar
+                                {t.radarBtn}
                             </button>
                             <button
                                 onClick={() => setViewMode('map')}
@@ -261,7 +365,7 @@ export function InteractiveMap() {
                                     viewMode === 'map' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-white'
                                 }`}
                             >
-                                Satélite / Mapa
+                                {t.mapBtn}
                             </button>
                         </div>
                     </div>
@@ -420,17 +524,17 @@ export function InteractiveMap() {
                             <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-2xl text-center">
                                 <div className="text-rose-400 flex justify-center mb-1"><Footprints size={18} /></div>
                                 <div className="text-white font-black text-sm">{activePlace.walkTime}</div>
-                                <div className="text-[9px] text-slate-400 font-bold uppercase">A pé</div>
+                                <div className="text-[9px] text-slate-400 font-bold uppercase">{t.walkLabel}</div>
                             </div>
                             <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-2xl text-center">
                                 <div className="text-amber-400 flex justify-center mb-1"><Bike size={18} /></div>
                                 <div className="text-white font-black text-sm">{activePlace.bikeTime}</div>
-                                <div className="text-[9px] text-slate-400 font-bold uppercase">Bike</div>
+                                <div className="text-[9px] text-slate-400 font-bold uppercase">{t.bikeLabel}</div>
                             </div>
                             <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-2xl text-center">
                                 <div className="text-cyan-400 flex justify-center mb-1"><Car size={18} /></div>
                                 <div className="text-white font-black text-sm">{activePlace.carTime}</div>
-                                <div className="text-[9px] text-slate-400 font-bold uppercase">Carro/App</div>
+                                <div className="text-[9px] text-slate-400 font-bold uppercase">{t.carLabel}</div>
                             </div>
                         </div>
 
@@ -441,14 +545,14 @@ export function InteractiveMap() {
                             rel="noopener noreferrer"
                             className="w-full flex items-center justify-center gap-2.5 bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-rose-900/40 hover:scale-[1.02] active:scale-98"
                         >
-                            Ver Rota no Google Maps <ExternalLink size={16} />
+                            {t.routeBtn} <ExternalLink size={16} />
                         </a>
                     </div>
 
                     {/* Lista Rápida dos Principais Vizinhos */}
                     <div className="bg-slate-900/40 border border-slate-800/80 rounded-[2.5rem] p-6 flex-1 flex flex-col">
                         <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-4 flex items-center gap-2">
-                            <Layers size={14} className="text-rose-500" /> Outros Destaques Próximos
+                            <Layers size={14} className="text-rose-500" /> {t.otherHighlights}
                         </h4>
 
                         <div className="space-y-2.5 overflow-y-auto max-h-[280px] pr-1">

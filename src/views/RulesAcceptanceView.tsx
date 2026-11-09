@@ -78,6 +78,160 @@ const DECLARATION_TEXT: Record<Language, { title: string; body: string; backToHo
     }
 };
 
+const RULES_VIEW_I18N: Record<Language, {
+    backToHome: string;
+    rulesAndRegTitle: string;
+    registerVisitBtn: string;
+    googleFormsBtn: string;
+    printBtn: string;
+    heroBadge: string;
+    heroTitlePrefix: string;
+    heroTitleHighlight: string;
+    heroSubtitle: string;
+    heroDesc: string;
+    standardRatesTitle: string;
+    ratesPerMonth: string;
+    rentAndCleaningNote: string;
+    monthPeriodRef: string;
+    paidInAdvance: string;
+    exclusivePromoBadge: string;
+    promoDiscountNote: string;
+    promoDetailsText: string;
+    entryConditionsTitle: string;
+    depositPlusMonth: string;
+    entryConditionsDesc: string;
+    depositCoversLastMonth: string;
+    pixDetailsTitle: string;
+    pixBeneficiaryLabel: string;
+    pixKeyLabel: string;
+    copyPixBtn: string;
+    copiedPixBtn: string;
+    mandatoryRuleAcceptanceTag: string;
+    the12RulesTitle: string;
+    the12RulesSubtitle: string;
+    rulesAcceptedLabel: string;
+    allRulesAcceptedBadge: string;
+    rulesAcceptedSuffix: string;
+    formTag: string;
+    formTitle: string;
+    formSubtitle: string;
+}> = {
+    pt: {
+        backToHome: 'Voltar ao Início',
+        rulesAndRegTitle: 'Regulamento & Cadastro',
+        registerVisitBtn: 'Cadastrar Visita',
+        googleFormsBtn: 'Google Forms',
+        printBtn: 'Imprimir',
+        heroBadge: 'Regulamento de Convivência & Cadastro Oficial',
+        heroTitlePrefix: 'Aceite de Regras e ',
+        heroTitleHighlight: 'Cadastro de Residente',
+        heroSubtitle: 'Regras de Conduta Residencial MoronaVila',
+        heroDesc: 'Para garantir um ambiente harmonioso, seguro, limpo e propício ao descanso e produtividade de todos, estabelecemos normas transparentes e iguais para todos os residentes da propriedade.',
+        standardRatesTitle: 'Valores Padrão',
+        ratesPerMonth: '/mês',
+        rentAndCleaningNote: 'R$ 900 aluguel + R$ 60 taxa de limpeza das áreas comuns',
+        monthPeriodRef: 'Ref. 1º ao último dia do mês',
+        paidInAdvance: 'Pago antecipado até o 5º dia útil',
+        exclusivePromoBadge: 'Promoção Exclusiva',
+        promoDiscountNote: 'Desconto de R$ 100,00/mês por 6 meses',
+        promoDetailsText: 'Até 10/11 será concedido desconto de 100 reais no aluguel mensal para novos residentes, por um período de 6 meses.',
+        entryConditionsTitle: 'Condições de Entrada',
+        depositPlusMonth: 'Depósito + Mês Corrente',
+        entryConditionsDesc: 'Para entrada na casa é necessário 1 mês de aluguel como depósito + mês corrente à entrada.',
+        depositCoversLastMonth: 'O depósito quita o período de 1 a 30(31) do último mês de permanência do residente.',
+        pixDetailsTitle: 'Dados para Pagamento via PIX',
+        pixBeneficiaryLabel: 'Favorecido:',
+        pixKeyLabel: 'Chave PIX:',
+        copyPixBtn: 'Copiar Chave PIX',
+        copiedPixBtn: 'Chave Copiada!',
+        mandatoryRuleAcceptanceTag: 'Aceite Obrigatório de Cada Item',
+        the12RulesTitle: 'As 12 Regras de Conduta Residencial',
+        the12RulesSubtitle: 'É obrigatório ler e dar o aceite individual em cada uma das 12 regras abaixo para poder concluir seu cadastro.',
+        rulesAcceptedLabel: 'Aceites Realizados:',
+        allRulesAcceptedBadge: '✓ Todas Aceitas',
+        rulesAcceptedSuffix: 'Aceitas',
+        formTag: 'Pré-Cadastro & Aceite Digital',
+        formTitle: 'Formulário de Cadastro de Residente',
+        formSubtitle: 'Preencha suas informações para formalizar seu aceite e dar entrada na casa'
+    },
+    en: {
+        backToHome: 'Back to Home',
+        rulesAndRegTitle: 'Guidelines & Registration',
+        registerVisitBtn: 'Register Visitor',
+        googleFormsBtn: 'Google Forms',
+        printBtn: 'Print',
+        heroBadge: 'Community Guidelines & Official Registration',
+        heroTitlePrefix: 'House Rules Acceptance & ',
+        heroTitleHighlight: 'Resident Registration',
+        heroSubtitle: 'MoronaVila Residential Code of Conduct',
+        heroDesc: 'To ensure a harmonious, safe, clean environment favorable to everyone’s rest and productivity, we establish transparent and equal standards for all property residents.',
+        standardRatesTitle: 'Standard Rates',
+        ratesPerMonth: '/month',
+        rentAndCleaningNote: 'R$ 900 rent + R$ 60 common area cleaning fee',
+        monthPeriodRef: 'Ref. 1st to the last day of the month',
+        paidInAdvance: 'Paid in advance by the 5th business day',
+        exclusivePromoBadge: 'Exclusive Promo',
+        promoDiscountNote: 'R$ 100.00/month discount for 6 months',
+        promoDetailsText: 'Until Nov 10, a R$ 100 discount on monthly rent will be granted to new residents for 6 months.',
+        entryConditionsTitle: 'Move-in Conditions',
+        depositPlusMonth: 'Security Deposit + Current Month',
+        entryConditionsDesc: 'To move in, 1 month rent as security deposit + current month upon arrival is required.',
+        depositCoversLastMonth: 'The deposit covers the 1st to 30th/31st of the resident’s final month of stay.',
+        pixDetailsTitle: 'PIX Payment Information',
+        pixBeneficiaryLabel: 'Beneficiary:',
+        pixKeyLabel: 'PIX Key:',
+        copyPixBtn: 'Copy PIX Key',
+        copiedPixBtn: 'Key Copied!',
+        mandatoryRuleAcceptanceTag: 'Mandatory Acceptance of Each Item',
+        the12RulesTitle: 'The 12 Residential Conduct Rules',
+        the12RulesSubtitle: 'It is mandatory to read and individually accept each of the 12 rules below to complete your registration.',
+        rulesAcceptedLabel: 'Accepted Items:',
+        allRulesAcceptedBadge: '✓ All Accepted',
+        rulesAcceptedSuffix: 'Accepted',
+        formTag: 'Pre-Registration & Digital Acceptance',
+        formTitle: 'Resident Registration Form',
+        formSubtitle: 'Fill in your details to formalize your acceptance and complete your move-in'
+    },
+    es: {
+        backToHome: 'Volver al Inicio',
+        rulesAndRegTitle: 'Reglamento y Registro',
+        registerVisitBtn: 'Registrar Visita',
+        googleFormsBtn: 'Google Forms',
+        printBtn: 'Imprimir',
+        heroBadge: 'Reglamento de Convivencia y Registro Oficial',
+        heroTitlePrefix: 'Aceptación de Reglas y ',
+        heroTitleHighlight: 'Registro de Residente',
+        heroSubtitle: 'Reglas de Conducta Residencial MoronaVila',
+        heroDesc: 'Para garantizar un ambiente armonioso, seguro, limpio y propicio para el descanso y la productividad de todos, establecemos normas transparentes e iguales para todos los residentes de la propiedad.',
+        standardRatesTitle: 'Valores Estándar',
+        ratesPerMonth: '/mes',
+        rentAndCleaningNote: 'R$ 900 alquiler + R$ 60 tarifa de limpieza de áreas comunes',
+        monthPeriodRef: 'Ref. 1º al último día del mes',
+        paidInAdvance: 'Pago por adelantado hasta el 5º día hábil',
+        exclusivePromoBadge: 'Promoción Exclusiva',
+        promoDiscountNote: 'Descuento de R$ 100,00/mes por 6 meses',
+        promoDetailsText: 'Hasta el 10/11 se otorgará un descuento de 100 reales en el alquiler mensual para nuevos residentes durante 6 meses.',
+        entryConditionsTitle: 'Condiciones de Ingreso',
+        depositPlusMonth: 'Depósito + Mes Corriente',
+        entryConditionsDesc: 'Para ingresar a la casa se requiere 1 mes de alquiler como depósito + el mes corriente de llegada.',
+        depositCoversLastMonth: 'El depósito salda el período del 1 al 30(31) del último mes de estadía del residente.',
+        pixDetailsTitle: 'Datos para Pago vía PIX',
+        pixBeneficiaryLabel: 'Beneficiario:',
+        pixKeyLabel: 'Clave PIX:',
+        copyPixBtn: 'Copiar Clave PIX',
+        copiedPixBtn: '¡Clave Copiada!',
+        mandatoryRuleAcceptanceTag: 'Aceptación Obligatoria de Cada Ítem',
+        the12RulesTitle: 'Las 12 Reglas de Conducta Residencial',
+        the12RulesSubtitle: 'Es obligatorio leer y aceptar individualmente cada una de las 12 reglas siguientes para completar su registro.',
+        rulesAcceptedLabel: 'Aceptaciones Realizadas:',
+        allRulesAcceptedBadge: '✓ Todas Aceptadas',
+        rulesAcceptedSuffix: 'Aceptadas',
+        formTag: 'Pre-Registro y Aceptación Digital',
+        formTitle: 'Formulario de Registro de Residente',
+        formSubtitle: 'Complete sus datos para formalizar su aceptación e ingresar a la casa'
+    }
+};
+
 interface RulesAcceptanceViewProps {
     onBack: () => void;
     currentUser?: Resident | null;
@@ -231,6 +385,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
     };
 
     const t = TRANSLATIONS[currentLang];
+    const rvt = RULES_VIEW_I18N[currentLang] || RULES_VIEW_I18N.pt;
 
     const [copiedPix, setCopiedPix] = useState(false);
     const [copiedFormUrl, setCopiedFormUrl] = useState(false);
@@ -634,7 +789,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                         className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition-colors py-2 px-3 rounded-xl hover:bg-slate-900 border border-transparent hover:border-slate-800 cursor-pointer"
                     >
                         <ArrowLeft size={16} />
-                        <span>Voltar ao Início</span>
+                        <span>{rvt.backToHome}</span>
                     </button>
 
                     <div className="flex items-center gap-2.5">
@@ -645,7 +800,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                             MORONA<span className="text-rose-600">VILA</span>
                         </span>
                         <span className="text-slate-600 hidden sm:inline">•</span>
-                        <span className="text-xs text-slate-400 hidden sm:inline font-semibold">Regulamento & Cadastro</span>
+                        <span className="text-xs text-slate-400 hidden sm:inline font-semibold">{rvt.rulesAndRegTitle}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -660,7 +815,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                             title="Cadastrar visitante autorizado"
                         >
                             <UserPlus size={14} />
-                            <span className="hidden sm:inline">Cadastrar Visita</span>
+                            <span className="hidden sm:inline">{rvt.registerVisitBtn}</span>
                         </button>
 
                         <a
@@ -671,7 +826,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                             title="Abrir formulário no Google Forms"
                         >
                             <ExternalLink size={14} />
-                            <span className="hidden md:inline">Google Forms</span>
+                            <span className="hidden md:inline">{rvt.googleFormsBtn}</span>
                         </a>
 
                         <button
@@ -680,7 +835,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                             title="Imprimir termo de regras"
                         >
                             <Printer size={14} />
-                            <span className="hidden lg:inline">Imprimir</span>
+                            <span className="hidden lg:inline">{rvt.printBtn}</span>
                         </button>
                     </div>
                 </div>
@@ -690,16 +845,16 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                 {/* HERO TITLE */}
                 <div className="text-center space-y-4 max-w-3xl mx-auto pt-4">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-black uppercase tracking-widest">
-                        <ShieldCheck size={14} /> Regulamento de Convivência & Cadastro Oficial
+                        <ShieldCheck size={14} /> {rvt.heroBadge}
                     </div>
                     <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white italic">
-                        Aceite de Regras e <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">Cadastro de Residente</span>
+                        {rvt.heroTitlePrefix}<span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">{rvt.heroTitleHighlight}</span>
                     </h1>
                     <p className="text-lg sm:text-xl font-bold text-amber-400/90 tracking-tight">
-                        Regras de Conduta Residencial MoronaVila
+                        {rvt.heroSubtitle}
                     </p>
                     <p className="text-sm text-slate-400 leading-relaxed">
-                        Para garantir um ambiente harmonioso, seguro, limpo e propício ao descanso e produtividade de todos, estabelecemos normas transparentes e iguais para todos os residentes da propriedade.
+                        {rvt.heroDesc}
                     </p>
                 </div>
 
@@ -708,27 +863,27 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     {/* Card 1: Valor do Aluguel */}
                     <div className="relative p-6 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm space-y-4 shadow-xl">
                         <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Valores Padrão</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{rvt.standardRatesTitle}</span>
                             <div className="p-2 rounded-xl bg-slate-800/80 text-rose-400">
                                 <DollarSign size={18} />
                             </div>
                         </div>
                         <div>
                             <div className="text-3xl font-black text-white tracking-tight">
-                                R$ 960<span className="text-sm font-semibold text-slate-400">/mês</span>
+                                R$ 960<span className="text-sm font-semibold text-slate-400">{rvt.ratesPerMonth}</span>
                             </div>
                             <p className="text-xs text-slate-400 mt-1">
-                                R$ 900 aluguel + R$ 60 taxa de limpeza das áreas comuns
+                                {rvt.rentAndCleaningNote}
                             </p>
                         </div>
                         <div className="pt-3 border-t border-slate-800/60 text-xs text-slate-300 space-y-1">
                             <div className="flex items-center gap-2">
                                 <Check size={14} className="text-emerald-400 shrink-0" />
-                                <span>Ref. 1º ao último dia do mês</span>
+                                <span>{rvt.monthPeriodRef}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Check size={14} className="text-emerald-400 shrink-0" />
-                                <span>Pago antecipado até o 5º dia útil</span>
+                                <span>{rvt.paidInAdvance}</span>
                             </div>
                         </div>
                     </div>
@@ -736,20 +891,20 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     {/* Card 2: Promoção Especial até 10/11 */}
                     <div className="relative p-6 rounded-3xl bg-gradient-to-br from-rose-950/40 via-slate-900/80 to-amber-950/30 border border-rose-500/40 backdrop-blur-sm space-y-4 shadow-2xl shadow-rose-950/30">
                         <div className="inline-block px-3 py-1 rounded-full bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest animate-pulse">
-                            Promoção Exclusiva
+                            {rvt.exclusivePromoBadge}
                         </div>
                         <div>
                             <div className="text-3xl font-black text-rose-400 tracking-tight flex items-baseline gap-2">
-                                R$ 860<span className="text-sm font-semibold text-slate-400">/mês</span>
+                                R$ 860<span className="text-sm font-semibold text-slate-400">{rvt.ratesPerMonth}</span>
                                 <span className="text-xs line-through text-slate-500">R$ 960</span>
                             </div>
                             <p className="text-xs font-bold text-amber-300 mt-1">
-                                Desconto de R$ 100,00/mês por 6 meses
+                                {rvt.promoDiscountNote}
                             </p>
                         </div>
                         <div className="pt-3 border-t border-rose-500/20 text-xs text-slate-300">
                             <p className="leading-relaxed">
-                                Até <strong className="text-white">10/11</strong> será concedido desconto de <strong className="text-amber-300">100 reais</strong> no aluguel mensal para novos residentes, por um período de 6 meses.
+                                {rvt.promoDetailsText}
                             </p>
                         </div>
                     </div>
@@ -757,21 +912,21 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     {/* Card 3: Condições de Entrada & Caução */}
                     <div className="relative p-6 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm space-y-4 shadow-xl">
                         <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Condições de Entrada</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{rvt.entryConditionsTitle}</span>
                             <div className="p-2 rounded-xl bg-slate-800/80 text-amber-400">
                                 <Calendar size={18} />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <div className="text-sm font-black text-white uppercase tracking-wider">
-                                Depósito + Mês Corrente
+                                {rvt.depositPlusMonth}
                             </div>
                             <p className="text-xs text-slate-400 leading-relaxed">
-                                Para entrada na casa é necessário 1 mês de aluguel como depósito + mês corrente à entrada.
+                                {rvt.entryConditionsDesc}
                             </p>
                         </div>
                         <div className="pt-3 border-t border-slate-800/60 text-xs text-emerald-400 font-medium">
-                            O depósito quita o período de 1 a 30(31) do último mês de permanência do residente.
+                            {rvt.depositCoversLastMonth}
                         </div>
                     </div>
                 </div>
@@ -784,13 +939,13 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                         </div>
                         <div>
                             <h3 className="text-sm font-black uppercase tracking-wider text-white">
-                                Dados para Pagamento via PIX
+                                {rvt.pixDetailsTitle}
                             </h3>
                             <p className="text-xs text-slate-400 mt-1">
-                                Favorecido: <strong className="text-slate-200">{pixBeneficiary}</strong>
+                                {rvt.pixBeneficiaryLabel} <strong className="text-slate-200">{pixBeneficiary}</strong>
                             </p>
                             <p className="text-xs text-slate-400">
-                                Chave PIX: <span className="font-mono text-emerald-400 font-bold text-sm">{pixKey}</span>
+                                {rvt.pixKeyLabel} <span className="font-mono text-emerald-400 font-bold text-sm">{pixKey}</span>
                             </p>
                         </div>
                     </div>
@@ -800,7 +955,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                             className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
                         >
                             {copiedPix ? <Check size={16} /> : <Copy size={16} />}
-                            <span>{copiedPix ? 'Chave Copiada!' : 'Copiar Chave PIX'}</span>
+                            <span>{copiedPix ? rvt.copiedPixBtn : rvt.copyPixBtn}</span>
                         </button>
                     </div>
                 </div>
@@ -810,20 +965,20 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <span className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">
-                                Aceite Obrigatório de Cada Item
+                                {rvt.mandatoryRuleAcceptanceTag}
                             </span>
                             <h2 className="text-2xl sm:text-3xl font-black uppercase text-white tracking-tight mt-1">
-                                As 12 Regras de Conduta Residencial
+                                {rvt.the12RulesTitle}
                             </h2>
                             <p className="text-xs text-slate-400 mt-1">
-                                É obrigatório ler e dar o aceite individual em cada uma das 12 regras abaixo para poder concluir seu cadastro.
+                                {rvt.the12RulesSubtitle}
                             </p>
                         </div>
                         <div className="flex flex-col sm:items-end gap-1.5 self-start sm:self-auto">
                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-black uppercase text-slate-300">Aceites Realizados:</span>
+                                <span className="text-xs font-black uppercase text-slate-300">{rvt.rulesAcceptedLabel}</span>
                                 <span className={`text-xs font-black px-2.5 py-1 rounded-lg ${allRulesAccepted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`}>
-                                    {acceptedCount} de {RULES_DATA.length} {allRulesAccepted ? '✓ Todas Aceitas' : 'Aceitas'}
+                                    {acceptedCount} de {RULES_DATA.length} {allRulesAccepted ? rvt.allRulesAcceptedBadge : rvt.rulesAcceptedSuffix}
                                 </span>
                             </div>
                             <div className="w-full sm:w-48 h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
@@ -1089,13 +1244,13 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     <div className="flex items-center justify-between border-b border-slate-800 pb-6">
                         <div>
                             <span className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">
-                                Pré-Cadastro & Aceite Digital
+                                {rvt.formTag}
                             </span>
                             <h2 className="text-2xl font-black uppercase text-white tracking-tight mt-1">
-                                Formulário de Cadastro de Residente
+                                {rvt.formTitle}
                             </h2>
                             <p className="text-xs text-slate-400 mt-1">
-                                Preencha suas informações para formalizar seu aceite e dar entrada na casa
+                                {rvt.formSubtitle}
                             </p>
                         </div>
                         <button
