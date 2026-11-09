@@ -31,6 +31,7 @@ import { PropertyDescView } from './views/PropertyDescView';
 import { LandingPage } from './views/LandingPage';
 import { RulesAcceptanceView } from './views/RulesAcceptanceView';
 import { ResidentProfileView } from './views/ResidentProfileView';
+import { ResidentDashboardView } from './views/ResidentDashboardView';
 
 const SoftphoneDock = lazy(() =>
   import('./modules/softphone/SoftphoneDock').then((module) => ({
@@ -305,16 +306,33 @@ function App() {
       ) : (
         <>
           {activeTab === 'dashboard' && (
-            <DashboardView
-              payments={payments} maintenance={maintenance}
-              residents={residents} rooms={rooms}
-              laundrySchedules={laundrySchedules}
-              currentUser={currentUser}
-              setActiveTab={setActiveTab}
-              setShowAddResidentModal={() => setInitialModal('add-resident')}
-              setShowAddNoticeModal={() => setInitialModal('add-notice')}
-              setShowAddEventModal={() => setInitialModal('add-event')}
-            />
+            isAdmin ? (
+              <DashboardView
+                payments={payments} maintenance={maintenance}
+                residents={residents} rooms={rooms}
+                laundrySchedules={laundrySchedules}
+                currentUser={currentUser}
+                setActiveTab={setActiveTab}
+                setShowAddResidentModal={() => setInitialModal('add-resident')}
+                setShowAddNoticeModal={() => setInitialModal('add-notice')}
+                setShowAddEventModal={() => setInitialModal('add-event')}
+              />
+            ) : (
+              <ResidentDashboardView
+                currentUser={currentUser}
+                payments={payments}
+                maintenance={maintenance}
+                laundrySchedules={laundrySchedules}
+                rooms={rooms}
+                notices={notices}
+                setActiveTab={setActiveTab}
+                onRefresh={refreshData}
+                onOpenRules={() => {
+                  window.location.hash = '#regras';
+                  setCurrentView('regras');
+                }}
+              />
+            )
           )}
 
           {activeTab === 'rooms' && (
