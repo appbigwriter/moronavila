@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { ShieldAlert, Loader2 } from 'lucide-react';
+import { ShieldAlert, Loader2, Eye } from 'lucide-react';
 
 import { supabase } from './lib/supabase';
 import {
@@ -49,6 +49,7 @@ function App() {
   const [initialModal, setInitialModal] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<Resident | null>(null);
   const [selectedProfileResident, setSelectedProfileResident] = useState<Resident | null>(null);
+  const [previewAsResident, setPreviewAsResident] = useState(false);
 
   // Data state
   const [residents, setResidents] = useState<Resident[]>([]);
@@ -306,7 +307,7 @@ function App() {
       ) : (
         <>
           {activeTab === 'dashboard' && (
-            isAdmin ? (
+            (isAdmin && !previewAsResident) ? (
               <DashboardView
                 payments={payments} maintenance={maintenance}
                 residents={residents} rooms={rooms}
@@ -316,22 +317,57 @@ function App() {
                 setShowAddResidentModal={() => setInitialModal('add-resident')}
                 setShowAddNoticeModal={() => setInitialModal('add-notice')}
                 setShowAddEventModal={() => setInitialModal('add-event')}
+                onPreviewResidentDashboard={() => setPreviewAsResident(true)}
               />
             ) : (
-              <ResidentDashboardView
-                currentUser={currentUser}
-                payments={payments}
-                maintenance={maintenance}
-                laundrySchedules={laundrySchedules}
-                rooms={rooms}
-                notices={notices}
-                setActiveTab={setActiveTab}
-                onRefresh={refreshData}
-                onOpenRules={() => {
-                  window.location.hash = '#regras';
-                  setCurrentView('regras');
-                }}
-              />
+              <div className="space-y-4">
+                {isAdmin && previewAsResident && (
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-rose-500/20 to-indigo-500/20 border border-amber-500/40 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-lg shadow-amber-950/40">
+                        <Eye size={20} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black uppercase tracking-wider text-amber-400">
+                            Modo de Teste & Simulação do Morador
+                          </span>
+                          <span className="text-[10px] bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold px-2 py-0.5 rounded-full">
+                            Visão do Administrador
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-300 mt-0.5">
+                          Você está visualizando e interagindo com a versão oficial do Dashboard dos Residentes.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setPreviewAsResident(false)}
+                      className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-wider border border-slate-700 transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0 shadow-lg"
+                    >
+                      ✕ Voltar ao Painel Admin
+                    </button>
+                  </div>
+                )}
+                <ResidentDashboardView
+                  currentUser={
+                    (isAdmin && previewAsResident)
+                      ? (residents.find(r => r.role === UserRole.RESIDENT && r.status === 'Ativo') || currentUser)
+                      : currentUser
+                  }
+                  payments={payments}
+                  maintenance={maintenance}
+                  laundrySchedules={laundrySchedules}
+                  rooms={rooms}
+                  notices={notices}
+                  setActiveTab={setActiveTab}
+                  onRefresh={refreshData}
+                  onOpenRules={() => {
+                    window.location.hash = '#regras';
+                    setCurrentView('regras');
+                  }}
+                />
+              </div>
             )
           )}
 

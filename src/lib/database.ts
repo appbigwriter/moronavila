@@ -95,6 +95,26 @@ export async function createResident(resident: Partial<Resident>): Promise<Resid
     // Armazena metadados dos documentos e facebook no document_number
     safePayload.document_number = metaDoc;
 
+    const userPassword = (resident as any).password;
+    if (userPassword && !safePayload.auth_id && resident.email) {
+        try {
+            const { data: authData } = await supabase.auth.signUp({
+                email: resident.email,
+                password: userPassword,
+                options: { data: { name: resident.name, phone: resident.phone } }
+            });
+            if (authData?.user?.id) {
+                safePayload.auth_id = authData.user.id;
+            }
+        } catch (authErr) {
+            console.warn('Fallback signup error:', authErr);
+        }
+    }
+
+    if (safePayload.habilitado === undefined) {
+        safePayload.habilitado = true;
+    }
+
     const { data, error } = await supabase.from('residents').insert(safePayload).select().single();
     if (error) throw error;
     return normalizeResident(data);

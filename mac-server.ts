@@ -115,7 +115,7 @@ app.post('/api/register-candidate', async (req, res) => {
             occupation, company, university, course,
             instagram, facebook, desired_room_type,
             document_front_url, document_back_url,
-            entry_date
+            entry_date, password
         } = req.body || {};
 
         if (!name || !email || !phone || !cpf || !rg || !birth_date || !origin_address || !family_address || !emergency_contact_name || !emergency_contact_phone || !occupation || !company || !instagram || !facebook || !desired_room_type || !document_front_url || !document_back_url) {
@@ -123,6 +123,41 @@ app.post('/api/register-candidate', async (req, res) => {
                 success: false,
                 error: 'Todos os campos cadastrais e documentos frente e verso são de preenchimento obrigatório.'
             });
+        }
+
+        const cleanEmail = email.trim().toLowerCase();
+
+        // 1. Criar ou atualizar credencial no Supabase Auth para acesso ao Dashboard
+        let authUserId: string | null = null;
+        if (password && password.trim().length >= 6) {
+            try {
+                const { data: authCreated, error: authCreateError } = await supabase.auth.admin.createUser({
+                    email: cleanEmail,
+                    password: password.trim(),
+                    email_confirm: true,
+                    user_metadata: { name: name.trim(), phone: phone.trim() }
+                });
+
+                if (!authCreateError && authCreated?.user) {
+                    authUserId = authCreated.user.id;
+                    console.log(`✅ Usuário criado no Supabase Auth: ${cleanEmail} (${authUserId})`);
+                } else if (authCreateError) {
+                    console.log('ℹ️ Usuário já existente ou retorno ao criar Auth:', authCreateError.message);
+                    const { data: userList } = await supabase.auth.admin.listUsers();
+                    const existingAuthUser = (userList?.users as any[])?.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+                    if (existingAuthUser) {
+                        authUserId = existingAuthUser.id;
+                        await supabase.auth.admin.updateUserById(existingAuthUser.id, {
+                            password: password.trim(),
+                            email_confirm: true,
+                            user_metadata: { name: name.trim(), phone: phone.trim() }
+                        });
+                        console.log(`✅ Senha atualizada no Supabase Auth para ${cleanEmail}`);
+                    }
+                }
+            } catch (authErr: any) {
+                console.warn('⚠️ Aviso ao sincronizar usuário no Supabase Auth:', authErr.message);
+            }
         }
 
         const metaDoc = JSON.stringify({
@@ -135,7 +170,7 @@ app.post('/api/register-candidate', async (req, res) => {
 
         const residentPayload: Record<string, any> = {
             name: name.trim(),
-            email: email.trim().toLowerCase(),
+            email: cleanEmail,
             phone: phone.trim(),
             cpf: cpf.trim(),
             rg: rg.trim(),
@@ -151,26 +186,51 @@ app.post('/api/register-candidate', async (req, res) => {
             instagram: instagram.trim(),
             document_number: metaDoc,
             entry_date: entry_date || new Date().toISOString().split('T')[0],
-            status: 'Candidato',
+            status: 'Ativo',
             role: 'Morador',
-            habilitado: false,
+            habilitado: true,
             internet_active: false,
             rent_value: 900,
             cleaning_fee: 60
         };
 
-        const { data, error } = await supabase
+        if (authUserId) {
+            residentPayload.auth_id = authUserId;
+        }
+
+        // Verifica se já existe morador registrado com esse email para atualizar ou inserir
+        const { data: existingResident } = await supabase
             .from('residents')
-            .insert(residentPayload)
-            .select()
-            .single();
+            .select('id, auth_id')
+            .eq('email', cleanEmail)
+            .maybeSingle();
+
+        let data, error;
+        if (existingResident?.id) {
+            const updateRes = await supabase
+                .from('residents')
+                .update(residentPayload)
+                .eq('id', existingResident.id)
+                .select()
+                .single();
+            data = updateRes.data;
+            error = updateRes.error;
+        } else {
+            const insertRes = await supabase
+                .from('residents')
+                .insert(residentPayload)
+                .select()
+                .single();
+            data = insertRes.data;
+            error = insertRes.error;
+        }
 
         if (error) {
-            console.error('Erro ao cadastrar candidato no Supabase:', error);
+            console.error('Erro ao cadastrar/atualizar residente no Supabase:', error);
             return res.status(500).json({ success: false, error: error.message });
         }
 
-        return res.json({ success: true, resident: data });
+        return res.json({ success: true, resident: data, auth_id: authUserId });
     } catch (err: any) {
         console.error('Erro interno /api/register-candidate:', err);
         return res.status(500).json({ success: false, error: err.message || 'Erro ao registrar candidato.' });

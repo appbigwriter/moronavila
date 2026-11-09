@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Users, CreditCard, Wrench, LayoutDashboard, CheckCircle2, AlertCircle, Wifi, Droplets, Plus, MessageSquare, X, Trello, Bed, PhoneCall } from 'lucide-react';
+import { Users, CreditCard, Wrench, LayoutDashboard, CheckCircle2, AlertCircle, Wifi, Droplets, Plus, MessageSquare, X, Trello, Bed, PhoneCall, Eye } from 'lucide-react';
 import { Payment, MaintenanceRequest, Resident, Room, PaymentStatus, MaintenanceStatus, LaundrySchedule, UserRole, RoomType } from '../types';
 import { createMaintenanceRequest, createComplaint } from '../lib/database';
 import {
@@ -20,6 +20,7 @@ interface DashboardViewProps {
     setShowAddResidentModal?: (show: boolean) => void;
     setShowAddNoticeModal?: (show: boolean) => void;
     setShowAddEventModal?: (show: boolean) => void;
+    onPreviewResidentDashboard?: () => void;
 }
 
 const StatCard = ({ label, value, icon: Icon, colorClass, onClick, span = "col-span-1" }: { label: string, value: string | number | React.ReactNode, icon: any, colorClass: string, onClick?: () => void, span?: string }) => (
@@ -49,7 +50,7 @@ const StatCard = ({ label, value, icon: Icon, colorClass, onClick, span = "col-s
 
 export function DashboardView({
     payments, maintenance, residents, rooms, laundrySchedules, currentUser, setActiveTab,
-    setShowAddResidentModal, setShowAddNoticeModal, setShowAddEventModal
+    setShowAddResidentModal, setShowAddNoticeModal, setShowAddEventModal, onPreviewResidentDashboard
 }: DashboardViewProps) {
     const isAdmin = currentUser.role === UserRole.ADMIN;
 
@@ -239,6 +240,19 @@ export function DashboardView({
                                 ? 'Gerencie a infraestrutura da República com precisão. Monitore pagamentos, moradores e manutenções em tempo real.'
                                 : 'Sua experiência na Moronavila centralizada. Confira seus boletos, solicite reparos e agende sua lavanderia.'}
                         </p>
+
+                        {isAdmin && onPreviewResidentDashboard && (
+                            <div className="pt-4">
+                                <button
+                                    onClick={onPreviewResidentDashboard}
+                                    className="inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-600 to-amber-600 hover:from-amber-600 hover:to-rose-700 text-white font-black text-xs uppercase tracking-wider transition-all shadow-xl shadow-amber-950/40 hover:scale-[1.03] active:scale-95 cursor-pointer border border-amber-400/40"
+                                    title="Visualizar a nova versão do Dashboard do Morador"
+                                >
+                                    <Eye size={18} />
+                                    <span>Ver Versão do Residente (Testar Morador)</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -248,6 +262,20 @@ export function DashboardView({
                         <Plus size={20} className="text-rose-500" /> Ações Rápidas
                     </h3>
                     <div className="grid grid-cols-1 gap-3 flex-1">
+                        {isAdmin && onPreviewResidentDashboard && (
+                            <button
+                                onClick={onPreviewResidentDashboard}
+                                className="flex items-center gap-4 p-4 bg-gradient-to-r from-amber-500/10 to-rose-500/10 hover:from-amber-500 hover:to-rose-600 rounded-2xl border border-amber-500/40 hover:border-amber-400 text-amber-300 hover:text-white transition-all duration-300 group/btn cursor-pointer shadow-md shadow-amber-950/20"
+                            >
+                                <div className="p-2.5 bg-slate-950 rounded-xl text-amber-400 group-hover/btn:text-white group-hover/btn:bg-amber-600 transition-colors">
+                                    <Eye size={18} />
+                                </div>
+                                <div className="text-left">
+                                    <span className="text-sm font-black block leading-none">Visão do Residente</span>
+                                    <span className="text-[10px] text-slate-400 group-hover/btn:text-slate-100">Testar painel do morador</span>
+                                </div>
+                            </button>
+                        )}
                         <button onClick={() => setShowRepairModal(true)} className="flex items-center gap-4 p-4 bg-slate-800/50 hover:bg-rose-600 rounded-2xl border border-slate-700 hover:border-rose-500 transition-all duration-300 group/btn">
                             <div className="p-2.5 bg-slate-950 rounded-xl text-slate-400 group-hover/btn:text-white group-hover/btn:bg-rose-700 transition-colors">
                                 <Wrench size={18} />
@@ -392,7 +420,7 @@ export function DashboardView({
                         <div>
                             <p className="text-[10px] font-black text-rose-500 uppercase tracking-[0.3em] mb-4">Sistema de Gestão</p>
                             <h4 className="text-2xl font-black text-white leading-tight mb-4">
-                                VPR <span className="text-slate-500">Inteligente</span>
+                                MoronaVila <span className="text-slate-500">Inteligente</span>
                             </h4>
                             <p className="text-slate-400 text-sm leading-relaxed mb-6">
                                 Versão 3.5 focada em performance e experiência do usuário. Todos os módulos agora utilizam criptografia de ponta e sincronização otimizada.

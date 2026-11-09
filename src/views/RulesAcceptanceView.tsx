@@ -6,10 +6,11 @@ import {
     Home, Phone, Mail, User, Info, AlertCircle, HeartHandshake,
     Printer, ChevronDown, ChevronUp, UserPlus, X, ArrowRight,
     UserCheck, BadgeCheck, Instagram, Facebook, Upload, Trash2,
-    Image as ImageIcon, Plug, Flame
+    Image as ImageIcon, Plug, Flame, Eye, EyeOff
 } from 'lucide-react';
 import { Resident, UserRole } from '../types';
 import { createResident, uploadResidentDocument } from '../lib/database';
+import { supabase } from '../lib/supabase';
 
 interface RulesAcceptanceViewProps {
     onBack: () => void;
@@ -244,6 +245,11 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
     const [submitError, setSubmitError] = useState('');
     const [showDetailedForm, setShowDetailedForm] = useState(true);
 
+    // Senha de Acesso ao Dashboard do Morador
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+
     const handleCopyPix = () => {
         navigator.clipboard.writeText('21983245000');
         setCopiedPix(true);
@@ -288,7 +294,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
             return;
         }
 
-        const protocol = `VPR-VIS-${Math.floor(1000 + Math.random() * 9000)}`;
+        const protocol = `MV-VIS-${Math.floor(1000 + Math.random() * 9000)}`;
         const newVisitor: AuthorizedVisitor = {
             id: protocol,
             residentName: visitorForm.residentName || 'Residente',
@@ -316,7 +322,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
     };
 
     const handleSendVisitorWhatsApp = () => {
-        const text = `*CADASTRO DE VISITA AUTORIZADA - VOUPRURIO*%0A` +
+        const text = `*CADASTRO DE VISITA AUTORIZADA - MORONAVILA*%0A` +
             `*Protocolo:* ${visitorProtocol}%0A%0A` +
             `*Morador(a):* ${visitorForm.residentName}%0A` +
             `*Unidade/Quarto:* ${visitorForm.residentUnit}%0A` +
@@ -414,6 +420,14 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
             setSubmitError('É obrigatório anexar a foto do Verso do seu Documento de Identidade (ou CNH completa).');
             return;
         }
+        if (!password || password.trim().length < 6) {
+            setSubmitError('Por favor, crie uma Senha de Acesso com no mínimo 6 caracteres para entrar no seu Dashboard.');
+            return;
+        }
+        if (password !== confirmPassword) {
+            setSubmitError('A confirmação de senha não confere com a senha digitada.');
+            return;
+        }
 
         setIsSubmitting(true);
 
@@ -460,13 +474,24 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                 document_back_url: docBackUrl,
                 document_urls: [docFrontUrl, docBackUrl].filter(Boolean),
                 entry_date: formData.entry_date || new Date().toISOString().split('T')[0],
-                status: 'Candidato',
+                status: 'Ativo',
                 role: UserRole.RESIDENT,
-                habilitado: false,
+                habilitado: true,
                 internet_active: false,
                 rent_value: 900,
-                cleaning_fee: 60
+                cleaning_fee: 60,
+                password: password.trim()
             });
+
+            // Tenta autenticar automaticamente com a credencial recém-criada
+            try {
+                await supabase.auth.signInWithPassword({
+                    email: formData.email.trim().toLowerCase(),
+                    password: password.trim()
+                });
+            } catch (autoLoginErr) {
+                console.warn('Auto-login após cadastro:', autoLoginErr);
+            }
 
             setSubmitSuccess(true);
         } catch (err: any) {
@@ -478,7 +503,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
     };
 
     const handleWhatsAppConfirm = () => {
-        const text = `*NOVO CADASTRO & ACEITE DE REGRAS - VOUPRURIO*%0A%0A` +
+        const text = `*NOVO CADASTRO & ACEITE DE REGRAS - MORONAVILA*%0A%0A` +
             `*Nome:* ${formData.name}%0A` +
             `*E-mail:* ${formData.email}%0A` +
             `*WhatsApp:* ${formData.phone}%0A` +
@@ -494,7 +519,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
             `*Família:* ${formData.family_address}%0A` +
             `*Contato de Emergência:* ${formData.emergency_contact_name} (${formData.emergency_contact_phone})%0A` +
             `*Documentos Anexados:* ${docFrontFile ? 'Frente enviada' : 'Sim'} e ${docBackFile ? 'Verso enviado' : 'Sim'}%0A%0A` +
-            `_Declaro que li e aceito integralmente todas as 12 Regras de Conduta Residencial VouPruRio e as condições financeiras (Depósito Caução + Mês Corrente)._`;
+            `_Declaro que li e aceito integralmente todas as 12 Regras de Conduta Residencial MoronaVila e as condições financeiras (Depósito Caução + Mês Corrente)._`;
         window.open(`https://wa.me/5521983245000?text=${text}`, '_blank');
     };
 
@@ -511,11 +536,13 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                         <span>Voltar ao Início</span>
                     </button>
 
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center font-black text-white text-xs shadow-lg shadow-rose-950/40">
-                            VPR
+                    <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-xl bg-rose-600 text-white shadow-lg shadow-rose-900/40">
+                            <Home size={18} />
                         </div>
-                        <span className="font-black text-sm tracking-tight hidden sm:inline">VouPruRio</span>
+                        <span className="text-base font-black text-white tracking-tighter uppercase italic">
+                            MORONA<span className="text-rose-600">VILA</span>
+                        </span>
                         <span className="text-slate-600 hidden sm:inline">•</span>
                         <span className="text-xs text-slate-400 hidden sm:inline font-semibold">Regulamento & Cadastro</span>
                     </div>
@@ -566,7 +593,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                         Aceite de Regras e <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-400">Cadastro de Residente</span>
                     </h1>
                     <p className="text-lg sm:text-xl font-bold text-amber-400/90 tracking-tight">
-                        Regras de Conduta Residencial VouPruRio
+                        Regras de Conduta Residencial MoronaVila
                     </p>
                     <p className="text-sm text-slate-400 leading-relaxed">
                         Para garantir um ambiente harmonioso, seguro, limpo e propício ao descanso e produtividade de todos, estabelecemos normas transparentes e iguais para todos os residentes da propriedade.
@@ -959,8 +986,20 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     Aceite & Cadastro Registrados com Sucesso!
                                 </h3>
                                 <p className="text-sm text-slate-300 max-w-lg mx-auto">
-                                    Seus dados foram recebidos e seu aceite às 12 Regras de Conduta Residencial VouPruRio foi confirmado.
+                                    Seus dados foram recebidos e seu aceite às 12 Regras de Conduta Residencial MoronaVila foi confirmado.
                                 </p>
+                            </div>
+
+                            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 max-w-md mx-auto text-left space-y-2">
+                                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
+                                    <Lock size={15} /> Acesso ao seu Dashboard Criado
+                                </div>
+                                <div className="text-xs text-slate-200">
+                                    <span className="text-slate-400">E-mail:</span> <strong>{formData.email.trim().toLowerCase()}</strong>
+                                </div>
+                                <div className="text-xs text-slate-400 leading-relaxed">
+                                    Sua senha de acesso foi cadastrada com sucesso. Use este e-mail e senha para entrar no seu Dashboard exclusivo do Morador.
+                                </div>
                             </div>
 
                             <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 max-w-md mx-auto text-left text-xs text-slate-300 space-y-2">
@@ -972,10 +1011,21 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
 
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                                 <button
+                                    onClick={() => {
+                                        window.location.hash = '';
+                                        window.location.search = '?view=app';
+                                        onBack();
+                                    }}
+                                    className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-rose-950/50 flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    <span>Entrar no Meu Dashboard Agora</span>
+                                    <ArrowRight size={16} />
+                                </button>
+                                <button
                                     onClick={handleWhatsAppConfirm}
                                     className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
                                 >
-                                    Confirmar via WhatsApp da Administração
+                                    Confirmar no WhatsApp
                                 </button>
                                 <a
                                     href={googleFormsUrl}
@@ -983,7 +1033,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                     rel="noopener noreferrer"
                                     className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider border border-slate-700 transition-all"
                                 >
-                                    Abrir no Google Forms
+                                    Google Forms
                                 </a>
                             </div>
                         </div>
@@ -1419,6 +1469,76 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Senha de Acesso ao Dashboard do Morador */}
+                                    <div className="sm:col-span-2 lg:col-span-3 space-y-3 pt-3">
+                                        <div className="border-t border-slate-800 pt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                            <div>
+                                                <h4 className="text-xs font-black text-amber-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                                    <Lock size={16} />
+                                                    <span>Senha de Acesso ao seu Dashboard * Obrigatório</span>
+                                                </h4>
+                                                <p className="text-[11px] text-slate-400 mt-0.5">
+                                                    Defina uma senha pessoal. Com seu e-mail e esta senha, você entrará diretamente no seu Dashboard de Morador para gerenciar aluguel, lavanderia, visitantes e reparos.
+                                                </p>
+                                            </div>
+                                            <span className="text-[10px] uppercase font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg self-start sm:self-auto">
+                                                Mínimo 6 caracteres
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                                            {/* Senha */}
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                                                    <span>Criar Senha de Acesso *</span>
+                                                    <span className="text-[10px] text-slate-500 font-normal">mínimo 6 dígitos</span>
+                                                </label>
+                                                <div className="relative">
+                                                    <input
+                                                        type={showPassword ? 'text' : 'password'}
+                                                        required
+                                                        minLength={6}
+                                                        value={password}
+                                                        onChange={e => setPassword(e.target.value)}
+                                                        placeholder="Digite sua senha de acesso"
+                                                        className="w-full px-4 py-3 pr-12 rounded-2xl bg-slate-950 border border-slate-800 focus:border-amber-500 focus:outline-none text-sm text-white placeholder-slate-600"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPassword(!showPassword)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 cursor-pointer"
+                                                        title={showPassword ? 'Ocultar senha' : 'Ver senha'}
+                                                    >
+                                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Confirmar Senha */}
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                                                    <span>Confirmar Senha *</span>
+                                                    {password && confirmPassword && (
+                                                        <span className={`text-[10px] font-bold ${password === confirmPassword ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                            {password === confirmPassword ? '✓ Coincidem' : '✗ Não coincidem'}
+                                                        </span>
+                                                    )}
+                                                </label>
+                                                <div className="relative">
+                                                    <input
+                                                        type={showPassword ? 'text' : 'password'}
+                                                        required
+                                                        minLength={6}
+                                                        value={confirmPassword}
+                                                        onChange={e => setConfirmPassword(e.target.value)}
+                                                        placeholder="Repita sua senha de acesso"
+                                                        className={`w-full px-4 py-3 rounded-2xl bg-slate-950 border focus:outline-none text-sm text-white placeholder-slate-600 ${confirmPassword && password !== confirmPassword ? 'border-rose-500' : 'border-slate-800 focus:border-amber-500'}`}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* ACEITE DECLARATÓRIO DAS REGRAS */}
@@ -1435,7 +1555,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                             <strong className="text-white block mb-1">
                                                 DECLARAÇÃO FORMAL DE ACEITE INTEGRAL DAS REGRAS
                                             </strong>
-                                            Declaro que li, compreendi e aceito integralmente todas as <strong className="text-amber-400">12 Regras de Conduta Residencial VouPruRio</strong>, incluindo as multas aplicáveis por infração (fumo/álcool: R$ 20,00; silêncio/TV alta: R$ 20,00; lavar/passar roupa fora do padrão: R$ 20,00; cozinha suja: R$ 20,00; louça fora do armário: R$ 10,00; quartos alheios: R$ 50,00; lounge/churrasqueira/área externa: R$ 20,00; e cobrança total por mau uso de eletrodomésticos compartilhados), as condições de pagamento do aluguel (R$ 960,00 ou R$ 860,00 promocional até 10/11), pagamento antecipado até o 5º dia útil via PIX para Sergio Oswaldo de Castro, cobrança de multas no mês subsequente, necessidade de aviso prévio de 30 dias para saída e quitação do último mês através do depósito caução.
+                                            Declaro que li, compreendi e aceito integralmente todas as <strong className="text-amber-400">12 Regras de Conduta Residencial MoronaVila</strong>, incluindo as multas aplicáveis por infração (fumo/álcool: R$ 20,00; silêncio/TV alta: R$ 20,00; lavar/passar roupa fora do padrão: R$ 20,00; cozinha suja: R$ 20,00; louça fora do armário: R$ 10,00; quartos alheios: R$ 50,00; lounge/churrasqueira/área externa: R$ 20,00; e cobrança total por mau uso de eletrodomésticos compartilhados), as condições de pagamento do aluguel (R$ 960,00 ou R$ 860,00 promocional até 10/11), pagamento antecipado até o 5º dia útil via PIX para Sergio Oswaldo de Castro, cobrança de multas no mês subsequente, necessidade de aviso prévio de 30 dias para saída e quitação do último mês através do depósito caução.
                                         </label>
                                     </div>
 
@@ -1784,7 +1904,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                 {/* FOOTER INFORMATIVO */}
                 <div className="pt-8 border-t border-slate-800/80 text-center space-y-3 pb-12 text-xs text-slate-500">
                     <p className="font-bold text-slate-400">
-                        VouPruRio • Residência & Coliving Profissional
+                        MoronaVila • Residência & Coliving Profissional
                     </p>
                     <p>
                         Rua Torres Homem, 886 - Vila Isabel - Rio de Janeiro / RJ • CEP 20551-075
