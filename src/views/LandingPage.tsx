@@ -811,8 +811,8 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
         <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-rose-500/30">
             {/* Topbar Fixa com Design Glassmorphism */}
             <header className="fixed top-0 inset-x-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-2 lg:gap-4">
+                    <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
                         <div className="p-2 bg-gradient-to-tr from-rose-600 to-rose-500 rounded-xl text-white shadow-lg shadow-rose-900/40">
                             <Home size={22} />
                         </div>
@@ -824,17 +824,23 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                         </div>
                     </div>
 
-                    <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
-                        <a href="#unidades" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Unidades</a>
-                        <a href="#comodidades" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Comodidades</a>
-                        <a href="#localizacao" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Localização</a>
-                        <a href="#vagas" className="text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Disponíveis</a>
-                        <a href="#comparativo" className="hidden xl:inline text-xs font-bold text-slate-300 hover:text-white uppercase tracking-wider transition-colors">Custo-Benefício</a>
-                        <a href="#regras" className="text-xs font-bold text-amber-400 hover:text-amber-300 uppercase tracking-wider transition-colors">Regras</a>
-                        <a href="#contato" className="text-xs font-bold text-rose-500 hover:text-rose-400 uppercase tracking-wider transition-colors">Agendar Visita</a>
+                    <nav className="hidden md:flex items-center gap-2.5 lg:gap-3.5 xl:gap-5 flex-nowrap shrink-0">
+                        <a href="#unidades" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">Unidades</a>
+                        <a href="#comodidades" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">Comodidades</a>
+                        <a href="#localizacao" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">Localização</a>
+                        <a href="#vagas" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">Disponíveis</a>
+                        <a href="#comparativo" className="text-[10px] xl:text-[11px] font-bold text-slate-300 hover:text-white uppercase tracking-wider whitespace-nowrap transition-colors">Custo-Benefício</a>
+                        <a
+                            href="#regras"
+                            onClick={onOpenRules ? (e) => { e.preventDefault(); onOpenRules(); } : undefined}
+                            className="text-[10px] xl:text-[11px] font-bold text-amber-400 hover:text-amber-300 uppercase tracking-wider whitespace-nowrap transition-colors"
+                        >
+                            Regras
+                        </a>
+                        <a href="#contato" className="text-[10px] xl:text-[11px] font-bold text-rose-500 hover:text-rose-400 uppercase tracking-wider whitespace-nowrap transition-colors">Agendar Visita</a>
                     </nav>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <a
                             href="https://wa.me/5521981900803?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20as%20vagas%20na%20MoronaVila"
                             target="_blank"
