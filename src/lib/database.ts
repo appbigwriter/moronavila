@@ -47,7 +47,9 @@ export async function fetchResidents(): Promise<Resident[]> {
 }
 
 export async function createResident(resident: Partial<Resident>): Promise<Resident> {
-    // 1. Tenta enviar pela rota da API de cadastro (com service_role no backend)
+    const userPassword = (resident as any).password;
+
+    // 1. Tenta enviar pela rota da API de cadastro (com PG direto / SMTP no backend)
     try {
         const response = await fetch('/api/register-candidate', {
             method: 'POST',
@@ -57,6 +59,47 @@ export async function createResident(resident: Partial<Resident>): Promise<Resid
         if (response.ok) {
             const result = await response.json();
             if (result.success && result.resident) {
+                // Se o backend não conseguiu criar o usuário no Supabase Auth (ex: bloqueio HTTPS no container), cria via cliente isolado no navegador
+                if (!result.auth_id && userPassword && resident.email) {
+                    try {
+                        const cleanEmail = String(resident.email).trim().toLowerCase();
+                        const { createClient } = await import('@supabase/supabase-js');
+                        const tempClient = createClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+                        const { data: authData } = await tempClient.auth.signUp({
+                            email: cleanEmail,
+                            password: String(userPassword).trim(),
+                            options: { data: { name: resident.name, phone: resident.phone } }
+                        });
+                        if (authData?.user?.id) {
+                            result.resident.auth_id = authData.user.id;
+                            await fetch('/api/link-auth-id', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    residentId: result.resident.id,
+                                    email: cleanEmail,
+                                    authId: authData.user.id
+                                })
+                            }).catch(() => {});
+                        }
+                    } catch (authFallbackErr) {
+                        console.warn('Aviso ao vincular auth_id pelo navegador:', authFallbackErr);
+                    }
+                }
+
+                // Se por algum motivo o backend marcou emailSent: false, tenta disparo direto leve via /api/send-notification-email
+                if (result.emailSent === false && resident.email) {
+                    await fetch('/api/send-notification-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'confirmation',
+                            email: String(resident.email).trim().toLowerCase(),
+                            name: resident.name || result.resident.name || 'Residente'
+                        })
+                    }).catch(() => {});
+                }
+
                 return normalizeResident(result.resident);
             }
         }
@@ -95,12 +138,13 @@ export async function createResident(resident: Partial<Resident>): Promise<Resid
     // Armazena metadados dos documentos e facebook no document_number
     safePayload.document_number = metaDoc;
 
-    const userPassword = (resident as any).password;
     if (userPassword && !safePayload.auth_id && resident.email) {
         try {
-            const { data: authData } = await supabase.auth.signUp({
-                email: resident.email,
-                password: userPassword,
+            const { createClient } = await import('@supabase/supabase-js');
+            const tempClient = createClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+            const { data: authData } = await tempClient.auth.signUp({
+                email: resident.email.trim().toLowerCase(),
+                password: String(userPassword).trim(),
                 options: { data: { name: resident.name, phone: resident.phone } }
             });
             if (authData?.user?.id) {
@@ -120,12 +164,13 @@ export async function createResident(resident: Partial<Resident>): Promise<Resid
     if (safePayload.email) {
         const cleanEmail = String(safePayload.email).trim().toLowerCase();
         safePayload.email = cleanEmail;
-        const { data: existing } = await supabase
+        const { data: existingList } = await supabase
             .from('residents')
             .select('id')
             .ilike('email', cleanEmail)
-            .maybeSingle();
+            .limit(1);
 
+        const existing = existingList?.[0];
         if (existing?.id) {
             const { data: updData, error: updErr } = await supabase
                 .from('residents')

@@ -52,49 +52,71 @@ const pgPool = new Pool({
     idleTimeoutMillis: 15000
 });
 pgPool.on('error', (err) => {
-    console.warn('⚠️ Aviso no pool PostgreSQL:', err.message);
+    console.warn('⚠️ Aviso no pool PostgreSQL principal:', err.message);
 });
+
+const pgFallbackPool = new Pool({
+    connectionString: FALLBACK_DATABASE_URL,
+    ssl: false,
+    connectionTimeoutMillis: 5000,
+    idleTimeoutMillis: 15000
+});
+pgFallbackPool.on('error', (err) => {
+    console.warn('⚠️ Aviso no pool PostgreSQL fallback:', err.message);
+});
+
+let pgPrimaryAuthFailed = false;
+let supabaseHttpBlocked = false;
+
+async function runWithTimeout<T>(promise: Promise<T>, ms: number, label = 'operação'): Promise<T> {
+    let timer: ReturnType<typeof setTimeout>;
+    return new Promise<T>((resolve, reject) => {
+        timer = setTimeout(() => reject(new Error(`Timeout (${ms}ms) em ${label}`)), ms);
+        promise.then(
+            (val) => { clearTimeout(timer); resolve(val); },
+            (err) => { clearTimeout(timer); reject(err); }
+        );
+    });
+}
+
+async function runPgQueryWithClient<T>(pool: pg.Pool, fn: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+    const client = await pool.connect();
+    const onClientErr = (err: Error) => console.warn('⚠️ Erro transitório PoolClient PG:', err.message);
+    client.on('error', onClientErr);
+    try {
+        return await fn(client);
+    } finally {
+        client.off('error', onClientErr);
+        client.release();
+    }
+}
+
+async function withPgClient<T>(fn: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+    const hasCustomPrimary = Boolean(process.env.DATABASE_URL && process.env.DATABASE_URL.trim() !== FALLBACK_DATABASE_URL);
+    if (pgPrimaryAuthFailed && hasCustomPrimary) {
+        return runPgQueryWithClient(pgFallbackPool, fn);
+    }
+    try {
+        return await runPgQueryWithClient(pgPool, fn);
+    } catch (primaryErr: any) {
+        if (hasCustomPrimary) {
+            const errMsg = String(primaryErr?.message || '').toLowerCase();
+            if (errMsg.includes('password authentication failed') || errMsg.includes('econnrefused') || errMsg.includes('enotfound')) {
+                pgPrimaryAuthFailed = true;
+            }
+            console.warn('⚠️ PG principal falhou (' + primaryErr.message + '), tentando FALLBACK_DATABASE_URL...');
+            return await runPgQueryWithClient(pgFallbackPool, fn);
+        }
+        throw primaryErr;
+    }
+}
 
 async function findResidentByEmail(rawEmail: string): Promise<{ resident: any | null; source: string; error?: string }> {
     const cleanEmail = rawEmail.trim().toLowerCase();
 
-    // 1. Tenta via cliente Supabase principal (case-insensitive)
+    // 1. Busca direta e rápida no PostgreSQL (verifica custom_moronavila.residents, public.residents e auth.users)
     try {
-        const { data, error } = await supabase
-            .from('residents')
-            .select('*')
-            .ilike('email', cleanEmail)
-            .maybeSingle();
-
-        if (!error) {
-            return { resident: data || null, source: 'supabase-primary' };
-        }
-        console.warn('⚠️ Erro query Supabase primary:', error.message);
-    } catch (err: any) {
-        console.warn('⚠️ Exceção fetch Supabase primary:', err?.message, err?.cause?.code || err?.cause?.message || '');
-    }
-
-    // 2. Fallback: cliente Supabase explícito na URL pública HTTPS com Service Role Key
-    try {
-        const directClient = createClient(FALLBACK_SUPABASE_URL, FALLBACK_SERVICE_ROLE_KEY, serverClientOptions);
-        const { data, error } = await directClient
-            .from('residents')
-            .select('*')
-            .ilike('email', cleanEmail)
-            .maybeSingle();
-
-        if (!error) {
-            return { resident: data || null, source: 'supabase-fallback-https' };
-        }
-        console.warn('⚠️ Erro query Supabase fallback HTTPS:', error.message);
-    } catch (err: any) {
-        console.warn('⚠️ Exceção fetch Supabase fallback HTTPS:', err?.message, err?.cause?.code || err?.cause?.message || '');
-    }
-
-    // 3. Fallback: Conexão Direta PostgreSQL (verifica custom_moronavila e public)
-    try {
-        const client = await pgPool.connect();
-        try {
+        return await withPgClient(async (client) => {
             const res1 = await client.query(
                 'SELECT * FROM custom_moronavila.residents WHERE LOWER(TRIM(email)) = $1 LIMIT 1',
                 [cleanEmail]
@@ -102,21 +124,104 @@ async function findResidentByEmail(rawEmail: string): Promise<{ resident: any | 
             if (res1.rows.length > 0) {
                 return { resident: res1.rows[0], source: 'pg-custom_moronavila' };
             }
-            const res2 = await client.query(
-                'SELECT * FROM public.residents WHERE LOWER(TRIM(email)) = $1 LIMIT 1',
-                [cleanEmail]
-            );
-            if (res2.rows.length > 0) {
-                return { resident: res2.rows[0], source: 'pg-public' };
+            try {
+                const res2 = await client.query(
+                    'SELECT * FROM public.residents WHERE LOWER(TRIM(email)) = $1 LIMIT 1',
+                    [cleanEmail]
+                );
+                if (res2.rows.length > 0) {
+                    return { resident: res2.rows[0], source: 'pg-public' };
+                }
+            } catch {
+                // public.residents pode não existir dependendo da configuração de schema
+            }
+            try {
+                const authRes = await client.query(
+                    'SELECT id, email, raw_user_meta_data FROM auth.users WHERE LOWER(TRIM(email)) = $1 LIMIT 1',
+                    [cleanEmail]
+                );
+                if (authRes.rows.length > 0) {
+                    const au = authRes.rows[0];
+                    const metaName = au.raw_user_meta_data?.name || cleanEmail.split('@')[0];
+                    const isAdminAuth = ['sergio@fbr.news', 'lenapscastro@gmail.com', 'sergiomvj@gmail.com'].includes(cleanEmail) || cleanEmail.endsWith('@fbr.news');
+                    return {
+                        resident: {
+                            id: au.id,
+                            auth_id: au.id,
+                            name: metaName,
+                            email: au.email,
+                            status: isAdminAuth ? 'Ativo' : 'Pendente',
+                            habilitado: isAdminAuth,
+                            _authOnly: true
+                        },
+                        source: 'pg-auth_users'
+                    };
+                }
+            } catch {
+                // consulta a auth.users opcional
             }
             return { resident: null, source: 'pg-not-found' };
-        } finally {
-            client.release();
-        }
+        });
     } catch (pgErr: any) {
-        console.error('❌ Erro no fallback PostgreSQL direto:', pgErr.message);
-        return { resident: null, source: 'error', error: pgErr.message };
+        console.warn('⚠️ Falha na busca direta PostgreSQL, tentando Supabase HTTP:', pgErr.message);
     }
+
+    // 2. Fallback via cliente Supabase HTTPS (com timeout curto de 4s)
+    if (!supabaseHttpBlocked) {
+        try {
+            const { data, error } = await runWithTimeout(
+                Promise.resolve(
+                    supabase
+                        .from('residents')
+                        .select('*')
+                        .ilike('email', cleanEmail)
+                        .limit(1)
+                ),
+                4000,
+                'supabase-primary'
+            );
+
+            if (!error && data && data.length > 0) {
+                return { resident: data[0], source: 'supabase-primary' };
+            }
+            if (!error) {
+                return { resident: null, source: 'supabase-not-found' };
+            }
+            console.warn('⚠️ Erro query Supabase primary:', error.message);
+        } catch (err: any) {
+            supabaseHttpBlocked = true;
+            console.warn('⚠️ Exceção fetch Supabase primary:', err?.message, err?.cause?.code || err?.cause?.message || '');
+        }
+    }
+
+    // 3. Fallback explícito para URL pública caso seja diferente da configurada
+    if (supabaseUrl !== FALLBACK_SUPABASE_URL) {
+        try {
+            const directClient = createClient(FALLBACK_SUPABASE_URL, FALLBACK_SERVICE_ROLE_KEY, serverClientOptions);
+            const { data, error } = await runWithTimeout(
+                Promise.resolve(
+                    directClient
+                        .from('residents')
+                        .select('*')
+                        .ilike('email', cleanEmail)
+                        .limit(1)
+                ),
+                4000,
+                'supabase-fallback-https'
+            );
+
+            if (!error && data && data.length > 0) {
+                return { resident: data[0], source: 'supabase-fallback-https' };
+            }
+            if (!error) {
+                return { resident: null, source: 'supabase-not-found' };
+            }
+        } catch (err: any) {
+            console.warn('⚠️ Exceção fetch Supabase fallback HTTPS:', err?.message);
+        }
+    }
+
+    return { resident: null, source: 'error', error: 'Não foi possível consultar o cadastro no servidor.' };
 }
 
 // ── SMTP / EMAIL NOTIFICATIONS ───────────────────────────────────────────────
@@ -385,35 +490,50 @@ app.post('/api/register-candidate', async (req, res) => {
 
         const cleanEmail = email.trim().toLowerCase();
 
-        // 1. Criar ou atualizar credencial no Supabase Auth para acesso ao Dashboard
+        // 1. Criar ou atualizar credencial no Supabase Auth para acesso ao Dashboard (timeout curto de 3.5s)
         let authUserId: string | null = null;
-        if (password && password.trim().length >= 6) {
+        if (password && password.trim().length >= 6 && !supabaseHttpBlocked) {
             try {
-                const { data: authCreated, error: authCreateError } = await supabase.auth.admin.createUser({
-                    email: cleanEmail,
-                    password: password.trim(),
-                    email_confirm: true,
-                    user_metadata: { name: name.trim(), phone: phone.trim() }
-                });
+                const { data: authCreated, error: authCreateError } = await runWithTimeout(
+                    supabase.auth.admin.createUser({
+                        email: cleanEmail,
+                        password: password.trim(),
+                        email_confirm: true,
+                        user_metadata: { name: name.trim(), phone: phone.trim() }
+                    }),
+                    3500,
+                    'auth.admin.createUser'
+                );
 
                 if (!authCreateError && authCreated?.user) {
                     authUserId = authCreated.user.id;
                     console.log(`✅ Usuário criado no Supabase Auth: ${cleanEmail} (${authUserId})`);
                 } else if (authCreateError) {
                     console.log('ℹ️ Usuário já existente ou retorno ao criar Auth:', authCreateError.message);
-                    const { data: userList } = await supabase.auth.admin.listUsers();
+                    const { data: userList } = await runWithTimeout(
+                        supabase.auth.admin.listUsers(),
+                        3500,
+                        'auth.admin.listUsers'
+                    );
                     const existingAuthUser = (userList?.users as any[])?.find((u: any) => u.email?.toLowerCase() === cleanEmail);
                     if (existingAuthUser) {
                         authUserId = existingAuthUser.id;
-                        await supabase.auth.admin.updateUserById(existingAuthUser.id, {
-                            password: password.trim(),
-                            email_confirm: true,
-                            user_metadata: { name: name.trim(), phone: phone.trim() }
-                        });
+                        await runWithTimeout(
+                            supabase.auth.admin.updateUserById(existingAuthUser.id, {
+                                password: password.trim(),
+                                email_confirm: true,
+                                user_metadata: { name: name.trim(), phone: phone.trim() }
+                            }),
+                            3500,
+                            'auth.admin.updateUserById'
+                        );
                         console.log(`✅ Senha atualizada no Supabase Auth para ${cleanEmail}`);
                     }
                 }
             } catch (authErr: any) {
+                if (String(authErr?.message || '').toLowerCase().includes('fetch failed') || String(authErr?.message || '').toLowerCase().includes('timeout')) {
+                    supabaseHttpBlocked = true;
+                }
                 console.warn('⚠️ Aviso ao sincronizar usuário no Supabase Auth:', authErr.message);
             }
         }
@@ -457,105 +577,112 @@ app.post('/api/register-candidate', async (req, res) => {
             residentPayload.auth_id = authUserId;
         }
 
-        // Verifica se já existe morador registrado com esse email para atualizar ou inserir
+        // Persistência direta e rápida no PostgreSQL primeiro (evita timeout de HTTP interno no container)
         let data: any = null;
         let error: any = null;
 
         try {
-            const { data: existingResident } = await supabase
-                .from('residents')
-                .select('id, auth_id')
-                .ilike('email', cleanEmail)
-                .maybeSingle();
-
-            if (existingResident?.id) {
-                const updateRes = await supabase
-                    .from('residents')
-                    .update(residentPayload)
-                    .eq('id', existingResident.id)
-                    .select()
-                    .single();
-                data = updateRes.data;
-                error = updateRes.error;
-            } else {
-                const insertRes = await supabase
-                    .from('residents')
-                    .insert(residentPayload)
-                    .select()
-                    .single();
-                data = insertRes.data;
-                error = insertRes.error;
-            }
-        } catch (sbCatchErr: any) {
-            console.warn('⚠️ Exceção no Supabase durante /api/register-candidate, tentando fallback direto:', sbCatchErr?.message);
-            error = sbCatchErr;
+            await withPgClient(async (client) => {
+                const existingPg = await client.query(
+                    'SELECT id FROM custom_moronavila.residents WHERE LOWER(TRIM(email)) = $1 LIMIT 1',
+                    [cleanEmail]
+                );
+                if (existingPg.rows.length > 0) {
+                    const upd = await client.query(
+                        `UPDATE custom_moronavila.residents SET
+                            name = $1, phone = $2, cpf = $3, rg = $4, birth_date = $5,
+                            origin_address = $6, family_address = $7, emergency_contact_name = $8,
+                            emergency_contact_phone = $9, occupation = $10, company = $11,
+                            university = $12, course = $13, instagram = $14, document_number = $15,
+                            entry_date = $16, status = 'Candidato', role = 'Morador',
+                            habilitado = false, motivo_bloqueio = $17,
+                            auth_id = COALESCE($18, auth_id)
+                        WHERE id = $19 RETURNING *`,
+                        [
+                            residentPayload.name, residentPayload.phone, residentPayload.cpf,
+                            residentPayload.rg, residentPayload.birth_date, residentPayload.origin_address,
+                            residentPayload.family_address, residentPayload.emergency_contact_name,
+                            residentPayload.emergency_contact_phone, residentPayload.occupation,
+                            residentPayload.company, residentPayload.university, residentPayload.course,
+                            residentPayload.instagram, residentPayload.document_number,
+                            residentPayload.entry_date, residentPayload.motivo_bloqueio,
+                            authUserId, existingPg.rows[0].id
+                        ]
+                    );
+                    data = upd.rows[0];
+                    error = null;
+                } else {
+                    const ins = await client.query(
+                        `INSERT INTO custom_moronavila.residents (
+                            name, email, phone, cpf, rg, birth_date, origin_address, family_address,
+                            emergency_contact_name, emergency_contact_phone, occupation, company,
+                            university, course, instagram, document_number, entry_date, status, role,
+                            habilitado, motivo_bloqueio, internet_active, rent_value, cleaning_fee, auth_id
+                        ) VALUES (
+                            $1, $2, $3, $4, $5, $6, $7, $8,
+                            $9, $10, $11, $12,
+                            $13, $14, $15, $16, $17, 'Candidato', 'Morador',
+                            false, $18, false, 900, 60, $19
+                        ) RETURNING *`,
+                        [
+                            residentPayload.name, cleanEmail, residentPayload.phone, residentPayload.cpf,
+                            residentPayload.rg, residentPayload.birth_date, residentPayload.origin_address,
+                            residentPayload.family_address, residentPayload.emergency_contact_name,
+                            residentPayload.emergency_contact_phone, residentPayload.occupation,
+                            residentPayload.company, residentPayload.university, residentPayload.course,
+                            residentPayload.instagram, residentPayload.document_number,
+                            residentPayload.entry_date, residentPayload.motivo_bloqueio, authUserId
+                        ]
+                    );
+                    data = ins.rows[0];
+                    error = null;
+                }
+            });
+        } catch (pgErr: any) {
+            console.warn('⚠️ PG direto falhou em /api/register-candidate, tentando Supabase HTTP:', pgErr.message);
+            error = pgErr;
         }
 
-        // Fallback direto via PostgreSQL caso a camada HTTP Supabase falhe
+        // Fallback via Supabase HTTPS caso o Postgres direto não esteja acessível
         if (error || !data) {
             try {
-                const client = await pgPool.connect();
-                try {
-                    const existingPg = await client.query(
-                        'SELECT id FROM custom_moronavila.residents WHERE LOWER(TRIM(email)) = $1 LIMIT 1',
-                        [cleanEmail]
-                    );
-                    if (existingPg.rows.length > 0) {
-                        const upd = await client.query(
-                            `UPDATE custom_moronavila.residents SET
-                                name = $1, phone = $2, cpf = $3, rg = $4, birth_date = $5,
-                                origin_address = $6, family_address = $7, emergency_contact_name = $8,
-                                emergency_contact_phone = $9, occupation = $10, company = $11,
-                                university = $12, course = $13, instagram = $14, document_number = $15,
-                                entry_date = $16, status = 'Candidato', role = 'Morador',
-                                habilitado = false, motivo_bloqueio = $17,
-                                auth_id = COALESCE($18, auth_id)
-                            WHERE id = $19 RETURNING *`,
-                            [
-                                residentPayload.name, residentPayload.phone, residentPayload.cpf,
-                                residentPayload.rg, residentPayload.birth_date, residentPayload.origin_address,
-                                residentPayload.family_address, residentPayload.emergency_contact_name,
-                                residentPayload.emergency_contact_phone, residentPayload.occupation,
-                                residentPayload.company, residentPayload.university, residentPayload.course,
-                                residentPayload.instagram, residentPayload.document_number,
-                                residentPayload.entry_date, residentPayload.motivo_bloqueio,
-                                authUserId, existingPg.rows[0].id
-                            ]
-                        );
-                        data = upd.rows[0];
-                        error = null;
-                    } else {
-                        const ins = await client.query(
-                            `INSERT INTO custom_moronavila.residents (
-                                name, email, phone, cpf, rg, birth_date, origin_address, family_address,
-                                emergency_contact_name, emergency_contact_phone, occupation, company,
-                                university, course, instagram, document_number, entry_date, status, role,
-                                habilitado, motivo_bloqueio, internet_active, rent_value, cleaning_fee, auth_id
-                            ) VALUES (
-                                $1, $2, $3, $4, $5, $6, $7, $8,
-                                $9, $10, $11, $12,
-                                $13, $14, $15, $16, $17, 'Candidato', 'Morador',
-                                false, $18, false, 900, 60, $19
-                            ) RETURNING *`,
-                            [
-                                residentPayload.name, cleanEmail, residentPayload.phone, residentPayload.cpf,
-                                residentPayload.rg, residentPayload.birth_date, residentPayload.origin_address,
-                                residentPayload.family_address, residentPayload.emergency_contact_name,
-                                residentPayload.emergency_contact_phone, residentPayload.occupation,
-                                residentPayload.company, residentPayload.university, residentPayload.course,
-                                residentPayload.instagram, residentPayload.document_number,
-                                residentPayload.entry_date, residentPayload.motivo_bloqueio, authUserId
-                            ]
-                        );
-                        data = ins.rows[0];
-                        error = null;
-                    }
-                } finally {
-                    client.release();
+                const { data: existingResident } = await runWithTimeout(
+                    Promise.resolve(
+                        supabase
+                            .from('residents')
+                            .select('id, auth_id')
+                            .ilike('email', cleanEmail)
+                            .limit(1)
+                    ),
+                    4000,
+                    'register.select'
+                );
+                const existingId = Array.isArray(existingResident) ? existingResident[0]?.id : (existingResident as any)?.id;
+
+                if (existingId) {
+                    const updateRes = await supabase
+                        .from('residents')
+                        .update(residentPayload)
+                        .eq('id', existingId)
+                        .select()
+                        .single();
+                    data = updateRes.data;
+                    error = updateRes.error;
+                } else {
+                    const insertRes = await supabase
+                        .from('residents')
+                        .insert(residentPayload)
+                        .select()
+                        .single();
+                    data = insertRes.data;
+                    error = insertRes.error;
                 }
-            } catch (pgFallbackErr: any) {
-                console.error('❌ Erro no fallback PostgreSQL em /api/register-candidate:', pgFallbackErr.message);
-                return res.status(500).json({ success: false, error: pgFallbackErr.message || error?.message });
+                if (error) {
+                    return res.status(500).json({ success: false, error: error.message });
+                }
+            } catch (sbCatchErr: any) {
+                console.error('❌ Erro no Supabase fallback em /api/register-candidate:', sbCatchErr?.message);
+                return res.status(500).json({ success: false, error: sbCatchErr?.message || error?.message || 'Erro ao salvar cadastro.' });
             }
         }
 
@@ -565,13 +692,41 @@ app.post('/api/register-candidate', async (req, res) => {
         return res.json({
             success: true,
             resident: data,
-            auth_id: authUserId,
+            auth_id: authUserId || data?.auth_id || null,
             emailSent: mailResult.sent,
             emailError: mailResult.error
         });
     } catch (err: any) {
         console.error('Erro interno /api/register-candidate:', err);
         return res.status(500).json({ success: false, error: err.message || 'Erro ao registrar candidato.' });
+    }
+});
+
+// --- ENDPOINT SEGURO PARA VINCULAR AUTH_ID AO CANDIDATO RECÉM-CRIADO ---
+app.post('/api/link-auth-id', async (req, res) => {
+    try {
+        const { residentId, email, authId } = req.body || {};
+        if (!email || !authId) {
+            return res.status(400).json({ success: false, error: 'email e authId são obrigatórios.' });
+        }
+        const cleanEmail = String(email).trim().toLowerCase();
+        await withPgClient(async (client) => {
+            if (residentId) {
+                await client.query(
+                    'UPDATE custom_moronavila.residents SET auth_id = COALESCE(auth_id, $1) WHERE id = $2 AND LOWER(TRIM(email)) = $3',
+                    [authId, residentId, cleanEmail]
+                );
+            } else {
+                await client.query(
+                    'UPDATE custom_moronavila.residents SET auth_id = COALESCE(auth_id, $1) WHERE LOWER(TRIM(email)) = $2',
+                    [authId, cleanEmail]
+                );
+            }
+        });
+        return res.json({ success: true });
+    } catch (err: any) {
+        console.warn('⚠️ Aviso /api/link-auth-id:', err?.message);
+        return res.status(500).json({ success: false, error: err?.message });
     }
 });
 
@@ -587,47 +742,48 @@ app.post('/api/send-approval-email', async (req, res) => {
         let updatedResident: any = null;
 
         try {
-            let query = supabase.from('residents').update({
-                status: 'Ativo',
-                habilitado: true,
-                motivo_bloqueio: null,
-                entry_date: new Date().toISOString().split('T')[0]
+            await withPgClient(async (client) => {
+                const today = new Date().toISOString().split('T')[0];
+                const pgRes = residentId
+                    ? await client.query(
+                          `UPDATE custom_moronavila.residents SET status = 'Ativo', habilitado = true, motivo_bloqueio = NULL, entry_date = $1 WHERE id = $2 RETURNING *`,
+                          [today, residentId]
+                      )
+                    : await client.query(
+                          `UPDATE custom_moronavila.residents SET status = 'Ativo', habilitado = true, motivo_bloqueio = NULL, entry_date = $1 WHERE LOWER(TRIM(email)) = $2 RETURNING *`,
+                          [today, cleanEmail]
+                      );
+                if (pgRes.rows.length > 0) updatedResident = pgRes.rows[0];
             });
-
-            if (residentId) {
-                query = query.eq('id', residentId);
-            } else if (cleanEmail) {
-                query = query.ilike('email', cleanEmail);
-            }
-
-            const { data, error: updateErr } = await query.select().maybeSingle();
-            if (!updateErr && data) {
-                updatedResident = data;
-            }
-        } catch (err: any) {
-            console.warn('⚠️ Aviso Supabase ao atualizar status para Ativo:', err?.message);
+        } catch (pgErr: any) {
+            console.warn('⚠️ PG direto em send-approval-email:', pgErr.message);
         }
 
-        if (!updatedResident) {
+        if (!updatedResident && !supabaseHttpBlocked) {
             try {
-                const client = await pgPool.connect();
-                try {
-                    const today = new Date().toISOString().split('T')[0];
-                    const pgRes = residentId
-                        ? await client.query(
-                              `UPDATE custom_moronavila.residents SET status = 'Ativo', habilitado = true, motivo_bloqueio = NULL, entry_date = $1 WHERE id = $2 RETURNING *`,
-                              [today, residentId]
-                          )
-                        : await client.query(
-                              `UPDATE custom_moronavila.residents SET status = 'Ativo', habilitado = true, motivo_bloqueio = NULL, entry_date = $1 WHERE LOWER(TRIM(email)) = $2 RETURNING *`,
-                              [today, cleanEmail]
-                          );
-                    if (pgRes.rows.length > 0) updatedResident = pgRes.rows[0];
-                } finally {
-                    client.release();
+                let query = supabase.from('residents').update({
+                    status: 'Ativo',
+                    habilitado: true,
+                    motivo_bloqueio: null,
+                    entry_date: new Date().toISOString().split('T')[0]
+                });
+
+                if (residentId) {
+                    query = query.eq('id', residentId);
+                } else if (cleanEmail) {
+                    query = query.ilike('email', cleanEmail);
                 }
-            } catch (pgErr: any) {
-                console.warn('⚠️ Fallback PG em send-approval-email:', pgErr.message);
+
+                const { data, error: updateErr } = await runWithTimeout(
+                    Promise.resolve(query.select().maybeSingle()),
+                    3500,
+                    'approval.update'
+                );
+                if (!updateErr && data) {
+                    updatedResident = data;
+                }
+            } catch (err: any) {
+                console.warn('⚠️ Aviso Supabase ao atualizar status para Ativo:', err?.message);
             }
         }
 
@@ -770,13 +926,10 @@ app.get('/api/diagnostics', async (_req, res) => {
     }
 
     try {
-        const client = await pgPool.connect();
-        try {
+        await withPgClient(async (client) => {
             const r = await client.query('SELECT COUNT(*)::int AS total FROM custom_moronavila.residents');
             diag.postgresDirect = { ok: true, residentCount: r.rows[0]?.total };
-        } finally {
-            client.release();
-        }
+        });
     } catch (e: any) {
         diag.postgresDirect = { ok: false, error: e?.message };
     }

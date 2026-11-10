@@ -74,14 +74,26 @@ export function Login({
         } catch (backendErr: any) {
             console.warn('Backend lookup falhou, usando busca direta Supabase no navegador:', backendErr?.message);
             try {
-                // Fallback direto pelo navegador (garante localização no Supabase mesmo se o backend falhar no fetch)
-                const { data: resident, error: sbErr } = await supabase
+                // Fallback direto pelo navegador (garante localização no Supabase mesmo se o backend falhar)
+                const { data: exactMatches, error: sbErr } = await supabase
                     .from('residents')
                     .select('id, name, email, status, habilitado')
                     .ilike('email', cleanEmail)
-                    .maybeSingle();
+                    .limit(1);
 
                 if (sbErr) throw sbErr;
+
+                let resident = exactMatches?.[0] || null;
+                if (!resident) {
+                    const { data: fuzzyMatches } = await supabase
+                        .from('residents')
+                        .select('id, name, email, status, habilitado')
+                        .ilike('email', `%${cleanEmail}%`)
+                        .limit(5);
+                    resident = (fuzzyMatches || []).find(
+                        (r: any) => String(r?.email || '').trim().toLowerCase() === cleanEmail
+                    ) || null;
+                }
 
                 if (!resident) {
                     setLookupResult({
@@ -176,16 +188,25 @@ export function Login({
             } else {
                 const { user } = await signUpResident(email, password, name, phone);
                 if (user) {
-                    fetch('/api/send-notification-email', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'confirmation',
-                            email: email.trim().toLowerCase(),
-                            name: name.trim()
-                        })
-                    }).catch(() => {});
-                    setSuccessMessage('Cadastro recebido! Aguarde a liberação da administração antes do primeiro acesso.');
+                    let emailNotice = '';
+                    try {
+                        const mailRes = await fetch('/api/send-notification-email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'confirmation',
+                                email: email.trim().toLowerCase(),
+                                name: name.trim()
+                            })
+                        });
+                        const mailData = await mailRes.json();
+                        if (mailData?.emailSent) {
+                            emailNotice = ' Enviamos um e-mail de confirmação para você.';
+                        }
+                    } catch {
+                        // mantém fluxo mesmo se notificação de e-mail falhar
+                    }
+                    setSuccessMessage(`Cadastro recebido!${emailNotice} Aguarde a liberação da administração antes do primeiro acesso.`);
                     setIsLogin(true);
                     setPassword('');
                 }
