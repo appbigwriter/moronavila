@@ -1328,16 +1328,7 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                 password: password.trim()
             });
 
-            // Tenta autenticar automaticamente com a credencial recém-criada
-            try {
-                await supabase.auth.signInWithPassword({
-                    email: formData.email.trim().toLowerCase(),
-                    password: password.trim()
-                });
-            } catch (autoLoginErr) {
-                console.warn('Auto-login após cadastro:', autoLoginErr);
-            }
-
+            // Cadastro criado como Candidato aguardando aprovação; e-mail de confirmação enviado pelo backend.
             setSubmitSuccess(true);
         } catch (err: any) {
             console.error('Erro ao cadastrar candidato no Supabase:', err);

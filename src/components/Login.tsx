@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Home, LogIn, UserPlus, Mail, Lock, User, Phone, ArrowRight, Heart, Sparkles, CheckCircle2, AlertCircle, HelpCircle, ArrowLeft, RefreshCw } from 'lucide-react';
 import { signIn, signUpResident, resetPassword } from '../lib/database';
+import { supabase } from '../lib/supabase';
 
 export function Login({
     onLogin,
@@ -52,20 +53,95 @@ export function Login({
         if (!lookupEmail || !lookupEmail.trim()) return;
         setLookupLoading(true);
         setLookupResult(null);
+        const cleanEmail = lookupEmail.trim().toLowerCase();
+
         try {
             const res = await fetch('/api/resend-access-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: lookupEmail.trim() })
+                body: JSON.stringify({ email: cleanEmail })
             });
             const data = await res.json();
-            setLookupResult(data);
-        } catch (err: any) {
-            setLookupResult({
-                success: false,
-                found: false,
-                message: err.message || 'Erro ao conectar ao servidor. Tente novamente mais tarde.'
-            });
+
+            if (res.ok && data.found !== undefined) {
+                setLookupResult({
+                    ...data,
+                    message: data.message || data.error || 'Consulta concluída.'
+                });
+                return;
+            }
+            throw new Error(data?.error || data?.message || 'Erro no backend ao consultar cadastro.');
+        } catch (backendErr: any) {
+            console.warn('Backend lookup falhou, usando busca direta Supabase no navegador:', backendErr?.message);
+            try {
+                // Fallback direto pelo navegador (garante localização no Supabase mesmo se o backend falhar no fetch)
+                const { data: resident, error: sbErr } = await supabase
+                    .from('residents')
+                    .select('id, name, email, status, habilitado')
+                    .ilike('email', cleanEmail)
+                    .maybeSingle();
+
+                if (sbErr) throw sbErr;
+
+                if (!resident) {
+                    setLookupResult({
+                        success: false,
+                        found: false,
+                        message: 'Nenhum cadastro encontrado com este e-mail. Por favor, verifique se digitou corretamente ou realize seu cadastro inicial.'
+                    });
+                    return;
+                }
+
+                const isApproved = resident.status === 'Ativo' && resident.habilitado !== false;
+
+                // Dispara envio de e-mail via endpoint leve SMTP que não depende do Supabase no servidor
+                let emailSent = false;
+                let emailError = '';
+                try {
+                    const emailRes = await fetch('/api/send-notification-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: isApproved ? 'approval' : 'confirmation',
+                            email: resident.email,
+                            name: resident.name
+                        })
+                    });
+                    const emailData = await emailRes.json();
+                    emailSent = !!emailData.success;
+                    emailError = emailData.error || '';
+                } catch (mailErr: any) {
+                    emailError = mailErr?.message || 'Falha de comunicação SMTP';
+                }
+
+                if (isApproved) {
+                    setLookupResult({
+                        success: true,
+                        found: true,
+                        approved: true,
+                        status: resident.status,
+                        message: emailSent
+                            ? 'Seu cadastro foi localizado e já está aprovado! Reenviamos suas orientações e link de acesso para o seu e-mail.'
+                            : `Seu cadastro foi localizado e já está aprovado! Você já pode acessar seu Dashboard na tela de login. (Aviso envio SMTP: ${emailError || 'indisponível'})`
+                    });
+                } else {
+                    setLookupResult({
+                        success: true,
+                        found: true,
+                        approved: false,
+                        status: resident.status || 'Candidato',
+                        message: emailSent
+                            ? 'Seu cadastro foi localizado! Ele está em fase de análise e aprovação pela administração. Reenviamos o e-mail de confirmação para você.'
+                            : `Seu cadastro foi localizado e está em análise pela administração. (Aviso envio SMTP: ${emailError || 'indisponível'})`
+                    });
+                }
+            } catch (fallbackErr: any) {
+                setLookupResult({
+                    success: false,
+                    found: false,
+                    message: fallbackErr?.message || backendErr?.message || 'Erro ao localizar cadastro. Tente novamente mais tarde.'
+                });
+            }
         } finally {
             setLookupLoading(false);
         }
@@ -100,6 +176,15 @@ export function Login({
             } else {
                 const { user } = await signUpResident(email, password, name, phone);
                 if (user) {
+                    fetch('/api/send-notification-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'confirmation',
+                            email: email.trim().toLowerCase(),
+                            name: name.trim()
+                        })
+                    }).catch(() => {});
                     setSuccessMessage('Cadastro recebido! Aguarde a liberação da administração antes do primeiro acesso.');
                     setIsLogin(true);
                     setPassword('');

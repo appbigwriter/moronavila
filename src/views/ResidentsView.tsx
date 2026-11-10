@@ -241,8 +241,9 @@ export function ResidentsView({ residents, isAdmin, currentUser, onRefresh, init
             });
 
             // Dispara e-mail com os dados de acesso para o morador aprovado
+            let emailSent = false;
             try {
-                await fetch('/api/send-approval-email', {
+                const res = await fetch('/api/send-approval-email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -251,12 +252,36 @@ export function ResidentsView({ residents, isAdmin, currentUser, onRefresh, init
                         name: resident.name
                     })
                 });
+                const data = await res.json();
+                emailSent = !!data?.emailSent || !!data?.success;
             } catch (mailErr) {
-                console.warn('Aviso ao enviar e-mail de aprovação:', mailErr);
+                console.warn('Aviso /api/send-approval-email:', mailErr);
+            }
+
+            if (!emailSent) {
+                try {
+                    const fallbackRes = await fetch('/api/send-notification-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'approval',
+                            email: resident.email,
+                            name: resident.name
+                        })
+                    });
+                    const fallbackData = await fallbackRes.json();
+                    emailSent = !!fallbackData?.emailSent || !!fallbackData?.success;
+                } catch (err2) {
+                    console.warn('Aviso fallback envio de e-mail:', err2);
+                }
             }
 
             onRefresh();
-            alert('Candidato aprovado com sucesso! E-mail com instruções e dados de acesso enviado ao morador.');
+            alert(
+                emailSent
+                    ? 'Candidato aprovado com sucesso! E-mail com instruções e dados de acesso enviado ao morador.'
+                    : 'Candidato aprovado com sucesso! (Obs: não foi possível confirmar a entrega do e-mail agora).'
+            );
         } catch (error: any) {
             alert(`Erro ao aprovar candidato: ${error.message}`);
         }

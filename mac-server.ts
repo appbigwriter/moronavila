@@ -1,4 +1,5 @@
 import fs from 'fs';
+import dns from 'dns';
 import express from 'express';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -8,11 +9,16 @@ import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import nodemailer from 'nodemailer';
+import pg from 'pg';
+
+// Garantir prioridade IPv4 em containers Docker / Node 20 (evita TypeError: fetch failed por IPv6)
+dns.setDefaultResultOrder('ipv4first');
 
 // Carregar variaveis de ambiente (.env padrao e .env.local se existir)
 dotenv.config();
 dotenv.config({ path: '.env.local', override: true });
 
+const { Pool } = pg;
 const execPromise = promisify(exec);
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,158 +31,269 @@ const openai = new OpenAI({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Supabase Admin Client com fallbacks seguros
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://supabase-control-tower-api.fbr.news';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'service-key-placeholder';
+// Supabase Admin Client com fallbacks reais e seguros
+const FALLBACK_SUPABASE_URL = 'https://supabase-control-tower-api.fbr.news';
+const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3ODk5OTA4NzYsImV4cCI6MTk0NzY3MDg3Nn0.PfG5J9CrRA-R1smzXMQBoEA-rbNNLx671XxUocNuqlg';
+const FALLBACK_DATABASE_URL = 'postgresql://postgres.supabase-vps2:ffff332788fcc1ae8a484930fd1e3272@76.13.168.223:15432/postgres';
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || FALLBACK_SERVICE_ROLE_KEY;
 const rawServerSchema = process.env.VITE_SUPABASE_SCHEMA || process.env.CONTROL_TOWER_SCHEMA_NAME || 'public';
 const supabaseSchema = (rawServerSchema === 'custom_moronavila' || !rawServerSchema) ? 'public' : rawServerSchema;
-
-if (!process.env.SUPABASE_URL && !process.env.VITE_SUPABASE_URL) {
-    console.warn('⚠️ [Aviso] Nenhuma SUPABASE_URL ou VITE_SUPABASE_URL definida no ambiente.');
-}
 
 const serverClientOptions = (supabaseSchema && supabaseSchema !== 'public') ? { db: { schema: supabaseSchema } } : undefined;
 const supabase = createClient(supabaseUrl, supabaseKey, serverClientOptions);
 
-// ── SMTP / EMAIL NOTIFICATIONS ───────────────────────────────────────────────
-const smtpTransporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'mail.facebrasil.com',
-    port: Number(process.env.SMTP_PORT) || 465,
-    secure: (process.env.SMTP_SECURE || 'true').toLowerCase() === 'true',
-    auth: {
-        user: process.env.SMTP_USER || 'appsextou@facebrasil.com',
-        pass: process.env.SMTP_PASS || 'liberdade2026'
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
+// Pool PostgreSQL direto como fallback robusto caso o HTTP/Fetch PostgREST falhe dentro do container
+const pgPool = new Pool({
+    connectionString: process.env.DATABASE_URL || FALLBACK_DATABASE_URL,
+    ssl: false,
+    connectionTimeoutMillis: 5000,
+    idleTimeoutMillis: 15000
+});
+pgPool.on('error', (err) => {
+    console.warn('⚠️ Aviso no pool PostgreSQL:', err.message);
 });
 
-const SENDER_EMAIL = process.env.SMTP_ADMIN_EMAIL || process.env.SMTP_USER || 'appsextou@facebrasil.com';
-const SENDER_NAME = process.env.SMTP_SENDER_NAME || 'Moronavila';
-const FROM_HEADER = `"${SENDER_NAME}" <${SENDER_EMAIL}>`;
+async function findResidentByEmail(rawEmail: string): Promise<{ resident: any | null; source: string; error?: string }> {
+    const cleanEmail = rawEmail.trim().toLowerCase();
 
-async function sendRegistrationConfirmationEmail(toEmail: string, name: string): Promise<boolean> {
+    // 1. Tenta via cliente Supabase principal (case-insensitive)
     try {
-        const mailOptions = {
-            from: FROM_HEADER,
-            to: toEmail,
-            subject: 'Confirmação de Recebimento de Cadastro - Residencial Moronavila',
-            html: `
-                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020617; color: #f8fafc; padding: 40px 20px; max-width: 600px; margin: 0 auto; border-radius: 24px; border: 1px solid #1e293b;">
-                    <div style="text-align: center; margin-bottom: 28px;">
-                        <h1 style="color: #e11d48; margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; font-style: italic;">
-                            MORONA<span style="color: #ffffff;">VILA</span>
-                        </h1>
-                        <p style="color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; font-weight: 700;">
-                            Viver feliz perto de tudo
-                        </p>
-                    </div>
+        const { data, error } = await supabase
+            .from('residents')
+            .select('*')
+            .ilike('email', cleanEmail)
+            .maybeSingle();
 
-                    <div style="background-color: #0f172a; padding: 28px; border-radius: 16px; border: 1px solid #1e293b; margin-bottom: 24px;">
-                        <h2 style="color: #ffffff; font-size: 20px; margin-top: 0; font-weight: 800;">Olá, ${name}!</h2>
-                        <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
-                            Recebemos com sucesso a sua ficha cadastral e o aceite das <strong>12 Regras de Conduta do Residencial Moronavila</strong>.
-                        </p>
-                        
-                        <div style="background-color: rgba(225, 29, 72, 0.12); border-left: 4px solid #e11d48; padding: 14px 18px; margin: 20px 0; border-radius: 6px;">
-                            <p style="color: #fda4af; margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                                Status atual: Cadastro em Análise pela Administração
-                            </p>
-                        </div>
-
-                        <p style="color: #94a3b8; font-size: 13px; line-height: 1.6;">
-                            Nossa equipe administrativa está realizando a conferência dos dados e documentos enviados. Assim que seu cadastro for <strong>aprovado</strong>, você receberá um novo e-mail confirmando a liberação para acessar seu <strong>Dashboard de Residente</strong>.
-                        </p>
-
-                        <div style="background-color: #1e293b; border-radius: 10px; padding: 14px 18px; margin-top: 20px;">
-                            <p style="color: #f1f5f9; margin: 0; font-size: 13px;">
-                                <strong>E-mail cadastrado:</strong> ${toEmail}
-                            </p>
-                            <p style="color: #94a3b8; margin: 6px 0 0 0; font-size: 12px;">
-                                A senha de acesso ao sistema é aquela que você definiu durante o preenchimento do formulário.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div style="text-align: center; color: #64748b; font-size: 12px; line-height: 1.5;">
-                        <p style="margin: 0; font-weight: 600;">Residencial Moronavila • São Paulo / SP</p>
-                        <p style="margin: 4px 0 0 0;">Em caso de dúvidas, responda a esta mensagem ou nos chame no WhatsApp de atendimento.</p>
-                    </div>
-                </div>
-            `
-        };
-
-        const info = await smtpTransporter.sendMail(mailOptions);
-        console.log(`✅ E-mail de confirmação enviado para ${toEmail} (ID: ${info.messageId})`);
-        return true;
+        if (!error && data) {
+            return { resident: data, source: 'supabase-primary' };
+        }
+        if (error) {
+            console.warn('⚠️ Erro query Supabase primary:', error.message);
+        }
     } catch (err: any) {
-        console.error(`❌ Erro ao enviar e-mail de confirmação para ${toEmail}:`, err.message || err);
-        return false;
+        console.warn('⚠️ Exceção fetch Supabase primary:', err?.message, err?.cause?.code || err?.cause?.message || '');
+    }
+
+    // 2. Fallback: cliente Supabase explícito na URL pública HTTPS com Service Role Key
+    try {
+        const directClient = createClient(FALLBACK_SUPABASE_URL, FALLBACK_SERVICE_ROLE_KEY, serverClientOptions);
+        const { data, error } = await directClient
+            .from('residents')
+            .select('*')
+            .ilike('email', cleanEmail)
+            .maybeSingle();
+
+        if (!error && data) {
+            return { resident: data, source: 'supabase-fallback-https' };
+        }
+    } catch (err: any) {
+        console.warn('⚠️ Exceção fetch Supabase fallback HTTPS:', err?.message, err?.cause?.code || err?.cause?.message || '');
+    }
+
+    // 3. Fallback: Conexão Direta PostgreSQL (verifica custom_moronavila e public)
+    try {
+        const client = await pgPool.connect();
+        try {
+            const res1 = await client.query(
+                'SELECT * FROM custom_moronavila.residents WHERE LOWER(TRIM(email)) = $1 LIMIT 1',
+                [cleanEmail]
+            );
+            if (res1.rows.length > 0) {
+                return { resident: res1.rows[0], source: 'pg-custom_moronavila' };
+            }
+            const res2 = await client.query(
+                'SELECT * FROM public.residents WHERE LOWER(TRIM(email)) = $1 LIMIT 1',
+                [cleanEmail]
+            );
+            if (res2.rows.length > 0) {
+                return { resident: res2.rows[0], source: 'pg-public' };
+            }
+            return { resident: null, source: 'pg-not-found' };
+        } finally {
+            client.release();
+        }
+    } catch (pgErr: any) {
+        console.error('❌ Erro no fallback PostgreSQL direto:', pgErr.message);
+        return { resident: null, source: 'error', error: pgErr.message };
     }
 }
 
-async function sendApprovalEmail(toEmail: string, name: string): Promise<boolean> {
+// ── SMTP / EMAIL NOTIFICATIONS ───────────────────────────────────────────────
+const SMTP_HOST = process.env.SMTP_HOST || 'mail.facebrasil.com';
+const SMTP_PORT = Number(process.env.SMTP_PORT) || 465;
+const SMTP_SECURE = (process.env.SMTP_SECURE || 'true').toLowerCase() === 'true';
+const SMTP_USER = process.env.SMTP_USER || 'appsextou@facebrasil.com';
+const SMTP_PASS = process.env.SMTP_PASS || 'liberdade2026';
+
+const smtpTransporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_SECURE,
+    auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASS
+    },
+    tls: {
+        rejectUnauthorized: false
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000
+});
+
+const smtpTransporter587 = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: 587,
+    secure: false,
+    auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASS
+    },
+    tls: {
+        rejectUnauthorized: false
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000
+});
+
+const SENDER_EMAIL = process.env.SMTP_ADMIN_EMAIL || SMTP_USER || 'appsextou@facebrasil.com';
+const SENDER_NAME = process.env.SMTP_SENDER_NAME || 'Moronavila';
+const FROM_HEADER = `"${SENDER_NAME}" <${SENDER_EMAIL}>`;
+
+async function sendMailWithFallback(mailOptions: any): Promise<{ sent: boolean; messageId?: string; error?: string }> {
     try {
-        const mailOptions = {
-            from: FROM_HEADER,
-            to: toEmail,
-            subject: '🎉 Cadastro Aprovado! Seus Dados de Acesso - Residencial Moronavila',
-            html: `
-                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020617; color: #f8fafc; padding: 40px 20px; max-width: 600px; margin: 0 auto; border-radius: 24px; border: 1px solid #1e293b;">
-                    <div style="text-align: center; margin-bottom: 28px;">
-                        <h1 style="color: #e11d48; margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; font-style: italic;">
-                            MORONA<span style="color: #ffffff;">VILA</span>
-                        </h1>
-                        <p style="color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; font-weight: 700;">
-                            Viver feliz perto de tudo
+        const info = await smtpTransporter.sendMail(mailOptions);
+        return { sent: true, messageId: info.messageId };
+    } catch (err1: any) {
+        console.warn(`⚠️ Falha envio SMTP porta ${SMTP_PORT}, tentando fallback porta 587...`, err1?.message);
+        try {
+            const info2 = await smtpTransporter587.sendMail(mailOptions);
+            return { sent: true, messageId: info2.messageId };
+        } catch (err2: any) {
+            console.error('❌ Falha definitiva ao enviar e-mail SMTP:', err2?.message || err1?.message);
+            return { sent: false, error: err2?.message || err1?.message || 'Erro SMTP desconhecido' };
+        }
+    }
+}
+
+async function sendRegistrationConfirmationEmail(toEmail: string, name: string): Promise<{ sent: boolean; messageId?: string; error?: string }> {
+    const mailOptions = {
+        from: FROM_HEADER,
+        to: toEmail,
+        subject: 'Confirmação de Recebimento de Cadastro - Residencial Moronavila',
+        html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020617; color: #f8fafc; padding: 40px 20px; max-width: 600px; margin: 0 auto; border-radius: 24px; border: 1px solid #1e293b;">
+                <div style="text-align: center; margin-bottom: 28px;">
+                    <h1 style="color: #e11d48; margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; font-style: italic;">
+                        MORONA<span style="color: #ffffff;">VILA</span>
+                    </h1>
+                    <p style="color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; font-weight: 700;">
+                        Viver feliz perto de tudo
+                    </p>
+                </div>
+
+                <div style="background-color: #0f172a; padding: 28px; border-radius: 16px; border: 1px solid #1e293b; margin-bottom: 24px;">
+                    <h2 style="color: #ffffff; font-size: 20px; margin-top: 0; font-weight: 800;">Olá, ${name}!</h2>
+                    <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+                        Recebemos com sucesso a sua ficha cadastral e o aceite das <strong>12 Regras de Conduta do Residencial Moronavila</strong>.
+                    </p>
+                    
+                    <div style="background-color: rgba(225, 29, 72, 0.12); border-left: 4px solid #e11d48; padding: 14px 18px; margin: 20px 0; border-radius: 6px;">
+                        <p style="color: #fda4af; margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Status atual: Cadastro em Análise pela Administração
                         </p>
                     </div>
 
-                    <div style="background-color: #0f172a; padding: 28px; border-radius: 16px; border: 1px solid #1e293b; margin-bottom: 24px;">
-                        <h2 style="color: #10b981; font-size: 22px; margin-top: 0; font-weight: 800;">🎉 Parabéns, ${name}!</h2>
-                        <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
-                            Seu cadastro no <strong>Residencial Moronavila</strong> foi <strong style="color: #34d399;">APROVADO</strong> pela nossa administração! Seja muito bem-vindo(a) à nossa comunidade.
+                    <p style="color: #94a3b8; font-size: 13px; line-height: 1.6;">
+                        Nossa equipe administrativa está realizando a conferência dos dados e documentos enviados. Assim que seu cadastro for <strong>aprovado</strong>, você receberá um novo e-mail confirmando a liberação para acessar seu <strong>Dashboard de Residente</strong>.
+                    </p>
+
+                    <div style="background-color: #1e293b; border-radius: 10px; padding: 14px 18px; margin-top: 20px;">
+                        <p style="color: #f1f5f9; margin: 0; font-size: 13px;">
+                            <strong>E-mail cadastrado:</strong> ${toEmail}
                         </p>
-                        
-                        <div style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; margin: 24px 0;">
-                            <p style="color: #6ee7b7; margin: 0 0 12px 0; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
-                                Suas Credenciais de Acesso ao Dashboard:
-                            </p>
-                            <p style="color: #ffffff; margin: 6px 0; font-size: 14px;">
-                                <strong>E-mail:</strong> <span style="color: #93c5fd;">${toEmail}</span>
-                            </p>
-                            <p style="color: #ffffff; margin: 6px 0; font-size: 14px;">
-                                <strong>Senha:</strong> A senha que você cadastrou no formulário oficial de aceite.
-                            </p>
-                        </div>
-
-                        <div style="text-align: center; margin: 28px 0 20px 0;">
-                            <a href="https://moronavila.com/#login" style="background-color: #e11d48; color: #ffffff; font-weight: 800; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-size: 13px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.4);">
-                                Acessar Meu Dashboard
-                            </a>
-                        </div>
-
-                        <p style="color: #94a3b8; font-size: 12px; line-height: 1.5; text-align: center; margin-top: 16px;">
-                            Caso não se recorde da sua senha, basta acessar a tela de login acima e clicar na opção <em>"Recuperar Senha?"</em>.
+                        <p style="color: #94a3b8; margin: 6px 0 0 0; font-size: 12px;">
+                            A senha de acesso ao sistema é aquela que você definiu durante o preenchimento do formulário.
                         </p>
-                    </div>
-
-                    <div style="text-align: center; color: #64748b; font-size: 12px; line-height: 1.5;">
-                        <p style="margin: 0; font-weight: 600;">Residencial Moronavila • São Paulo / SP</p>
-                        <p style="margin: 4px 0 0 0;">Estamos felizes em ter você conosco!</p>
                     </div>
                 </div>
-            `
-        };
 
-        const info = await smtpTransporter.sendMail(mailOptions);
-        console.log(`✅ E-mail de aprovação enviado para ${toEmail} (ID: ${info.messageId})`);
-        return true;
-    } catch (err: any) {
-        console.error(`❌ Erro ao enviar e-mail de aprovação para ${toEmail}:`, err.message || err);
-        return false;
+                <div style="text-align: center; color: #64748b; font-size: 12px; line-height: 1.5;">
+                    <p style="margin: 0; font-weight: 600;">Residencial Moronavila • São Paulo / SP</p>
+                    <p style="margin: 4px 0 0 0;">Em caso de dúvidas, responda a esta mensagem ou nos chame no WhatsApp de atendimento.</p>
+                </div>
+            </div>
+        `
+    };
+
+    const result = await sendMailWithFallback(mailOptions);
+    if (result.sent) {
+        console.log(`✅ E-mail de confirmação enviado para ${toEmail} (ID: ${result.messageId})`);
     }
+    return result;
+}
+
+async function sendApprovalEmail(toEmail: string, name: string): Promise<{ sent: boolean; messageId?: string; error?: string }> {
+    const mailOptions = {
+        from: FROM_HEADER,
+        to: toEmail,
+        subject: '🎉 Cadastro Aprovado! Seus Dados de Acesso - Residencial Moronavila',
+        html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #020617; color: #f8fafc; padding: 40px 20px; max-width: 600px; margin: 0 auto; border-radius: 24px; border: 1px solid #1e293b;">
+                <div style="text-align: center; margin-bottom: 28px;">
+                    <h1 style="color: #e11d48; margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; font-style: italic;">
+                        MORONA<span style="color: #ffffff;">VILA</span>
+                    </h1>
+                    <p style="color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; font-weight: 700;">
+                        Viver feliz perto de tudo
+                    </p>
+                </div>
+
+                <div style="background-color: #0f172a; padding: 28px; border-radius: 16px; border: 1px solid #1e293b; margin-bottom: 24px;">
+                    <h2 style="color: #10b981; font-size: 22px; margin-top: 0; font-weight: 800;">🎉 Parabéns, ${name}!</h2>
+                    <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+                        Seu cadastro no <strong>Residencial Moronavila</strong> foi <strong style="color: #34d399;">APROVADO</strong> pela nossa administração! Seja muito bem-vindo(a) à nossa comunidade.
+                    </p>
+                    
+                    <div style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; margin: 24px 0;">
+                        <p style="color: #6ee7b7; margin: 0 0 12px 0; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
+                            Suas Credenciais de Acesso ao Dashboard:
+                        </p>
+                        <p style="color: #ffffff; margin: 6px 0; font-size: 14px;">
+                            <strong>E-mail:</strong> <span style="color: #93c5fd;">${toEmail}</span>
+                        </p>
+                        <p style="color: #ffffff; margin: 6px 0; font-size: 14px;">
+                            <strong>Senha:</strong> A senha que você cadastrou no formulário oficial de aceite.
+                        </p>
+                    </div>
+
+                    <div style="text-align: center; margin: 28px 0 20px 0;">
+                        <a href="https://moronavila.com/#login" style="background-color: #e11d48; color: #ffffff; font-weight: 800; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-size: 13px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.4);">
+                            Acessar Meu Dashboard
+                        </a>
+                    </div>
+
+                    <p style="color: #94a3b8; font-size: 12px; line-height: 1.5; text-align: center; margin-top: 16px;">
+                        Caso não se recorde da sua senha, basta acessar a tela de login acima e clicar na opção <em>"Recuperar Senha?"</em>.
+                    </p>
+                </div>
+
+                <div style="text-align: center; color: #64748b; font-size: 12px; line-height: 1.5;">
+                    <p style="margin: 0; font-weight: 600;">Residencial Moronavila • São Paulo / SP</p>
+                    <p style="margin: 4px 0 0 0;">Estamos felizes em ter você conosco!</p>
+                </div>
+            </div>
+        `
+    };
+
+    const result = await sendMailWithFallback(mailOptions);
+    if (result.sent) {
+        console.log(`✅ E-mail de aprovação enviado para ${toEmail} (ID: ${result.messageId})`);
+    }
+    return result;
 }
 
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3';
@@ -342,43 +459,117 @@ app.post('/api/register-candidate', async (req, res) => {
         }
 
         // Verifica se já existe morador registrado com esse email para atualizar ou inserir
-        const { data: existingResident } = await supabase
-            .from('residents')
-            .select('id, auth_id')
-            .eq('email', cleanEmail)
-            .maybeSingle();
+        let data: any = null;
+        let error: any = null;
 
-        let data, error;
-        if (existingResident?.id) {
-            const updateRes = await supabase
+        try {
+            const { data: existingResident } = await supabase
                 .from('residents')
-                .update(residentPayload)
-                .eq('id', existingResident.id)
-                .select()
-                .single();
-            data = updateRes.data;
-            error = updateRes.error;
-        } else {
-            const insertRes = await supabase
-                .from('residents')
-                .insert(residentPayload)
-                .select()
-                .single();
-            data = insertRes.data;
-            error = insertRes.error;
+                .select('id, auth_id')
+                .ilike('email', cleanEmail)
+                .maybeSingle();
+
+            if (existingResident?.id) {
+                const updateRes = await supabase
+                    .from('residents')
+                    .update(residentPayload)
+                    .eq('id', existingResident.id)
+                    .select()
+                    .single();
+                data = updateRes.data;
+                error = updateRes.error;
+            } else {
+                const insertRes = await supabase
+                    .from('residents')
+                    .insert(residentPayload)
+                    .select()
+                    .single();
+                data = insertRes.data;
+                error = insertRes.error;
+            }
+        } catch (sbCatchErr: any) {
+            console.warn('⚠️ Exceção no Supabase durante /api/register-candidate, tentando fallback direto:', sbCatchErr?.message);
+            error = sbCatchErr;
         }
 
-        if (error) {
-            console.error('Erro ao cadastrar/atualizar residente no Supabase:', error);
-            return res.status(500).json({ success: false, error: error.message });
+        // Fallback direto via PostgreSQL caso a camada HTTP Supabase falhe
+        if (error || !data) {
+            try {
+                const client = await pgPool.connect();
+                try {
+                    const existingPg = await client.query(
+                        'SELECT id FROM custom_moronavila.residents WHERE LOWER(TRIM(email)) = $1 LIMIT 1',
+                        [cleanEmail]
+                    );
+                    if (existingPg.rows.length > 0) {
+                        const upd = await client.query(
+                            `UPDATE custom_moronavila.residents SET
+                                name = $1, phone = $2, cpf = $3, rg = $4, birth_date = $5,
+                                origin_address = $6, family_address = $7, emergency_contact_name = $8,
+                                emergency_contact_phone = $9, occupation = $10, company = $11,
+                                university = $12, course = $13, instagram = $14, document_number = $15,
+                                entry_date = $16, status = 'Candidato', role = 'Morador',
+                                habilitado = false, motivo_bloqueio = $17,
+                                auth_id = COALESCE($18, auth_id)
+                            WHERE id = $19 RETURNING *`,
+                            [
+                                residentPayload.name, residentPayload.phone, residentPayload.cpf,
+                                residentPayload.rg, residentPayload.birth_date, residentPayload.origin_address,
+                                residentPayload.family_address, residentPayload.emergency_contact_name,
+                                residentPayload.emergency_contact_phone, residentPayload.occupation,
+                                residentPayload.company, residentPayload.university, residentPayload.course,
+                                residentPayload.instagram, residentPayload.document_number,
+                                residentPayload.entry_date, residentPayload.motivo_bloqueio,
+                                authUserId, existingPg.rows[0].id
+                            ]
+                        );
+                        data = upd.rows[0];
+                        error = null;
+                    } else {
+                        const ins = await client.query(
+                            `INSERT INTO custom_moronavila.residents (
+                                name, email, phone, cpf, rg, birth_date, origin_address, family_address,
+                                emergency_contact_name, emergency_contact_phone, occupation, company,
+                                university, course, instagram, document_number, entry_date, status, role,
+                                habilitado, motivo_bloqueio, internet_active, rent_value, cleaning_fee, auth_id
+                            ) VALUES (
+                                $1, $2, $3, $4, $5, $6, $7, $8,
+                                $9, $10, $11, $12,
+                                $13, $14, $15, $16, $17, 'Candidato', 'Morador',
+                                false, $18, false, 900, 60, $19
+                            ) RETURNING *`,
+                            [
+                                residentPayload.name, cleanEmail, residentPayload.phone, residentPayload.cpf,
+                                residentPayload.rg, residentPayload.birth_date, residentPayload.origin_address,
+                                residentPayload.family_address, residentPayload.emergency_contact_name,
+                                residentPayload.emergency_contact_phone, residentPayload.occupation,
+                                residentPayload.company, residentPayload.university, residentPayload.course,
+                                residentPayload.instagram, residentPayload.document_number,
+                                residentPayload.entry_date, residentPayload.motivo_bloqueio, authUserId
+                            ]
+                        );
+                        data = ins.rows[0];
+                        error = null;
+                    }
+                } finally {
+                    client.release();
+                }
+            } catch (pgFallbackErr: any) {
+                console.error('❌ Erro no fallback PostgreSQL em /api/register-candidate:', pgFallbackErr.message);
+                return res.status(500).json({ success: false, error: pgFallbackErr.message || error?.message });
+            }
         }
 
-        // Envia e-mail de confirmação do cadastro para o candidato
-        sendRegistrationConfirmationEmail(cleanEmail, name.trim()).catch((emailErr) => {
-            console.warn('⚠️ Falha ao disparar e-mail de confirmação de cadastro:', emailErr);
+        // Envia e-mail de confirmação do cadastro e aguarda confirmação SMTP
+        const mailResult = await sendRegistrationConfirmationEmail(cleanEmail, name.trim());
+
+        return res.json({
+            success: true,
+            resident: data,
+            auth_id: authUserId,
+            emailSent: mailResult.sent,
+            emailError: mailResult.error
         });
-
-        return res.json({ success: true, resident: data, auth_id: authUserId });
     } catch (err: any) {
         console.error('Erro interno /api/register-candidate:', err);
         return res.status(500).json({ success: false, error: err.message || 'Erro ao registrar candidato.' });
@@ -394,23 +585,51 @@ app.post('/api/send-approval-email', async (req, res) => {
         }
 
         const cleanEmail = email ? email.trim().toLowerCase() : null;
+        let updatedResident: any = null;
 
-        let query = supabase.from('residents').update({
-            status: 'Ativo',
-            habilitado: true,
-            motivo_bloqueio: null,
-            entry_date: new Date().toISOString().split('T')[0]
-        });
+        try {
+            let query = supabase.from('residents').update({
+                status: 'Ativo',
+                habilitado: true,
+                motivo_bloqueio: null,
+                entry_date: new Date().toISOString().split('T')[0]
+            });
 
-        if (residentId) {
-            query = query.eq('id', residentId);
-        } else if (cleanEmail) {
-            query = query.eq('email', cleanEmail);
+            if (residentId) {
+                query = query.eq('id', residentId);
+            } else if (cleanEmail) {
+                query = query.ilike('email', cleanEmail);
+            }
+
+            const { data, error: updateErr } = await query.select().maybeSingle();
+            if (!updateErr && data) {
+                updatedResident = data;
+            }
+        } catch (err: any) {
+            console.warn('⚠️ Aviso Supabase ao atualizar status para Ativo:', err?.message);
         }
 
-        const { data: updatedResident, error: updateErr } = await query.select().single();
-        if (updateErr) {
-            console.warn('Aviso ao atualizar status para Ativo:', updateErr);
+        if (!updatedResident) {
+            try {
+                const client = await pgPool.connect();
+                try {
+                    const today = new Date().toISOString().split('T')[0];
+                    const pgRes = residentId
+                        ? await client.query(
+                              `UPDATE custom_moronavila.residents SET status = 'Ativo', habilitado = true, motivo_bloqueio = NULL, entry_date = $1 WHERE id = $2 RETURNING *`,
+                              [today, residentId]
+                          )
+                        : await client.query(
+                              `UPDATE custom_moronavila.residents SET status = 'Ativo', habilitado = true, motivo_bloqueio = NULL, entry_date = $1 WHERE LOWER(TRIM(email)) = $2 RETURNING *`,
+                              [today, cleanEmail]
+                          );
+                    if (pgRes.rows.length > 0) updatedResident = pgRes.rows[0];
+                } finally {
+                    client.release();
+                }
+            } catch (pgErr: any) {
+                console.warn('⚠️ Fallback PG em send-approval-email:', pgErr.message);
+            }
         }
 
         const targetEmail = cleanEmail || updatedResident?.email;
@@ -420,18 +639,48 @@ app.post('/api/send-approval-email', async (req, res) => {
             return res.status(404).json({ success: false, error: 'E-mail do morador não localizado.' });
         }
 
-        const emailSent = await sendApprovalEmail(targetEmail, targetName);
+        const mailResult = await sendApprovalEmail(targetEmail, targetName);
 
         return res.json({
             success: true,
-            emailSent,
-            message: emailSent
+            emailSent: mailResult.sent,
+            emailError: mailResult.error,
+            message: mailResult.sent
                 ? 'Morador aprovado e e-mail com dados de acesso enviado com sucesso!'
-                : 'Morador aprovado, porém o e-mail não pôde ser entregue no momento.'
+                : `Morador aprovado, porém o e-mail falhou: ${mailResult.error || 'erro SMTP'}`
         });
     } catch (err: any) {
         console.error('Erro /api/send-approval-email:', err);
         return res.status(500).json({ success: false, error: err.message || 'Erro interno ao processar aprovação.' });
+    }
+});
+
+// --- ENDPOINT DIRETO PARA DISPARO DE E-MAIL (SEM DEPENDER DE DB NO BACKEND) ---
+app.post('/api/send-notification-email', async (req, res) => {
+    try {
+        const { type, email, name } = req.body || {};
+        if (!email || !email.trim()) {
+            return res.status(400).json({ success: false, error: 'E-mail obrigatório.' });
+        }
+        const cleanEmail = email.trim().toLowerCase();
+        const residentName = (name || 'Residente').trim();
+
+        const mailResult = type === 'approval'
+            ? await sendApprovalEmail(cleanEmail, residentName)
+            : await sendRegistrationConfirmationEmail(cleanEmail, residentName);
+
+        return res.json({
+            success: mailResult.sent,
+            emailSent: mailResult.sent,
+            messageId: mailResult.messageId,
+            error: mailResult.error,
+            message: mailResult.sent
+                ? 'E-mail enviado com sucesso!'
+                : `Falha ao enviar e-mail SMTP: ${mailResult.error}`
+        });
+    } catch (err: any) {
+        console.error('Erro /api/send-notification-email:', err);
+        return res.status(500).json({ success: false, error: err.message || 'Erro interno ao enviar e-mail.' });
     }
 });
 
@@ -447,23 +696,21 @@ app.post('/api/resend-access-email', async (req, res) => {
             });
         }
 
-        const cleanEmail = email.trim().toLowerCase();
+        const lookup = await findResidentByEmail(email);
 
-        const { data: resident, error } = await supabase
-            .from('residents')
-            .select('id, name, email, status, habilitado, motivo_bloqueio')
-            .eq('email', cleanEmail)
-            .maybeSingle();
-
-        if (error) {
-            console.error('Erro ao consultar residente:', error);
-            return res.status(500).json({ success: false, error: error.message });
+        if (lookup.source === 'error') {
+            return res.status(500).json({
+                success: false,
+                error: lookup.error || 'Erro ao consultar base de dados.'
+            });
         }
 
+        const resident = lookup.resident;
         if (!resident) {
             return res.json({
                 success: false,
                 found: false,
+                source: lookup.source,
                 message: 'Nenhum cadastro encontrado com este e-mail. Por favor, verifique se digitou corretamente ou realize seu cadastro inicial.'
             });
         }
@@ -471,30 +718,84 @@ app.post('/api/resend-access-email', async (req, res) => {
         const isApproved = resident.status === 'Ativo' && resident.habilitado !== false;
 
         if (isApproved) {
-            const emailSent = await sendApprovalEmail(resident.email, resident.name);
+            const mailResult = await sendApprovalEmail(resident.email, resident.name);
             return res.json({
                 success: true,
                 found: true,
                 approved: true,
                 status: 'Ativo',
-                emailSent,
-                message: 'Seu cadastro está ativo e aprovado! Reenviamos suas orientações e link de acesso para o seu e-mail.'
+                source: lookup.source,
+                emailSent: mailResult.sent,
+                emailError: mailResult.error,
+                message: mailResult.sent
+                    ? 'Seu cadastro foi localizado e já está aprovado! Reenviamos suas orientações e link de acesso para o seu e-mail.'
+                    : `Seu cadastro foi localizado e está aprovado, mas houve falha ao enviar o e-mail (${mailResult.error}). Você já pode entrar no Login normalmente.`
             });
         } else {
-            const emailSent = await sendRegistrationConfirmationEmail(resident.email, resident.name);
+            const mailResult = await sendRegistrationConfirmationEmail(resident.email, resident.name);
             return res.json({
                 success: true,
                 found: true,
                 approved: false,
                 status: resident.status || 'Candidato',
-                emailSent,
-                message: 'Seu cadastro foi localizado! Ele está em fase de análise e aprovação pela administração. Reenviamos o e-mail de confirmação para você.'
+                source: lookup.source,
+                emailSent: mailResult.sent,
+                emailError: mailResult.error,
+                message: mailResult.sent
+                    ? 'Seu cadastro foi localizado! Ele está em fase de análise e aprovação pela administração. Reenviamos o e-mail de confirmação para você.'
+                    : `Seu cadastro foi localizado e está em análise, mas o envio de e-mail falhou (${mailResult.error}).`
             });
         }
     } catch (err: any) {
         console.error('Erro /api/resend-access-email:', err);
         return res.status(500).json({ success: false, error: err.message || 'Erro interno ao processar reenvio.' });
     }
+});
+
+// --- DIAGNÓSTICO SEGURO DE CONEXÃO (SUPABASE / POSTGRES / SMTP) ---
+app.get('/api/diagnostics', async (_req, res) => {
+    const diag: Record<string, any> = {
+        timestamp: new Date().toISOString(),
+        supabaseUrlConfigured: supabaseUrl,
+        supabaseSchema,
+        smtpHost: SMTP_HOST,
+        smtpPort: SMTP_PORT,
+        smtpUser: SMTP_USER
+    };
+
+    try {
+        const { count, error } = await supabase.from('residents').select('*', { count: 'exact', head: true });
+        diag.supabasePrimary = error ? { ok: false, error: error.message } : { ok: true, residentCount: count };
+    } catch (e: any) {
+        diag.supabasePrimary = { ok: false, error: e?.message, cause: e?.cause?.code || e?.cause?.message };
+    }
+
+    try {
+        const client = await pgPool.connect();
+        try {
+            const r = await client.query('SELECT COUNT(*)::int AS total FROM custom_moronavila.residents');
+            diag.postgresDirect = { ok: true, residentCount: r.rows[0]?.total };
+        } finally {
+            client.release();
+        }
+    } catch (e: any) {
+        diag.postgresDirect = { ok: false, error: e?.message };
+    }
+
+    try {
+        await smtpTransporter.verify();
+        diag.smtp465 = { ok: true };
+    } catch (e: any) {
+        diag.smtp465 = { ok: false, error: e?.message };
+        try {
+            await smtpTransporter587.verify();
+            diag.smtp587 = { ok: true };
+        } catch (e2: any) {
+            diag.smtp587 = { ok: false, error: e2?.message };
+        }
+    }
+
+    res.json(diag);
 });
 
 // --- HEALTH CHECK (EASYPANEL / CONTROL TOWER CONTRACT) ---

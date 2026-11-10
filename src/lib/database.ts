@@ -112,12 +112,56 @@ export async function createResident(resident: Partial<Resident>): Promise<Resid
     }
 
     if (safePayload.habilitado === undefined) {
-        safePayload.habilitado = true;
+        safePayload.habilitado = false;
     }
 
-    const { data, error } = await supabase.from('residents').insert(safePayload).select().single();
-    if (error) throw error;
-    return normalizeResident(data);
+    // Verifica se já existe registro com o mesmo e-mail (evita erro de chave duplicada no fallback)
+    let savedData: any = null;
+    if (safePayload.email) {
+        const cleanEmail = String(safePayload.email).trim().toLowerCase();
+        safePayload.email = cleanEmail;
+        const { data: existing } = await supabase
+            .from('residents')
+            .select('id')
+            .ilike('email', cleanEmail)
+            .maybeSingle();
+
+        if (existing?.id) {
+            const { data: updData, error: updErr } = await supabase
+                .from('residents')
+                .update(safePayload)
+                .eq('id', existing.id)
+                .select()
+                .single();
+            if (updErr) throw updErr;
+            savedData = updData;
+        }
+    }
+
+    if (!savedData) {
+        const { data, error } = await supabase.from('residents').insert(safePayload).select().single();
+        if (error) throw error;
+        savedData = data;
+    }
+
+    // Garante envio do e-mail de confirmação mesmo quando executado via fallback no navegador
+    if (savedData?.email) {
+        try {
+            await fetch('/api/send-notification-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'confirmation',
+                    email: savedData.email,
+                    name: savedData.name || resident.name || 'Residente'
+                })
+            });
+        } catch (mailErr) {
+            console.warn('Aviso ao enviar confirmação por e-mail no fallback:', mailErr);
+        }
+    }
+
+    return normalizeResident(savedData);
 }
 
 export async function fetchCandidates(): Promise<Resident[]> {
