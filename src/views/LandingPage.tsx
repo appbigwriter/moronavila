@@ -115,7 +115,7 @@ const DEFAULT_RENTAL_CONDITIONS: RentalConditions = {
     deposit_months: 1,
     cleaning_fee_fixed: 150,
     pro_rata_enabled: true,
-    rules_summary: "O pagamento é mensal e antecipado. A reserva é confirmada mediante o pagamento do caução simples.",
+    rules_summary: "O caução quita o último mês de permanencia do residente. Sem necessidade de fiador.",
     calculation_instructions: "Informe a data prevista de entrada para simular os valores do seu primeiro mês com total transparência."
 };
 
@@ -233,7 +233,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
     const [showRegisterForm, setShowRegisterForm] = useState(false);
     const [registrationStep, setRegistrationStep] = useState<'simulator' | 'form' | 'success'>('simulator');
     const [entryDate, setEntryDate] = useState('');
-    const [calculation, setCalculation] = useState<{ proRata: number; deposit: number; cleaning: number; total: number } | null>(null);
+    const [calculation, setCalculation] = useState<{ proRata: number; deposit: number; cleaning: number; total: number; daysRemaining?: number; isHalfMonth?: boolean } | null>(null);
 
     const [regForm, setRegForm] = useState({
         name: '',
@@ -268,26 +268,32 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
             const room = selectedRoom || registrationRoom;
             if (!room) return;
 
-            const date = new Date(entryDate);
-            const day = date.getDate();
-            const year = date.getFullYear();
-            const month = date.getMonth();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const parts = entryDate.split('-').map(Number);
+            if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return;
+            const [year, monthOneBased, day] = parts;
+            const daysInMonth = new Date(year, monthOneBased, 0).getDate();
+            const daysRemaining = Math.max(1, daysInMonth - day + 1);
+            const isAfter15 = day > 15;
 
             let proRata = room.rent_value;
-            if (rentalConditions.pro_rata_enabled) {
-                const daysRemaining = daysInMonth - day + 1;
+            if (isAfter15) {
+                // Entrada após o dia 15: equivalente a 15 dias (50%, base comercial de 30 dias)
+                proRata = room.rent_value * 0.5;
+            } else if (rentalConditions.pro_rata_enabled !== false) {
+                // Entrada do dia 1 ao dia 15: valor proporcional aos dias restantes do mês corrente
                 proRata = (room.rent_value / daysInMonth) * daysRemaining;
             }
 
-            const deposit = (rentalConditions.deposit_months || 0) * room.rent_value;
+            const deposit = (rentalConditions.deposit_months ?? 1) * room.rent_value;
             const cleaning = rentalConditions.cleaning_fee_fixed || 0;
 
             setCalculation({
                 proRata: Math.round(proRata),
                 deposit: Math.round(deposit),
                 cleaning: Math.round(cleaning),
-                total: Math.round(proRata + deposit + cleaning)
+                total: Math.round(proRata + deposit + cleaning),
+                daysRemaining,
+                isHalfMonth: isAfter15
             });
         }
     }, [entryDate, rentalConditions, selectedRoom, registrationRoom]);
@@ -672,7 +678,11 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     </div>
                                     <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">{t.simulatorModal.title}</h3>
                                     <p className="text-slate-400 text-sm max-w-lg mx-auto">
-                                        {rentalConditions.calculation_instructions || (currentLang === 'pt' ? "Informe a data prevista de entrada para simular os valores do seu primeiro mês com total transparência." : currentLang === 'es' ? "Ingrese la fecha prevista de llegada para simular los valores de su primer mes con total transparencia." : "Enter your expected move-in date to simulate your first month costs with total transparency.")}
+                                        {currentLang === 'pt'
+                                            ? (rentalConditions.calculation_instructions || "Informe a data prevista de entrada para simular os valores do seu primeiro mês com total transparência.")
+                                            : currentLang === 'es'
+                                            ? "Ingrese la fecha prevista de llegada para simular los valores de su primer mes con total transparencia."
+                                            : "Enter your expected move-in date to simulate your first month costs with total transparency."}
                                     </p>
                                 </div>
 
@@ -698,8 +708,15 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                             <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] flex items-center gap-2">
                                                 <Info size={14} /> {t.simulatorModal.step2Title}
                                             </h4>
-                                            <p className="text-xs text-slate-400 leading-relaxed italic">
-                                                {rentalConditions.rules_summary || (currentLang === 'pt' ? "O pagamento é mensal e antecipado. A reserva é confirmada mediante o pagamento do caução." : currentLang === 'es' ? "El pago es mensual y por adelantado. La reserva se confirma con el pago del depósito." : "Payment is monthly in advance. Reservation is confirmed upon deposit payment.")}
+                                            <p className="text-xs text-slate-300 leading-relaxed italic">
+                                                {currentLang === 'pt'
+                                                    ? (rentalConditions.rules_summary && !rentalConditions.rules_summary.toLowerCase().includes('devolvido')
+                                                        ? rentalConditions.rules_summary
+                                                        : t.simulatorModal.depositTransparencyText)
+                                                    : t.simulatorModal.depositTransparencyText}
+                                            </p>
+                                            <p className="text-[11px] text-slate-400 leading-relaxed border-t border-slate-800/80 pt-3">
+                                                {t.simulatorModal.proRataRuleNote}
                                             </p>
                                         </div>
                                     </div>
@@ -708,9 +725,18 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-3xl" />
 
                                         <div className="space-y-4">
-                                            <div className="flex justify-between items-center text-sm">
-                                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t.simulatorModal.monthlyRent}</span>
-                                                <span className="text-white font-black">R$ {calculation?.proRata || 0}</span>
+                                            <div className="flex justify-between items-center text-sm gap-3">
+                                                <div>
+                                                    <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px] block">{t.simulatorModal.monthlyRent}</span>
+                                                    {calculation && (
+                                                        <span className="text-[10px] text-slate-500 font-medium">
+                                                            {calculation.isHalfMonth
+                                                                ? t.simulatorModal.halfMonthBadge
+                                                                : `${calculation.daysRemaining} ${t.simulatorModal.proRataDaysSuffix}`}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="text-white font-black shrink-0">R$ {calculation?.proRata || 0}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-sm">
                                                 <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t.simulatorModal.securityDeposit}</span>

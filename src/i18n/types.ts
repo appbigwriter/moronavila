@@ -172,6 +172,10 @@ export interface TranslationData {
         step2Title: string;
         monthlyRent: string;
         securityDeposit: string;
+        depositTransparencyText: string;
+        proRataRuleNote: string;
+        halfMonthBadge: string;
+        proRataDaysSuffix: string;
         cleaningFee: string;
         totalToMoveIn: string;
         agreeCta: string;
