@@ -10,3 +10,5 @@ coverage/
 # Agent tools (submodules fantasmas)
 .agent/Antigravity-Workflow-System/
 .agent/antigravity-awesome-skills/
+*.mp4
+**/*.mp4
