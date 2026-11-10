@@ -66,12 +66,10 @@ async function findResidentByEmail(rawEmail: string): Promise<{ resident: any | 
             .ilike('email', cleanEmail)
             .maybeSingle();
 
-        if (!error && data) {
-            return { resident: data, source: 'supabase-primary' };
+        if (!error) {
+            return { resident: data || null, source: 'supabase-primary' };
         }
-        if (error) {
-            console.warn('⚠️ Erro query Supabase primary:', error.message);
-        }
+        console.warn('⚠️ Erro query Supabase primary:', error.message);
     } catch (err: any) {
         console.warn('⚠️ Exceção fetch Supabase primary:', err?.message, err?.cause?.code || err?.cause?.message || '');
     }
@@ -85,9 +83,10 @@ async function findResidentByEmail(rawEmail: string): Promise<{ resident: any | 
             .ilike('email', cleanEmail)
             .maybeSingle();
 
-        if (!error && data) {
-            return { resident: data, source: 'supabase-fallback-https' };
+        if (!error) {
+            return { resident: data || null, source: 'supabase-fallback-https' };
         }
+        console.warn('⚠️ Erro query Supabase fallback HTTPS:', error.message);
     } catch (err: any) {
         console.warn('⚠️ Exceção fetch Supabase fallback HTTPS:', err?.message, err?.cause?.code || err?.cause?.message || '');
     }
