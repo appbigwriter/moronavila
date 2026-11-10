@@ -265,6 +265,10 @@ function App() {
           setCurrentView('app');
         }}
         onBack={() => setCurrentView('landing')}
+        onNavigateToRules={() => {
+          window.location.hash = '#regras';
+          setCurrentView('regras');
+        }}
         externalMessage={authNotice}
       />
     );

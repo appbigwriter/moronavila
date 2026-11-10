@@ -239,8 +239,24 @@ export function ResidentsView({ residents, isAdmin, currentUser, onRefresh, init
                 motivo_bloqueio: null,
                 entry_date: new Date().toISOString().split('T')[0] 
             });
+
+            // Dispara e-mail com os dados de acesso para o morador aprovado
+            try {
+                await fetch('/api/send-approval-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        residentId: resident.id,
+                        email: resident.email,
+                        name: resident.name
+                    })
+                });
+            } catch (mailErr) {
+                console.warn('Aviso ao enviar e-mail de aprovação:', mailErr);
+            }
+
             onRefresh();
-            alert('Candidato aprovado com sucesso!');
+            alert('Candidato aprovado com sucesso! E-mail com instruções e dados de acesso enviado ao morador.');
         } catch (error: any) {
             alert(`Erro ao aprovar candidato: ${error.message}`);
         }
