@@ -177,6 +177,7 @@ export interface TranslationData {
         halfMonthBadge: string;
         proRataDaysSuffix: string;
         cleaningFee: string;
+        keysDamageNote: string;
         totalToMoveIn: string;
         agreeCta: string;
         preRegisterTitle: string;

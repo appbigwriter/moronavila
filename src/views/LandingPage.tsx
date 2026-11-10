@@ -113,7 +113,7 @@ const HOUSE_RULES = [
 const DEFAULT_RENTAL_CONDITIONS: RentalConditions = {
     id: 'default',
     deposit_months: 1,
-    cleaning_fee_fixed: 150,
+    cleaning_fee_fixed: 185,
     pro_rata_enabled: true,
     rules_summary: "O caução quita o último mês de permanencia do residente. Sem necessidade de fiador.",
     calculation_instructions: "Informe a data prevista de entrada para simular os valores do seu primeiro mês com total transparência."
@@ -285,7 +285,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
             }
 
             const deposit = (rentalConditions.deposit_months ?? 1) * room.rent_value;
-            const cleaning = rentalConditions.cleaning_fee_fixed || 0;
+            const cleaning = rentalConditions.cleaning_fee_fixed ?? 185;
 
             setCalculation({
                 proRata: Math.round(proRata),
@@ -742,9 +742,14 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                                 <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t.simulatorModal.securityDeposit}</span>
                                                 <span className="text-white font-black">R$ {calculation?.deposit || 0}</span>
                                             </div>
-                                            <div className="flex justify-between items-center text-sm">
-                                                <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t.simulatorModal.cleaningFee}</span>
-                                                <span className="text-white font-black">R$ {calculation?.cleaning || 0}</span>
+                                            <div className="flex justify-between items-start text-sm gap-3">
+                                                <div>
+                                                    <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px] block">{t.simulatorModal.cleaningFee}</span>
+                                                    <span className="text-[10px] text-slate-500 font-medium block leading-snug mt-0.5">
+                                                        {t.simulatorModal.keysDamageNote}
+                                                    </span>
+                                                </div>
+                                                <span className="text-white font-black shrink-0">R$ {calculation?.cleaning || 0}</span>
                                             </div>
                                             <div className="h-px bg-slate-800 my-2" />
                                             <div className="flex justify-between items-center">

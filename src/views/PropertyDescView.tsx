@@ -592,7 +592,7 @@ export function PropertyDescView({ data, onUpdate, rooms }: PropertyDescriptionV
                                     />
                                 </div>
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 italic">Taxa de Limpeza Fixa (R$)</label>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 italic">Depósito Chaves e Danos Fixo (R$)</label>
                                     <input
                                         type="number"
                                         value={rentalConditions.cleaning_fee_fixed}
