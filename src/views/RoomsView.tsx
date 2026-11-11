@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { Bed, ArrowLeft, Plus, ImageIcon, Film, AlertCircle, ChevronRight, X, Edit2, Trash2, ArrowRightLeft, Wrench, Users, CreditCard, Lock } from 'lucide-react';
 import { Room, Resident, MaintenanceRequest, MaintenanceStatus, Furniture, RoomMedia } from '../types';
 import { uploadRoomMedia, createMaintenanceRequest, deleteFurniture, updateFurniture, addFurniture, createRoom, updateRoom } from '../lib/database';
+import {
+    BaseAvailabilityStatus,
+    buildRoomAvailabilityValue,
+    formatAvailabilityDate,
+    parseRoomAvailability
+} from '../lib/roomAvailability';
 
 interface RoomsViewProps {
     rooms: Room[];
@@ -21,7 +27,8 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
     const [newRoomDesc, setNewRoomDesc] = useState('');
     const [newRoomIsCommonArea, setNewRoomIsCommonArea] = useState(false);
     const [newRoomIsBlocked, setNewRoomIsBlocked] = useState(false);
-    const [newRoomAvailability, setNewRoomAvailability] = useState<'Disponível' | 'Ocupado' | 'Indisponível'>('Disponível');
+    const [newRoomAvailability, setNewRoomAvailability] = useState<BaseAvailabilityStatus>('Disponível');
+    const [newRoomAvailabilityDate, setNewRoomAvailabilityDate] = useState('');
 
     const [selectedFurniture, setSelectedFurniture] = useState<Furniture | null>(null);
     const [editingFurniture, setEditingFurniture] = useState<Furniture | null>(null);
@@ -40,9 +47,35 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
     // Edit Room Modal State
     const [isEditingRoom, setIsEditingRoom] = useState(false);
     const [editRoomData, setEditRoomData] = useState<Partial<Room> | null>(null);
+    const [editAvailabilityStatus, setEditAvailabilityStatus] = useState<BaseAvailabilityStatus>('Disponível');
+    const [editAvailabilityDate, setEditAvailabilityDate] = useState('');
+
+    const openEditRoomModal = (roomToEdit: Room) => {
+        const parsed = parseRoomAvailability(roomToEdit.availability_status, roomToEdit.is_blocked_for_repairs);
+        setEditRoomData(roomToEdit);
+        setEditAvailabilityStatus(parsed.baseStatus);
+        setEditAvailabilityDate(parsed.date);
+        setIsEditingRoom(true);
+    };
+
+    const needsForecastDate = (status: BaseAvailabilityStatus) =>
+        status === 'Finalizando reparos' || status === 'Em desocupação até';
+
+    const getForecastDatePromptLabel = (status: BaseAvailabilityStatus) =>
+        status === 'Finalizando reparos'
+            ? 'Data que será liberado *'
+            : 'Data para disponibilizar no site *';
 
     const handleAddRoomSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (needsForecastDate(newRoomAvailability) && !newRoomAvailabilityDate) {
+            alert(
+                newRoomAvailability === 'Finalizando reparos'
+                    ? 'Informe a data em que o cômodo será liberado após os reparos.'
+                    : 'Informe a data para disponibilizar o cômodo no site.'
+            );
+            return;
+        }
         setIsSubmitting(true);
         try {
             await createRoom({
@@ -54,7 +87,7 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                 cleaning_fee: newRoomCleaning,
                 is_common_area: newRoomIsCommonArea,
                 is_blocked_for_repairs: newRoomIsBlocked,
-                availability_status: newRoomAvailability
+                availability_status: buildRoomAvailabilityValue(newRoomAvailability, newRoomAvailabilityDate)
             });
             setNewRoomName('');
             setNewRoomDesc('');
@@ -63,12 +96,154 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
             setNewRoomIsCommonArea(false);
             setNewRoomIsBlocked(false);
             setNewRoomAvailability('Disponível');
+            setNewRoomAvailabilityDate('');
             onRefresh();
         } catch (err: any) {
             alert('Erro ao criar cômodo: ' + (err?.message || 'Erro desconhecido'));
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const renderEditRoomModal = () => {
+        if (!isEditingRoom || !editRoomData || !editRoomData.id) return null;
+        return (
+            <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+                <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl relative overflow-hidden">
+                    <div className="flex justify-between items-center mb-8">
+                        <h3 className="text-2xl font-black text-white tracking-tighter uppercase">Editar Cômodo</h3>
+                        <button onClick={() => setIsEditingRoom(false)} className="bg-slate-800 p-2 rounded-xl text-slate-400 hover:text-white">
+                            <X size={20} />
+                        </button>
+                    </div>
+                    <form onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (needsForecastDate(editAvailabilityStatus) && !editAvailabilityDate) {
+                            alert(
+                                editAvailabilityStatus === 'Finalizando reparos'
+                                    ? 'Informe a data que o cômodo será liberado.'
+                                    : 'Informe a data para disponibilizar no site.'
+                            );
+                            return;
+                        }
+                        setIsSubmitting(true);
+                        try {
+                            await updateRoom(editRoomData.id!, {
+                                ...editRoomData,
+                                availability_status: buildRoomAvailabilityValue(editAvailabilityStatus, editAvailabilityDate)
+                            });
+                            setIsEditingRoom(false);
+                            onRefresh();
+                        } catch (err) {
+                            alert('Erro ao editar cômodo');
+                        } finally {
+                            setIsSubmitting(false);
+                        }
+                    }} className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nome</label>
+                                <input type="text" value={editRoomData.name} onChange={e => setEditRoomData({ ...editRoomData, name: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Tipo</label>
+                                <select value={editRoomData.type} onChange={e => setEditRoomData({ ...editRoomData, type: e.target.value as any })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none appearance-none">
+                                    <option value="Quarto">Quarto</option>
+                                    <option value="Suíte">Suíte</option>
+                                    <option value="Studio">Studio</option>
+                                    <option value="Apartamento">Apartamento</option>
+                                    <option value="Sala">Sala</option>
+                                    <option value="Cozinha">Cozinha</option>
+                                    <option value="Banheiro">Banheiro</option>
+                                    <option value="Varanda">Varanda</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Capacidade</label>
+                                <input type="number" value={editRoomData.capacity} onChange={e => setEditRoomData({ ...editRoomData, capacity: parseInt(e.target.value) })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Aluguel (R$)</label>
+                                <input type="number" value={editRoomData.rent_value} onChange={e => setEditRoomData({ ...editRoomData, rent_value: parseFloat(e.target.value) })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Limpeza (R$)</label>
+                                <input type="number" value={editRoomData.cleaning_fee} onChange={e => setEditRoomData({ ...editRoomData, cleaning_fee: parseFloat(e.target.value) })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 pt-4 border-t border-slate-800">
+                            <div className="flex items-center justify-between gap-4">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Disponibilidade</span>
+                                <select
+                                    value={editAvailabilityStatus}
+                                    onChange={e => {
+                                        const nextStatus = e.target.value as BaseAvailabilityStatus;
+                                        setEditAvailabilityStatus(nextStatus);
+                                        if (!needsForecastDate(nextStatus)) {
+                                            setEditAvailabilityDate('');
+                                        }
+                                        if (nextStatus === 'Disponível' || nextStatus === 'Em desocupação até') {
+                                            setEditRoomData(prev => prev ? { ...prev, is_blocked_for_repairs: false } : prev);
+                                        } else if (nextStatus === 'Finalizando reparos') {
+                                            setEditRoomData(prev => prev ? { ...prev, is_blocked_for_repairs: true } : prev);
+                                        }
+                                    }}
+                                    className="bg-slate-950 border border-slate-800 rounded-lg p-2 text-[10px] font-black text-white outline-none"
+                                >
+                                    <option value="Disponível">Disponível</option>
+                                    <option value="Finalizando reparos">Finalizando reparos</option>
+                                    <option value="Em desocupação até">Em desocupação até</option>
+                                    <option value="Ocupado">Ocupado</option>
+                                    <option value="Indisponível">Indisponível</option>
+                                </select>
+                            </div>
+                            {needsForecastDate(editAvailabilityStatus) && (
+                                <div className="flex items-center justify-between gap-4 bg-slate-950/70 border border-amber-500/30 rounded-xl p-3">
+                                    <label className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
+                                        {getForecastDatePromptLabel(editAvailabilityStatus)}
+                                    </label>
+                                    <input
+                                        type="date"
+                                        required
+                                        value={editAvailabilityDate}
+                                        onChange={e => setEditAvailabilityDate(e.target.value)}
+                                        className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-white outline-none focus:border-amber-500"
+                                    />
+                                </div>
+                            )}
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="editIsCommon"
+                                    checked={editRoomData.is_common_area}
+                                    onChange={e => setEditRoomData({ ...editRoomData, is_common_area: e.target.checked })}
+                                    className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-rose-600"
+                                />
+                                <label htmlFor="editIsCommon" className="text-[10px] font-black text-slate-400 uppercase tracking-widest cursor-pointer">Definir como Área Comum</label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="editIsBlocked"
+                                    checked={editRoomData.is_blocked_for_repairs}
+                                    onChange={e => setEditRoomData({ ...editRoomData, is_blocked_for_repairs: e.target.checked })}
+                                    className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-rose-600"
+                                />
+                                <label htmlFor="editIsBlocked" className="text-[10px] font-black text-amber-500 uppercase tracking-widest cursor-pointer">Bloquear para Reparos</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-rose-700 shadow-xl shadow-rose-900/30 transition-all">
+                            {isSubmitting ? 'Salvando...' : 'Atualizar Cômodo'}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        );
     };
 
     const handleMaintenanceSubmit = async (e: React.FormEvent) => {
@@ -221,10 +396,7 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                                     <h2 className="text-4xl font-black text-white tracking-tighter uppercase">{room.name}</h2>
                                     {isAdmin && (
                                         <button
-                                            onClick={() => {
-                                                setEditRoomData(room);
-                                                setIsEditingRoom(true);
-                                            }}
+                                            onClick={() => openEditRoomModal(room)}
                                             className="p-2 bg-slate-800 rounded-xl text-slate-400 hover:text-rose-500 transition-all border border-slate-700 hover:border-rose-500/50 flex items-center gap-2 group"
                                         >
                                             <Edit2 size={18} />
@@ -595,105 +767,7 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                 )}
 
                 {/* Edit Room Modal */}
-                {isEditingRoom && editRoomData && (
-                    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-                        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl relative overflow-hidden">
-                            <div className="flex justify-between items-center mb-8">
-                                <h3 className="text-2xl font-black text-white tracking-tighter uppercase">Editar Cômodo</h3>
-                                <button onClick={() => setIsEditingRoom(false)} className="bg-slate-800 p-2 rounded-xl text-slate-400 hover:text-white">
-                                    <X size={20} />
-                                </button>
-                            </div>
-                            <form onSubmit={async (e) => {
-                                e.preventDefault();
-                                setIsSubmitting(true);
-                                try {
-                                    await updateRoom(room.id, editRoomData);
-                                    setIsEditingRoom(false);
-                                    onRefresh();
-                                } catch (err) {
-                                    alert('Erro ao editar cômodo');
-                                } finally {
-                                    setIsSubmitting(false);
-                                }
-                            }} className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nome</label>
-                                        <input type="text" value={editRoomData.name} onChange={e => setEditRoomData({ ...editRoomData, name: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Tipo</label>
-                                        <select value={editRoomData.type} onChange={e => setEditRoomData({ ...editRoomData, type: e.target.value as any })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none appearance-none">
-                                            <option value="Quarto">Quarto</option>
-                                            <option value="Suíte">Suíte</option>
-                                            <option value="Studio">Studio</option>
-                                            <option value="Apartamento">Apartamento</option>
-                                            <option value="Sala">Sala</option>
-                                            <option value="Cozinha">Cozinha</option>
-                                            <option value="Banheiro">Banheiro</option>
-                                            <option value="Varanda">Varanda</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Capacidade</label>
-                                        <input type="number" value={editRoomData.capacity} onChange={e => setEditRoomData({ ...editRoomData, capacity: parseInt(e.target.value) })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Aluguel (R$)</label>
-                                        <input type="number" value={editRoomData.rent_value} onChange={e => setEditRoomData({ ...editRoomData, rent_value: parseFloat(e.target.value) })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Limpeza (R$)</label>
-                                        <input type="number" value={editRoomData.cleaning_fee} onChange={e => setEditRoomData({ ...editRoomData, cleaning_fee: parseFloat(e.target.value) })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-rose-500 outline-none" />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4 pt-4 border-t border-slate-800">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Disponibilidade</span>
-                                        <select
-                                            value={editRoomData.availability_status}
-                                            onChange={e => setEditRoomData({ ...editRoomData, availability_status: e.target.value as any })}
-                                            className="bg-slate-950 border border-slate-800 rounded-lg p-2 text-[10px] font-black text-white outline-none"
-                                        >
-                                            <option value="Disponível">Disponível</option>
-                                            <option value="Ocupado">Ocupado</option>
-                                            <option value="Indisponível">Indisponível</option>
-                                        </select>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="checkbox"
-                                            id="editIsCommon"
-                                            checked={editRoomData.is_common_area}
-                                            onChange={e => setEditRoomData({ ...editRoomData, is_common_area: e.target.checked })}
-                                            className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-rose-600"
-                                        />
-                                        <label htmlFor="editIsCommon" className="text-[10px] font-black text-slate-400 uppercase tracking-widest cursor-pointer">Definir como Área Comum</label>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="checkbox"
-                                            id="editIsBlocked"
-                                            checked={editRoomData.is_blocked_for_repairs}
-                                            onChange={e => setEditRoomData({ ...editRoomData, is_blocked_for_repairs: e.target.checked })}
-                                            className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-rose-600"
-                                        />
-                                        <label htmlFor="editIsBlocked" className="text-[10px] font-black text-amber-500 uppercase tracking-widest cursor-pointer">Bloquear para Reparos</label>
-                                    </div>
-                                </div>
-
-                                <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-rose-700 shadow-xl shadow-rose-900/30 transition-all">
-                                    {isSubmitting ? 'Salvando...' : 'Atualizar Cômodo'}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                )}
+                {renderEditRoomModal()}
             </div>
         );
     }
@@ -774,17 +848,46 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                                 />
                                 <label htmlFor="isBlocked" className="text-[10px] font-black text-amber-500 uppercase tracking-widest cursor-pointer select-none">Bloquear para Reparos Inicialmente</label>
                             </div>
-                            <div className="flex items-center gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-2">Status Inicial:</span>
-                                <select
-                                    value={newRoomAvailability}
-                                    onChange={e => setNewRoomAvailability(e.target.value as any)}
-                                    className="bg-transparent text-[10px] font-black text-white uppercase outline-none"
-                                >
-                                    <option value="Disponível">Disponível</option>
-                                    <option value="Ocupado">Ocupado</option>
-                                    <option value="Indisponível">Indisponível</option>
-                                </select>
+                            <div className="flex flex-col gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mr-2">Status Inicial:</span>
+                                    <select
+                                        value={newRoomAvailability}
+                                        onChange={e => {
+                                            const nextStatus = e.target.value as BaseAvailabilityStatus;
+                                            setNewRoomAvailability(nextStatus);
+                                            if (!needsForecastDate(nextStatus)) {
+                                                setNewRoomAvailabilityDate('');
+                                            }
+                                            if (nextStatus === 'Finalizando reparos') {
+                                                setNewRoomIsBlocked(true);
+                                            } else if (nextStatus === 'Disponível' || nextStatus === 'Em desocupação até') {
+                                                setNewRoomIsBlocked(false);
+                                            }
+                                        }}
+                                        className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-[10px] font-black text-white uppercase outline-none"
+                                    >
+                                        <option value="Disponível">Disponível</option>
+                                        <option value="Finalizando reparos">Finalizando reparos</option>
+                                        <option value="Em desocupação até">Em desocupação até</option>
+                                        <option value="Ocupado">Ocupado</option>
+                                        <option value="Indisponível">Indisponível</option>
+                                    </select>
+                                </div>
+                                {needsForecastDate(newRoomAvailability) && (
+                                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800">
+                                        <label className="text-[9px] font-black text-amber-400 uppercase tracking-wider">
+                                            {getForecastDatePromptLabel(newRoomAvailability)}
+                                        </label>
+                                        <input
+                                            type="date"
+                                            required
+                                            value={newRoomAvailabilityDate}
+                                            onChange={e => setNewRoomAvailabilityDate(e.target.value)}
+                                            className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-white outline-none focus:border-amber-500"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -831,8 +934,7 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setEditRoomData(room);
-                                                    setIsEditingRoom(true);
+                                                    openEditRoomModal(room);
                                                 }}
                                                 className="p-2 bg-slate-900/80 backdrop-blur-md rounded-xl text-slate-400 hover:text-indigo-400 border border-slate-800 hover:border-indigo-500/30 transition-all"
                                                 title="Editar Área Comum"
@@ -864,7 +966,10 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                         <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Unidades Habitacionais (Quartos)</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {rooms.filter(r => !r.is_common_area).map(room => (
+                        {rooms.filter(r => !r.is_common_area).map(room => {
+                            const parsedStatus = parseRoomAvailability(room.availability_status, room.is_blocked_for_repairs);
+                            const formattedForecastDate = formatAvailabilityDate(parsedStatus.date, 'pt');
+                            return (
                             <div
                                 key={room.id}
                                 onClick={() => setSelectedRoomId(room.id)}
@@ -877,8 +982,7 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setEditRoomData(room);
-                                                setIsEditingRoom(true);
+                                                openEditRoomModal(room);
                                             }}
                                             className="p-2 bg-slate-900/80 backdrop-blur-md rounded-xl text-slate-400 hover:text-rose-500 border border-slate-800 hover:border-rose-500/30 transition-all"
                                             title="Editar Quarto"
@@ -889,21 +993,24 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                                 )}
                                 
                                 <div className="relative z-10 flex flex-col h-full">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex gap-2">
+                                    <div className="flex justify-between items-start mb-4 pr-8">
+                                        <div className="flex flex-wrap gap-2">
                                             <span className="bg-rose-500/10 text-rose-500 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-rose-500/20">
                                                 {room.type}
                                             </span>
                                             <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
-                                                room.availability_status === 'Disponível' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                                                room.availability_status === 'Ocupado' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
+                                                parsedStatus.baseStatus === 'Disponível' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                                parsedStatus.baseStatus === 'Finalizando reparos' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                                parsedStatus.baseStatus === 'Em desocupação até' ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' :
+                                                parsedStatus.baseStatus === 'Ocupado' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
                                                 'bg-slate-500/10 text-slate-500 border-slate-500/20'
                                             }`}>
-                                                {room.availability_status}
+                                                {parsedStatus.baseStatus}
+                                                {formattedForecastDate ? ` • ${formattedForecastDate}` : ''}
                                             </span>
                                         </div>
                                         {room.is_blocked_for_repairs && (
-                                            <span className="bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20 text-[8px] font-black uppercase flex items-center gap-1">
+                                            <span className="bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg border border-amber-500/20 text-[8px] font-black uppercase flex items-center gap-1 shrink-0">
                                                 <Lock size={10} /> REPARO
                                             </span>
                                         )}
@@ -932,10 +1039,12 @@ export function RoomsView({ rooms, maintenance, isAdmin, currentUser, onRefresh 
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </section>
             </div>
+            {renderEditRoomModal()}
         </div>
     );
 }

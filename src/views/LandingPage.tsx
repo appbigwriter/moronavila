@@ -9,6 +9,11 @@ import {
 import { fetchPublicPropertyDescription, fetchPublicRooms, fetchRentalConditions, signUpResident } from '../lib/database';
 import { getLocalApiBase } from '../lib/localApi';
 import { PropertyDescription, Room, RentalConditions, Resident } from '../types';
+import {
+    formatAvailabilityDate,
+    getLocalizedAvailabilityLabel,
+    parseRoomAvailability
+} from '../lib/roomAvailability';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { AmenitiesShowcase } from '../components/AmenitiesShowcase';
 import { Language } from '../i18n/types';
@@ -233,7 +238,15 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
     const [showRegisterForm, setShowRegisterForm] = useState(false);
     const [registrationStep, setRegistrationStep] = useState<'simulator' | 'form' | 'success'>('simulator');
     const [entryDate, setEntryDate] = useState('');
-    const [calculation, setCalculation] = useState<{ proRata: number; deposit: number; cleaning: number; total: number; daysRemaining?: number; isHalfMonth?: boolean } | null>(null);
+    const [calculation, setCalculation] = useState<{
+        proRata: number;
+        unitCleaningFee: number;
+        deposit: number;
+        keysDamageDeposit: number;
+        total: number;
+        daysRemaining?: number;
+        isHalfMonth?: boolean;
+    } | null>(null);
 
     const [regForm, setRegForm] = useState({
         name: '',
@@ -284,14 +297,16 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                 proRata = (room.rent_value / daysInMonth) * daysRemaining;
             }
 
+            const unitCleaningFee = Number(room.cleaning_fee) || 0;
             const deposit = (rentalConditions.deposit_months ?? 1) * room.rent_value;
-            const cleaning = rentalConditions.cleaning_fee_fixed ?? 185;
+            const keysDamageDeposit = Number(rentalConditions.cleaning_fee_fixed ?? 185);
 
             setCalculation({
                 proRata: Math.round(proRata),
+                unitCleaningFee: Math.round(unitCleaningFee),
                 deposit: Math.round(deposit),
-                cleaning: Math.round(cleaning),
-                total: Math.round(proRata + deposit + cleaning),
+                keysDamageDeposit: Math.round(keysDamageDeposit),
+                total: Math.round(proRata + unitCleaningFee + deposit + keysDamageDeposit),
                 daysRemaining,
                 isHalfMonth: isAfter15
             });
@@ -409,9 +424,8 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
             : [{ type: 'image' as const, url: '/fotos/vprimage1.jpg' }, { type: 'image' as const, url: '/fotos/vprimage6.jpg' }];
 
         const isSuite = (room as any).suite === true;
-        const availability = room.is_blocked_for_repairs
-            ? (currentLang === 'pt' ? 'Em Manutenção' : currentLang === 'es' ? 'En Mantenimiento' : 'Under Maintenance')
-            : (room.availability_status || t.roomModal.availability);
+        const parsedAvailability = parseRoomAvailability(room.availability_status, room.is_blocked_for_repairs);
+        const availability = getLocalizedAvailabilityLabel(room.availability_status, currentLang, room.is_blocked_for_repairs);
 
         return (
             <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-6">
@@ -483,8 +497,10 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                     {room.type}
                                 </span>
                                 <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border ${
-                                    availability === 'Disponível' || availability === t.roomModal.availability
+                                    parsedAvailability.isAvailableNow
                                         ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                        : parsedAvailability.baseStatus === 'Em desocupação até'
+                                        ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
                                         : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                                 }`}>
                                     {availability}
@@ -611,6 +627,10 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                 <button
                                     onClick={() => {
                                         setRegistrationRoom(room);
+                                        if (parsedAvailability.date) {
+                                            setEntryDate(parsedAvailability.date);
+                                            setRegForm(prev => ({ ...prev, entry_date: parsedAvailability.date }));
+                                        }
                                         setShowRegisterForm(true);
                                         setRegistrationStep('simulator');
                                         setSelectedRoom(null);
@@ -738,6 +758,15 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                                 </div>
                                                 <span className="text-white font-black shrink-0">R$ {calculation?.proRata || 0}</span>
                                             </div>
+                                            <div className="flex justify-between items-start text-sm gap-3">
+                                                <div>
+                                                    <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px] block">{t.simulatorModal.unitCleaningFee}</span>
+                                                    <span className="text-[10px] text-slate-500 font-medium block leading-snug mt-0.5">
+                                                        {t.simulatorModal.unitCleaningFeeNote}
+                                                    </span>
+                                                </div>
+                                                <span className="text-white font-black shrink-0">R$ {calculation?.unitCleaningFee ?? Number(registrationRoom.cleaning_fee || 0)}</span>
+                                            </div>
                                             <div className="flex justify-between items-center text-sm">
                                                 <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{t.simulatorModal.securityDeposit}</span>
                                                 <span className="text-white font-black">R$ {calculation?.deposit || 0}</span>
@@ -749,7 +778,7 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
                                                         {t.simulatorModal.keysDamageNote}
                                                     </span>
                                                 </div>
-                                                <span className="text-white font-black shrink-0">R$ {calculation?.cleaning || 0}</span>
+                                                <span className="text-white font-black shrink-0">R$ {calculation?.keysDamageDeposit || 0}</span>
                                             </div>
                                             <div className="h-px bg-slate-800 my-2" />
                                             <div className="flex justify-between items-center">
@@ -1127,71 +1156,161 @@ export function LandingPage({ onLoginClick, isLoggedIn, currentUser, onGoToDashb
 
                     {(() => {
                         const availableRooms = rooms.filter(
-                            room => !room.is_common_area && room.availability_status === 'Disponível' && !room.is_blocked_for_repairs
+                            room => !room.is_common_area && parseRoomAvailability(room.availability_status, room.is_blocked_for_repairs).isAvailableNow
                         );
+                        const forecastRooms = rooms
+                            .filter(room => !room.is_common_area && parseRoomAvailability(room.availability_status, room.is_blocked_for_repairs).isForecast)
+                            .sort((a, b) => {
+                                const da = parseRoomAvailability(a.availability_status).date || '9999-12-31';
+                                const db = parseRoomAvailability(b.availability_status).date || '9999-12-31';
+                                return da.localeCompare(db);
+                            });
 
-                        if (availableRooms.length === 0) {
+                        const renderUnitCard = (room: Room, forecastMode = false) => {
+                            const roomThumb = room.media && room.media[0] ? room.media[0].url : '/fotos/98905_0gMXlxxyf06MJQMP.jpg';
+                            const parsedStatus = parseRoomAvailability(room.availability_status, room.is_blocked_for_repairs);
+                            const formattedForecastDate = formatAvailabilityDate(parsedStatus.date, currentLang);
+                            const isVacating = parsedStatus.baseStatus === 'Em desocupação até';
+
                             return (
-                                <div className="p-12 text-center bg-slate-900/40 rounded-[2.5rem] border border-slate-800 max-w-xl mx-auto">
-                                    <Home size={40} className="text-rose-500 mx-auto mb-4" />
-                                    <h3 className="text-xl font-black text-white uppercase mb-2">{t.vacanciesSection.noVacanciesTitle}</h3>
-                                    <p className="text-slate-400 text-sm mb-6">{t.vacanciesSection.noVacanciesText}</p>
-                                    <a
-                                        href="https://wa.me/5521981900803?text=Gostaria%20de%20saber%20sobre%20as%20pr%C3%B3ximas%20vagas%20dispon%C3%ADveis%20na%20MoronaVila"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-widest transition-all"
-                                    >
-                                        <MessageCircle size={16} /> {t.vacanciesSection.waitingListCta}
-                                    </a>
+                                <div
+                                    key={room.id}
+                                    className={`group bg-slate-900/60 border rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl flex flex-col ${
+                                        forecastMode
+                                            ? isVacating
+                                                ? 'border-cyan-500/30 hover:border-cyan-400/60 hover:shadow-cyan-950/30'
+                                                : 'border-amber-500/30 hover:border-amber-400/60 hover:shadow-amber-950/30'
+                                            : 'border-slate-800 hover:border-rose-500/40 hover:shadow-rose-900/20'
+                                    }`}
+                                >
+                                    <div className="relative aspect-[16/11] overflow-hidden bg-slate-950">
+                                        <img
+                                            src={roomThumb}
+                                            alt={room.name}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
+
+                                        <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-rose-400">
+                                            {room.capacity > 1 ? `${room.type} (${room.capacity} ${t.vacanciesSection.shared})` : (room.type || t.vacanciesSection.individual)}{(room as any).suite ? ` • ${t.vacanciesSection.suiteBadge}` : ''}
+                                        </div>
+
+                                        <div className="absolute top-4 right-4 bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
+                                            <span className="text-white font-black text-lg">{formatBRL(promoActive ? room.rent_value - PROMO.discount : room.rent_value)}</span>
+                                            <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest ml-1">{t.vacanciesSection.perMonth}</span>
+                                        </div>
+
+                                        {forecastMode && (
+                                            <div className={`absolute bottom-3 left-4 right-4 px-3.5 py-2 rounded-xl backdrop-blur-md border flex items-center justify-between gap-2 text-[10px] font-black uppercase tracking-wider ${
+                                                isVacating
+                                                    ? 'bg-cyan-950/85 border-cyan-500/40 text-cyan-300'
+                                                    : 'bg-amber-950/85 border-amber-500/40 text-amber-300'
+                                            }`}>
+                                                <span className="flex items-center gap-1.5">
+                                                    <Clock size={12} />
+                                                    {isVacating ? t.vacanciesSection.vacatingUntilLabel : t.vacanciesSection.finishingRepairsLabel}
+                                                </span>
+                                                {formattedForecastDate && (
+                                                    <span className="text-white">{formattedForecastDate}</span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="p-8 flex-1 flex flex-col justify-between">
+                                        <div>
+                                            <h4 className="text-2xl font-black text-white uppercase italic tracking-tight mb-2">{room.name}</h4>
+                                            {forecastMode && formattedForecastDate && (
+                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider mb-3 border ${
+                                                    isVacating
+                                                        ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20'
+                                                        : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                                                }`}>
+                                                    <Calendar size={12} />
+                                                    <span>
+                                                        {isVacating ? t.vacanciesSection.availableOnSiteLabel : t.vacanciesSection.releaseDateLabel} {formattedForecastDate}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed mb-6 font-medium">
+                                                {room.description || "Acomodação mobiliada com cama, armário, escrivaninha e excelente ventilação natural."}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-3 pt-2 border-t border-slate-800/80">
+                                            <button
+                                                onClick={() => setSelectedRoom(room)}
+                                                className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 ${
+                                                    forecastMode
+                                                        ? isVacating
+                                                            ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-cyan-950/30'
+                                                            : 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-950/30'
+                                                        : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-900/30'
+                                                }`}
+                                            >
+                                                {t.vacanciesSection.viewDetailsCta} <ArrowRight size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             );
-                        }
+                        };
 
                         return (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {availableRooms.map(room => {
-                                    const roomThumb = room.media && room.media[0] ? room.media[0].url : '/fotos/98905_0gMXlxxyf06MJQMP.jpg';
-                                    return (
-                                        <div key={room.id} className="group bg-slate-900/60 border border-slate-800 rounded-[2.5rem] overflow-hidden hover:border-rose-500/40 transition-all duration-500 hover:shadow-2xl hover:shadow-rose-900/20 flex flex-col">
-                                            <div className="relative aspect-[16/11] overflow-hidden bg-slate-950">
-                                                <img
-                                                    src={roomThumb}
-                                                    alt={room.name}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
+                            <div className="space-y-16">
+                                {availableRooms.length === 0 ? (
+                                    <div className="p-12 text-center bg-slate-900/40 rounded-[2.5rem] border border-slate-800 max-w-xl mx-auto">
+                                        <Home size={40} className="text-rose-500 mx-auto mb-4" />
+                                        <h3 className="text-xl font-black text-white uppercase mb-2">{t.vacanciesSection.noVacanciesTitle}</h3>
+                                        <p className="text-slate-400 text-sm mb-6">{t.vacanciesSection.noVacanciesText}</p>
+                                        <a
+                                            href="https://wa.me/5521981900803?text=Gostaria%20de%20saber%20sobre%20as%20pr%C3%B3ximas%20vagas%20dispon%C3%ADveis%20na%20MoronaVila"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-widest transition-all"
+                                        >
+                                            <MessageCircle size={16} /> {t.vacanciesSection.waitingListCta}
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                        {availableRooms.map(room => renderUnitCard(room, false))}
+                                    </div>
+                                )}
 
-                                                <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-rose-400">
-                                                    {room.capacity > 1 ? `${room.type} (${room.capacity} ${t.vacanciesSection.shared})` : (room.type || t.vacanciesSection.individual)}{(room as any).suite ? ` • ${t.vacanciesSection.suiteBadge}` : ''}
-                                                </div>
-
-                                                <div className="absolute top-4 right-4 bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10">
-                                                    <span className="text-white font-black text-lg">{formatBRL(promoActive ? room.rent_value - PROMO.discount : room.rent_value)}</span>
-                                                    <span className="text-slate-400 text-[10px] uppercase font-bold tracking-widest ml-1">{t.vacanciesSection.perMonth}</span>
-                                                </div>
+                                {/* ABA / SEÇÃO: PREVISÃO DE DISPONIBILIDADE (LOGO ABAIXO DAS LIBERADAS) */}
+                                <div className="pt-8 border-t border-slate-800/80">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
+                                        <div className="flex items-start sm:items-center gap-4">
+                                            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shrink-0">
+                                                <Calendar size={24} />
                                             </div>
-
-                                            <div className="p-8 flex-1 flex flex-col justify-between">
-                                                <div>
-                                                    <h4 className="text-2xl font-black text-white uppercase italic tracking-tight mb-2">{room.name}</h4>
-                                                    <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed mb-6 font-medium">
-                                                        {room.description || "Acomodação mobiliada com cama, armário, escrivaninha e excelente ventilação natural."}
-                                                    </p>
+                                            <div>
+                                                <div className="flex items-center gap-3 flex-wrap">
+                                                    <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tight">
+                                                        {t.vacanciesSection.forecastTitle}
+                                                    </h3>
+                                                    <span className="px-3 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-black uppercase tracking-widest">
+                                                        {forecastRooms.length}
+                                                    </span>
                                                 </div>
-
-                                                <div className="space-y-3 pt-2 border-t border-slate-800/80">
-                                                    <button
-                                                        onClick={() => setSelectedRoom(room)}
-                                                        className="w-full py-4 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-rose-900/30 flex items-center justify-center gap-2"
-                                                    >
-                                                        {t.vacanciesSection.viewDetailsCta} <ArrowRight size={14} />
-                                                    </button>
-                                                </div>
+                                                <p className="text-slate-400 text-xs md:text-sm mt-1">
+                                                    {t.vacanciesSection.forecastSubtitle}
+                                                </p>
                                             </div>
                                         </div>
-                                    );
-                                })}
+                                    </div>
+
+                                    {forecastRooms.length > 0 ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                            {forecastRooms.map(room => renderUnitCard(room, true))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-8 text-center bg-slate-900/30 rounded-3xl border border-dashed border-slate-800 text-slate-400 text-xs md:text-sm font-medium">
+                                            {t.vacanciesSection.forecastEmptyText}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         );
                     })()}

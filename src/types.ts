@@ -151,7 +151,7 @@ export interface Room {
   // Novos campos para Prospecção
   is_common_area: boolean;
   is_blocked_for_repairs: boolean;
-  availability_status: 'Disponível' | 'Ocupado' | 'Indisponível';
+  availability_status: 'Disponível' | 'Ocupado' | 'Indisponível' | 'Finalizando reparos' | 'Em desocupação até' | string;
 }
 
 export interface Payment {

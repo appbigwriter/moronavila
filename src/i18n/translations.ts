@@ -101,7 +101,14 @@ export const TRANSLATIONS: Record<Language, TranslationData> = {
             perMonth: '/mês',
             individual: 'Individual',
             shared: 'Compartilhado',
-            suiteBadge: 'Suíte'
+            suiteBadge: 'Suíte',
+            forecastTitle: 'Previsão de Disponibilidade',
+            forecastSubtitle: 'Unidades em fase final de reparos ou em desocupação programada — reserve antecipadamente para a data de liberação.',
+            forecastEmptyText: 'No momento não há unidades em finalização de reparos ou desocupação programada.',
+            finishingRepairsLabel: 'Finalizando reparos',
+            vacatingUntilLabel: 'Em desocupação até',
+            releaseDateLabel: 'Liberação prevista:',
+            availableOnSiteLabel: 'Disponível no site em:'
         },
         comparisonSection: {
             tag: 'Transparência Financeira',
@@ -227,6 +234,8 @@ export const TRANSLATIONS: Record<Language, TranslationData> = {
             proRataRuleNote: 'Entrada até o dia 15: aluguel proporcional aos dias restantes do mês corrente. Após o dia 15: equivalente a 15 dias (50%).',
             halfMonthBadge: 'Equivalente a 15 dias (entrada após dia 15)',
             proRataDaysSuffix: 'dias proporcionais no mês',
+            unitCleaningFee: 'Taxa de Limpeza da Unidade',
+            unitCleaningFeeNote: 'Valor variável conforme a unidade selecionada',
             cleaningFee: 'Depósito Chaves e Danos',
             keysDamageNote: 'Só será devolvido se as chaves e o imóvel forem entregues em perfeitas condições.',
             totalToMoveIn: 'Total para Entrada',
@@ -349,7 +358,14 @@ export const TRANSLATIONS: Record<Language, TranslationData> = {
             perMonth: '/month',
             individual: 'Single',
             shared: 'Shared',
-            suiteBadge: 'En-Suite'
+            suiteBadge: 'En-Suite',
+            forecastTitle: 'Availability Forecast',
+            forecastSubtitle: 'Units currently finishing repairs or scheduled for upcoming vacancy — reserve ahead for the release date.',
+            forecastEmptyText: 'There are currently no units scheduled for repairs completion or upcoming vacancy.',
+            finishingRepairsLabel: 'Finishing repairs',
+            vacatingUntilLabel: 'Vacating until',
+            releaseDateLabel: 'Expected release:',
+            availableOnSiteLabel: 'Available on site:'
         },
         comparisonSection: {
             tag: 'Financial Transparency',
@@ -475,6 +491,8 @@ export const TRANSLATIONS: Record<Language, TranslationData> = {
             proRataRuleNote: 'Move-in by the 15th: pro-rated for the remaining days of the current month. After the 15th: 15-day equivalent (50%).',
             halfMonthBadge: '15-day equivalent (move-in after the 15th)',
             proRataDaysSuffix: 'pro-rated days this month',
+            unitCleaningFee: 'Unit Cleaning Fee',
+            unitCleaningFeeNote: 'Variable fee depending on the selected unit',
             cleaningFee: 'Keys & Damage Deposit',
             keysDamageNote: 'Refundable only if the keys and the property are returned in perfect condition.',
             totalToMoveIn: 'Total to Move In',
@@ -597,7 +615,14 @@ export const TRANSLATIONS: Record<Language, TranslationData> = {
             perMonth: '/mes',
             individual: 'Individual',
             shared: 'Compartido',
-            suiteBadge: 'Suite Privada'
+            suiteBadge: 'Suite Privada',
+            forecastTitle: 'Previsión de Disponibilidad',
+            forecastSubtitle: 'Unidades en fase final de reparaciones o en desocupación programada — reserva con antelación para su fecha de liberación.',
+            forecastEmptyText: 'En este momento no hay unidades en finalización de reparaciones ni en desocupación programada.',
+            finishingRepairsLabel: 'Finalizando reparaciones',
+            vacatingUntilLabel: 'En desocupación hasta',
+            releaseDateLabel: 'Liberación prevista:',
+            availableOnSiteLabel: 'Disponible en la web:'
         },
         comparisonSection: {
             tag: 'Transparencia Financiera',
@@ -723,6 +748,8 @@ export const TRANSLATIONS: Record<Language, TranslationData> = {
             proRataRuleNote: 'Entrada hasta el día 15: proporcional a los días restantes del mes en curso. Después del día 15: equivalente a 15 días (50%).',
             halfMonthBadge: 'Equivalente a 15 días (entrada tras el día 15)',
             proRataDaysSuffix: 'días proporcionales este mes',
+            unitCleaningFee: 'Tasa de Limpieza de la Unidad',
+            unitCleaningFeeNote: 'Importe variable según la unidad seleccionada',
             cleaningFee: 'Depósito de Llaves y Daños',
             keysDamageNote: 'Solo se devolverá si las llaves y el inmueble se entregan en perfectas condiciones.',
             totalToMoveIn: 'Total para Entrar a Vivir',

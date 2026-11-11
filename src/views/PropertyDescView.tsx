@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Save, Image as ImageIcon, Video, MapPin, Home, Info, CheckCircle2, ChevronRight, Plus, X, Layout, Sparkles, Shield, Play, Trash2, Sofa, Edit3, Type, CreditCard, Lock, Unlock } from 'lucide-react';
 import { PropertyDescription, Room, RoomType, Furniture, RoomMedia, RentalConditions } from '../types';
 import { updatePropertyDescription, toggleRoomMediaMarketing, updateRoom, addFurniture, deleteFurniture, updateFurniture, deleteRoomMedia, fetchRentalConditions, updateRentalConditions } from '../lib/database';
+import { BaseAvailabilityStatus, buildRoomAvailabilityValue, parseRoomAvailability } from '../lib/roomAvailability';
 
 interface PropertyDescriptionViewProps {
     data: PropertyDescription;
@@ -124,19 +125,38 @@ export function PropertyDescView({ data, onUpdate, rooms }: PropertyDescriptionV
         onUpdate: () => void,
         onToggleMarketing: (id: string, val: boolean) => Promise<void>
     }) => {
+        const initialAvailability = parseRoomAvailability(room.availability_status, room.is_blocked_for_repairs);
         const [editingRoom, setEditingRoom] = useState<Partial<Room>>({
             name: room.name,
             type: room.type,
             description: room.description || '',
+            is_blocked_for_repairs: room.is_blocked_for_repairs,
+            availability_status: room.availability_status
         });
+        const [availabilityBase, setAvailabilityBase] = useState<BaseAvailabilityStatus>(initialAvailability.baseStatus);
+        const [availabilityDate, setAvailabilityDate] = useState(initialAvailability.date);
         const [newFurniture, setNewFurniture] = useState({ name: '', condition: 'Bom' as any });
         const [newMediaUrl, setNewMediaUrl] = useState('');
         const [isUpdating, setIsUpdating] = useState(false);
 
+        const needsForecastDate = (status: BaseAvailabilityStatus) =>
+            status === 'Finalizando reparos' || status === 'Em desocupação até';
+
         const handleSaveRoom = async () => {
+            if (needsForecastDate(availabilityBase) && !availabilityDate) {
+                alert(
+                    availabilityBase === 'Finalizando reparos'
+                        ? 'Informe a data que o cômodo será liberado.'
+                        : 'Informe a data para disponibilizar no site.'
+                );
+                return;
+            }
             setIsUpdating(true);
             try {
-                await updateRoom(room.id, editingRoom);
+                await updateRoom(room.id, {
+                    ...editingRoom,
+                    availability_status: buildRoomAvailabilityValue(availabilityBase, availabilityDate)
+                });
                 alert('Cômodo atualizado!');
                 onUpdate();
             } catch (err) {
@@ -226,15 +246,28 @@ export function PropertyDescView({ data, onUpdate, rooms }: PropertyDescriptionV
                                 </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Status de Disponibilidade</label>
                                 <select
-                                    value={editingRoom.availability_status}
-                                    onChange={(e) => setEditingRoom({ ...editingRoom, availability_status: e.target.value as any })}
+                                    value={availabilityBase}
+                                    onChange={(e) => {
+                                        const nextStatus = e.target.value as BaseAvailabilityStatus;
+                                        setAvailabilityBase(nextStatus);
+                                        if (!needsForecastDate(nextStatus)) {
+                                            setAvailabilityDate('');
+                                        }
+                                        if (nextStatus === 'Disponível' || nextStatus === 'Em desocupação até') {
+                                            setEditingRoom({ ...editingRoom, is_blocked_for_repairs: false });
+                                        } else if (nextStatus === 'Finalizando reparos') {
+                                            setEditingRoom({ ...editingRoom, is_blocked_for_repairs: true });
+                                        }
+                                    }}
                                     className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 px-4 text-white text-sm font-bold focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500/50 transition-all appearance-none"
                                 >
                                     <option value="Disponível">Disponível</option>
+                                    <option value="Finalizando reparos">Finalizando reparos</option>
+                                    <option value="Em desocupação até">Em desocupação até</option>
                                     <option value="Ocupado">Ocupado</option>
                                     <option value="Indisponível">Indisponível</option>
                                 </select>
@@ -242,6 +275,7 @@ export function PropertyDescView({ data, onUpdate, rooms }: PropertyDescriptionV
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Bloqueado para Reparos?</label>
                                 <button
+                                    type="button"
                                     onClick={() => setEditingRoom({ ...editingRoom, is_blocked_for_repairs: !editingRoom.is_blocked_for_repairs })}
                                     className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${
                                         editingRoom.is_blocked_for_repairs
@@ -254,6 +288,22 @@ export function PropertyDescView({ data, onUpdate, rooms }: PropertyDescriptionV
                                 </button>
                             </div>
                         </div>
+                        {needsForecastDate(availabilityBase) && (
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-950/60 border border-amber-500/30 rounded-2xl p-4">
+                                <label className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
+                                    {availabilityBase === 'Finalizando reparos'
+                                        ? 'Data que será liberado *'
+                                        : 'Data para disponibilizar no site *'}
+                                </label>
+                                <input
+                                    type="date"
+                                    required
+                                    value={availabilityDate}
+                                    onChange={(e) => setAvailabilityDate(e.target.value)}
+                                    className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-amber-500"
+                                />
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Descrição do Marketing (O que o cliente vê)</label>
                             <textarea

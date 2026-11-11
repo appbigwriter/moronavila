@@ -78,6 +78,13 @@ export interface TranslationData {
         individual: string;
         shared: string;
         suiteBadge: string;
+        forecastTitle: string;
+        forecastSubtitle: string;
+        forecastEmptyText: string;
+        finishingRepairsLabel: string;
+        vacatingUntilLabel: string;
+        releaseDateLabel: string;
+        availableOnSiteLabel: string;
     };
     comparisonSection: {
         tag: string;
@@ -176,6 +183,8 @@ export interface TranslationData {
         proRataRuleNote: string;
         halfMonthBadge: string;
         proRataDaysSuffix: string;
+        unitCleaningFee: string;
+        unitCleaningFeeNote: string;
         cleaningFee: string;
         keysDamageNote: string;
         totalToMoveIn: string;
