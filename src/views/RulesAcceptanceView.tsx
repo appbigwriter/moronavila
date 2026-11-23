@@ -6,7 +6,8 @@ import {
     Home, Phone, Mail, User, Info, AlertCircle, HeartHandshake,
     Printer, ChevronDown, ChevronUp, UserPlus, X, ArrowRight,
     UserCheck, BadgeCheck, Instagram, Facebook, Upload, Trash2,
-    Image as ImageIcon, Plug, Flame, Eye, EyeOff
+    Image as ImageIcon, Plug, Flame, Eye, EyeOff,
+    Bed, Layers, Sofa
 } from 'lucide-react';
 import { Resident, UserRole } from '../types';
 import { createResident, uploadResidentDocument } from '../lib/database';
@@ -85,6 +86,17 @@ interface FineCardItem {
     color: string;
 }
 
+interface UnitRateItem {
+    id: string;
+    name: string;
+    price: string;
+    couplePrice?: string | null;
+    priceNote: string;
+    coupleNote?: string;
+    desc: string;
+    icon: 'Bed' | 'Home' | 'Layers' | 'Sofa';
+}
+
 interface RulesViewTranslations {
     backToHome: string;
     rulesAndRegTitle: string;
@@ -97,17 +109,22 @@ interface RulesViewTranslations {
     heroSubtitle: string;
     heroDesc: string;
     standardRatesTitle: string;
+    standardRatesSubtitle: string;
     ratesPerMonth: string;
-    rentAndCleaningNote: string;
+    rentAndCleaningNote?: string;
     monthPeriodRef: string;
     paidInAdvance: string;
-    exclusivePromoBadge: string;
-    promoDiscountNote: string;
-    promoDetailsText: string;
+    billsIncludedNote: string;
+    unitRates: UnitRateItem[];
+    exclusivePromoBadge?: string;
+    promoDiscountNote?: string;
+    promoDetailsText?: string;
     entryConditionsTitle: string;
     depositPlusMonth: string;
     entryConditionsDesc: string;
     depositCoversLastMonth: string;
+    entryNoGuarantor: string;
+    entryNoticeDays: string;
     pixDetailsTitle: string;
     pixBeneficiaryLabel: string;
     pixKeyLabel: string;
@@ -245,17 +262,60 @@ const RULES_VIEW_I18N: Record<Language, RulesViewTranslations> = {
         heroSubtitle: 'Regras de Conduta Residencial MoronaVila',
         heroDesc: 'Para garantir um ambiente harmonioso, seguro, limpo e propício ao descanso e produtividade de todos, estabelecemos normas transparentes e iguais para todos os residentes da propriedade.',
         standardRatesTitle: 'Valores Padrão',
+        standardRatesSubtitle: 'Acomodações Mobiliadas • Sem Fiador',
         ratesPerMonth: '/mês',
-        rentAndCleaningNote: 'R$ 900 aluguel + R$ 60 taxa de limpeza das áreas comuns',
+        rentAndCleaningNote: 'Wi-Fi e áreas comuns inclusos • Sem condomínio ou IPTU',
         monthPeriodRef: 'Ref. 1º ao último dia do mês',
         paidInAdvance: 'Pago antecipado até o 5º dia útil',
-        exclusivePromoBadge: 'Promoção Exclusiva',
-        promoDiscountNote: 'Desconto de R$ 100,00/mês por 6 meses',
-        promoDetailsText: 'Até 10/11 será concedido desconto de 100 reais no aluguel mensal para novos residentes, por um período de 6 meses.',
+        billsIncludedNote: 'Sem taxa de condomínio ou IPTU • Wi-Fi incluso',
         entryConditionsTitle: 'Condições de Entrada',
         depositPlusMonth: 'Depósito + Mês Corrente',
-        entryConditionsDesc: 'Para entrada na casa é necessário 1 mês de aluguel como depósito + mês corrente à entrada.',
+        entryConditionsDesc: 'Para entrada na casa é necessário 1 mês de aluguel como depósito caução + mês corrente à entrada.',
         depositCoversLastMonth: 'O depósito quita o período de 1 a 30(31) do último mês de permanência do residente.',
+        entryNoGuarantor: 'Sem necessidade de fiador',
+        entryNoticeDays: 'Aviso prévio de 30 dias para saída',
+        unitRates: [
+            {
+                id: 'single',
+                name: 'Quarto Individual',
+                price: 'R$ 800',
+                couplePrice: 'R$ 1.100',
+                priceNote: '1 pessoa',
+                coupleNote: 'casal',
+                desc: 'Banheiro privativo (fora do quarto), mobiliado e cozinha compartilhada',
+                icon: 'Bed'
+            },
+            {
+                id: 'suite',
+                name: 'Suíte Independente',
+                price: 'R$ 900',
+                couplePrice: 'R$ 1.200',
+                priceNote: '1 pessoa',
+                coupleNote: 'casal',
+                desc: 'Entrada independente, banheiro privativo na suíte e mobiliada',
+                icon: 'Home'
+            },
+            {
+                id: 'studio',
+                name: 'Studio',
+                price: 'R$ 1.000',
+                couplePrice: 'R$ 1.350',
+                priceNote: '1 pessoa',
+                coupleNote: 'casal',
+                desc: 'Cozinha e banheiro próprios privativos e mobiliado',
+                icon: 'Layers'
+            },
+            {
+                id: 'apartment',
+                name: 'Apartamento MoronaVila',
+                price: 'R$ 1.700',
+                couplePrice: null,
+                priceNote: 'até 2 pessoas',
+                coupleNote: '',
+                desc: 'Quarto, sala, cozinha e banheiro próprios privativos e mobiliado',
+                icon: 'Sofa'
+            }
+        ],
         pixDetailsTitle: 'Dados para Pagamento via PIX',
         pixBeneficiaryLabel: 'Favorecido:',
         pixKeyLabel: 'Chave PIX:',
@@ -346,10 +406,10 @@ const RULES_VIEW_I18N: Record<Language, RulesViewTranslations> = {
         placeholderFamilyAddress: 'Cidade e Bairro onde moram pais/familiares',
         labelDesiredRoom: 'Acomodação Pretendida *',
         roomOptions: {
-            single: 'Quarto Individual (R$ 960/mês)',
-            suite: 'Suíte Independente',
-            studio: 'Studio MoronaVila',
-            apartment: 'Apartamento Completo MoronaVila'
+            single: 'Quarto Individual (R$ 800/mês | Casal R$ 1.100)',
+            suite: 'Suíte Independente (R$ 900/mês | Casal R$ 1.200)',
+            studio: 'Studio MoronaVila (R$ 1.000/mês | Casal R$ 1.350)',
+            apartment: 'Apartamento MoronaVila (R$ 1.700/mês)'
         },
         labelEntryDate: 'Data Prevista de Entrada *',
         labelOccupation: 'Profissão / Ocupação Atual *',
@@ -440,17 +500,60 @@ const RULES_VIEW_I18N: Record<Language, RulesViewTranslations> = {
         heroSubtitle: 'MoronaVila Residential Code of Conduct',
         heroDesc: 'To ensure a harmonious, safe, clean environment favorable to everyone’s rest and productivity, we establish transparent and equal standards for all property residents.',
         standardRatesTitle: 'Standard Rates',
+        standardRatesSubtitle: 'Furnished Units • No Guarantor',
         ratesPerMonth: '/month',
-        rentAndCleaningNote: 'R$ 900 rent + R$ 60 common area cleaning fee',
+        rentAndCleaningNote: 'High-speed Wi-Fi and common areas included • No condo fee',
         monthPeriodRef: 'Ref. 1st to the last day of the month',
         paidInAdvance: 'Paid in advance by the 5th business day',
-        exclusivePromoBadge: 'Exclusive Promo',
-        promoDiscountNote: 'R$ 100.00/month discount for 6 months',
-        promoDetailsText: 'Until Nov 10, a R$ 100 discount on monthly rent will be granted to new residents for 6 months.',
+        billsIncludedNote: 'No condo fee or property tax • Wi-Fi included',
         entryConditionsTitle: 'Move-in Conditions',
         depositPlusMonth: 'Security Deposit + Current Month',
         entryConditionsDesc: 'To move in, 1 month rent as security deposit + current month upon arrival is required.',
         depositCoversLastMonth: 'The deposit covers the 1st to 30th/31st of the resident’s final month of stay.',
+        entryNoGuarantor: 'No guarantor or bureaucracy needed',
+        entryNoticeDays: '30-day prior notice required before departure',
+        unitRates: [
+            {
+                id: 'single',
+                name: 'Single Room',
+                price: 'R$ 800',
+                couplePrice: 'R$ 1,100',
+                priceNote: '1 person',
+                coupleNote: 'couple',
+                desc: 'Private bathroom (outside room), furnished & shared kitchen',
+                icon: 'Bed'
+            },
+            {
+                id: 'suite',
+                name: 'Independent Suite',
+                price: 'R$ 900',
+                couplePrice: 'R$ 1,200',
+                priceNote: '1 person',
+                coupleNote: 'couple',
+                desc: 'Independent entrance, en-suite bathroom & furnished',
+                icon: 'Home'
+            },
+            {
+                id: 'studio',
+                name: 'Studio',
+                price: 'R$ 1,000',
+                couplePrice: 'R$ 1,350',
+                priceNote: '1 person',
+                coupleNote: 'couple',
+                desc: 'Private kitchen and bathroom, fully furnished',
+                icon: 'Layers'
+            },
+            {
+                id: 'apartment',
+                name: 'MoronaVila Apartment',
+                price: 'R$ 1,700',
+                couplePrice: null,
+                priceNote: 'up to 2 people',
+                coupleNote: '',
+                desc: 'Bedroom, living room, private kitchen & bathroom, fully furnished',
+                icon: 'Sofa'
+            }
+        ],
         pixDetailsTitle: 'PIX Payment Information',
         pixBeneficiaryLabel: 'Beneficiary:',
         pixKeyLabel: 'PIX Key:',
@@ -541,10 +644,10 @@ const RULES_VIEW_I18N: Record<Language, RulesViewTranslations> = {
         placeholderFamilyAddress: 'City and neighborhood where parents/family reside',
         labelDesiredRoom: 'Desired Accommodation *',
         roomOptions: {
-            single: 'Single Room (R$ 960/mo)',
-            suite: 'Private Suite',
-            studio: 'MoronaVila Studio',
-            apartment: 'Full MoronaVila Apartment'
+            single: 'Single Room (R$ 800/mo | Couple R$ 1,100)',
+            suite: 'Independent Suite (R$ 900/mo | Couple R$ 1,200)',
+            studio: 'Studio MoronaVila (R$ 1,000/mo | Couple R$ 1,350)',
+            apartment: 'MoronaVila Apartment (R$ 1,700/mo)'
         },
         labelEntryDate: 'Expected Move-in Date *',
         labelOccupation: 'Current Profession / Occupation *',
@@ -635,17 +738,60 @@ const RULES_VIEW_I18N: Record<Language, RulesViewTranslations> = {
         heroSubtitle: 'Reglas de Conducta Residencial MoronaVila',
         heroDesc: 'Para garantizar un ambiente armonioso, seguro, limpio y propicio para el descanso y la productividad de todos, establecemos normas transparentes e iguales para todos los residentes de la propiedad.',
         standardRatesTitle: 'Valores Estándar',
+        standardRatesSubtitle: 'Unidades Amuebladas • Sin Garante',
         ratesPerMonth: '/mes',
-        rentAndCleaningNote: 'R$ 900 alquiler + R$ 60 tarifa de limpieza de áreas comunes',
+        rentAndCleaningNote: 'Wi-Fi y áreas comunes incluidas • Sin expensas ni impuestos',
         monthPeriodRef: 'Ref. 1º al último día del mes',
         paidInAdvance: 'Pago por adelantado hasta el 5º día hábil',
-        exclusivePromoBadge: 'Promoción Exclusiva',
-        promoDiscountNote: 'Desconto de R$ 100,00/mes por 6 meses',
-        promoDetailsText: 'Hasta el 10/11 se otorgará un descuento de 100 reales en el alquiler mensual para nuevos residentes durante 6 meses.',
+        billsIncludedNote: 'Sin expensas ni impuestos • Wi-Fi incluido',
         entryConditionsTitle: 'Condiciones de Ingreso',
         depositPlusMonth: 'Depósito + Mes Corriente',
         entryConditionsDesc: 'Para ingresar a la casa se requiere 1 mes de alquiler como depósito + el mes corriente de llegada.',
         depositCoversLastMonth: 'El depósito salda el período del 1 al 30(31) del último mes de estadía del residente.',
+        entryNoGuarantor: 'Sin garante ni burocracia',
+        entryNoticeDays: 'Aviso previo de 30 días para salida',
+        unitRates: [
+            {
+                id: 'single',
+                name: 'Habitación Individual',
+                price: 'R$ 800',
+                couplePrice: 'R$ 1.100',
+                priceNote: '1 persona',
+                coupleNote: 'pareja',
+                desc: 'Baño privado (fuera de la habitación), amueblada y cocina compartida',
+                icon: 'Bed'
+            },
+            {
+                id: 'suite',
+                name: 'Suite Independiente',
+                price: 'R$ 900',
+                couplePrice: 'R$ 1.200',
+                priceNote: '1 persona',
+                coupleNote: 'pareja',
+                desc: 'Entrada independiente, baño privado en suite y amueblada',
+                icon: 'Home'
+            },
+            {
+                id: 'studio',
+                name: 'Studio',
+                price: 'R$ 1.000',
+                couplePrice: 'R$ 1.350',
+                priceNote: '1 persona',
+                coupleNote: 'pareja',
+                desc: 'Cocina y baño propios privados, amueblado',
+                icon: 'Layers'
+            },
+            {
+                id: 'apartment',
+                name: 'Apartamento MoronaVila',
+                price: 'R$ 1.700',
+                couplePrice: null,
+                priceNote: 'hasta 2 personas',
+                coupleNote: '',
+                desc: 'Dormitorio, sala, cocina y baño propios privados, amueblado',
+                icon: 'Sofa'
+            }
+        ],
         pixDetailsTitle: 'Datos para Pago vía PIX',
         pixBeneficiaryLabel: 'Beneficiario:',
         pixKeyLabel: 'Clave PIX:',
@@ -736,10 +882,10 @@ const RULES_VIEW_I18N: Record<Language, RulesViewTranslations> = {
         placeholderFamilyAddress: 'Ciudad y barrio donde viven los familiares',
         labelDesiredRoom: 'Alojamiento Deseado *',
         roomOptions: {
-            single: 'Habitación Individual (R$ 960/mes)',
-            suite: 'Suite Independiente',
-            studio: 'Estudio MoronaVila',
-            apartment: 'Apartamento Completo MoronaVila'
+            single: 'Habitación Individual (R$ 800/mes | Pareja R$ 1.100)',
+            suite: 'Suite Independiente (R$ 900/mes | Pareja R$ 1.200)',
+            studio: 'Studio MoronaVila (R$ 1.000/mes | Pareja R$ 1.350)',
+            apartment: 'Apartamento MoronaVila (R$ 1.700/mes)'
         },
         labelEntryDate: 'Fecha Prevista de Ingreso *',
         labelOccupation: 'Profesión / Ocupación Actual *',
@@ -1323,8 +1469,16 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                 habilitado: false,
                 motivo_bloqueio: 'Aguardando aprovação da administração.',
                 internet_active: false,
-                rent_value: 900,
-                cleaning_fee: 60,
+                rent_value: (() => {
+                    switch (formData.desired_room_type.trim()) {
+                        case 'Quarto Individual': return 800;
+                        case 'Suíte Independente': return 900;
+                        case 'Studio MoronaVila': return 1000;
+                        case 'Apartamento MoronaVila': return 1700;
+                        default: return 800;
+                    }
+                })(),
+                cleaning_fee: 0,
                 password: password.trim()
             });
 
@@ -1438,25 +1592,76 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                     </p>
                 </div>
 
-                {/* BANNER PROMOCIONAL E CONDIÇÕES FINANCEIRAS */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    {/* Card 1: Valor do Aluguel */}
-                    <div className="relative p-6 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm space-y-4 shadow-xl">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{rvt.standardRatesTitle}</span>
-                            <div className="p-2 rounded-xl bg-slate-800/80 text-rose-400">
-                                <DollarSign size={18} />
+                {/* VALORES PADRÃO E CONDIÇÕES FINANCEIRAS */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    {/* Card Principal: Valores Padrão por Unidade */}
+                    <div className="lg:col-span-2 relative p-6 sm:p-7 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm flex flex-col justify-between gap-6 shadow-xl">
+                        <div className="space-y-5">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-rose-400">
+                                        {rvt.standardRatesTitle}
+                                    </span>
+                                    <h3 className="text-lg sm:text-xl font-black text-white uppercase tracking-tight mt-0.5">
+                                        {rvt.standardRatesSubtitle}
+                                    </h3>
+                                </div>
+                                <div className="p-2.5 rounded-xl bg-slate-800/80 text-rose-400">
+                                    <DollarSign size={20} />
+                                </div>
+                            </div>
+
+                            {/* Grid com todas as 4 unidades */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                {rvt.unitRates.map((unit) => {
+                                    const UnitIcon = unit.icon === 'Bed' ? Bed : unit.icon === 'Home' ? Home : unit.icon === 'Layers' ? Layers : Sofa;
+                                    return (
+                                        <div
+                                            key={unit.id}
+                                            className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/90 flex flex-col justify-between hover:border-slate-700 hover:bg-slate-950 transition-all group"
+                                        >
+                                            <div className="flex items-start justify-between gap-2 mb-3">
+                                                <div>
+                                                    <h4 className="text-sm font-black text-white uppercase tracking-tight group-hover:text-rose-400 transition-colors">
+                                                        {unit.name}
+                                                    </h4>
+                                                    <p className="text-[11px] text-slate-400 leading-snug mt-0.5">
+                                                        {unit.desc}
+                                                    </p>
+                                                </div>
+                                                <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 shrink-0">
+                                                    <UnitIcon size={16} />
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-2.5 border-t border-slate-800/60 space-y-1">
+                                                <div className="flex items-baseline justify-between">
+                                                    <span className="text-2xl font-black text-white tracking-tight">
+                                                        {unit.price}
+                                                    </span>
+                                                    <span className="text-xs font-bold text-slate-400">
+                                                        {rvt.ratesPerMonth} {unit.priceNote && <span className="text-slate-500 font-normal">({unit.priceNote})</span>}
+                                                    </span>
+                                                </div>
+                                                {unit.couplePrice && (
+                                                    <div className="flex items-baseline justify-between text-xs text-slate-400">
+                                                        <span className="text-amber-300/90 font-bold">
+                                                            Casal: {unit.couplePrice}
+                                                        </span>
+                                                        <span className="text-slate-500 font-medium">
+                                                            {rvt.ratesPerMonth}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
-                        <div>
-                            <div className="text-3xl font-black text-white tracking-tight">
-                                R$ 960<span className="text-sm font-semibold text-slate-400">{rvt.ratesPerMonth}</span>
-                            </div>
-                            <p className="text-xs text-slate-400 mt-1">
-                                {rvt.rentAndCleaningNote}
-                            </p>
-                        </div>
-                        <div className="pt-3 border-t border-slate-800/60 text-xs text-slate-300 space-y-1">
+
+                        {/* Notas de Pagamento */}
+                        <div className="pt-4 border-t border-slate-800/60 text-xs text-slate-300 flex flex-wrap items-center gap-x-5 gap-y-2">
                             <div className="flex items-center gap-2">
                                 <Check size={14} className="text-emerald-400 shrink-0" />
                                 <span>{rvt.monthPeriodRef}</span>
@@ -1465,48 +1670,44 @@ export function RulesAcceptanceView({ onBack, currentUser }: RulesAcceptanceView
                                 <Check size={14} className="text-emerald-400 shrink-0" />
                                 <span>{rvt.paidInAdvance}</span>
                             </div>
+                            <div className="flex items-center gap-2">
+                                <Check size={14} className="text-emerald-400 shrink-0" />
+                                <span>{rvt.billsIncludedNote}</span>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Card 2: Promoção Especial até 10/11 */}
-                    <div className="relative p-6 rounded-3xl bg-gradient-to-br from-rose-950/40 via-slate-900/80 to-amber-950/30 border border-rose-500/40 backdrop-blur-sm space-y-4 shadow-2xl shadow-rose-950/30">
-                        <div className="inline-block px-3 py-1 rounded-full bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest animate-pulse">
-                            {rvt.exclusivePromoBadge}
-                        </div>
-                        <div>
-                            <div className="text-3xl font-black text-rose-400 tracking-tight flex items-baseline gap-2">
-                                R$ 860<span className="text-sm font-semibold text-slate-400">{rvt.ratesPerMonth}</span>
-                                <span className="text-xs line-through text-slate-500">R$ 960</span>
+                    {/* Card Lateral: Condições de Entrada & Caução */}
+                    <div className="relative p-6 sm:p-7 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm flex flex-col justify-between gap-6 shadow-xl">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{rvt.entryConditionsTitle}</span>
+                                <div className="p-2.5 rounded-xl bg-slate-800/80 text-amber-400">
+                                    <Calendar size={20} />
+                                </div>
                             </div>
-                            <p className="text-xs font-bold text-amber-300 mt-1">
-                                {rvt.promoDiscountNote}
-                            </p>
+                            <div className="space-y-2">
+                                <div className="text-base font-black text-white uppercase tracking-wider">
+                                    {rvt.depositPlusMonth}
+                                </div>
+                                <p className="text-xs text-slate-400 leading-relaxed">
+                                    {rvt.entryConditionsDesc}
+                                </p>
+                            </div>
+                            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 font-medium leading-relaxed">
+                                {rvt.depositCoversLastMonth}
+                            </div>
                         </div>
-                        <div className="pt-3 border-t border-rose-500/20 text-xs text-slate-300">
-                            <p className="leading-relaxed">
-                                {rvt.promoDetailsText}
-                            </p>
-                        </div>
-                    </div>
 
-                    {/* Card 3: Condições de Entrada & Caução */}
-                    <div className="relative p-6 rounded-3xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm space-y-4 shadow-xl">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{rvt.entryConditionsTitle}</span>
-                            <div className="p-2 rounded-xl bg-slate-800/80 text-amber-400">
-                                <Calendar size={18} />
+                        <div className="pt-4 border-t border-slate-800/60 text-xs text-slate-300 space-y-2">
+                            <div className="flex items-center gap-2">
+                                <Check size={14} className="text-emerald-400 shrink-0" />
+                                <span>{rvt.entryNoGuarantor}</span>
                             </div>
-                        </div>
-                        <div className="space-y-2">
-                            <div className="text-sm font-black text-white uppercase tracking-wider">
-                                {rvt.depositPlusMonth}
+                            <div className="flex items-center gap-2">
+                                <Check size={14} className="text-emerald-400 shrink-0" />
+                                <span>{rvt.entryNoticeDays}</span>
                             </div>
-                            <p className="text-xs text-slate-400 leading-relaxed">
-                                {rvt.entryConditionsDesc}
-                            </p>
-                        </div>
-                        <div className="pt-3 border-t border-slate-800/60 text-xs text-emerald-400 font-medium">
-                            {rvt.depositCoversLastMonth}
                         </div>
                     </div>
                 </div>
